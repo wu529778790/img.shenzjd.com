@@ -1,6 +1,4 @@
-# img.shenzjd.com
-
-服务器： <https://img.shenzjd.com>
+# img
 
 github pages: <https://wu529778790.github.io/img.shenzjd.com/>
 
