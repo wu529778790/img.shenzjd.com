@@ -1,6 +1,6 @@
 # img
 
-github pages: <https://wu529778790.github.io/img.shenzjd.com/>
+github pages: <https://wu529778790.github.io/img/>
 
 ## 利用`github仓库`当做图床存储的服务器
 
