@@ -70,16 +70,33 @@
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               分支
             </label>
-            <select
-              v-model="config.branch"
-              class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            >
-              <option value="main">main</option>
-              <option value="master">master</option>
-              <option value="gh-pages">gh-pages</option>
-            </select>
+            <div class="flex gap-2">
+              <select
+                v-model="config.branch"
+                :disabled="loadingBranches"
+                class="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="" disabled>选择分支</option>
+                <option v-for="branch in branches" :key="branch" :value="branch">
+                  {{ branch }}
+                </option>
+              </select>
+              <button
+                @click="loadBranches"
+                :disabled="loadingBranches || !config.repositoryOwner || !config.repositoryName"
+                class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                title="刷新分支列表"
+              >
+                <svg v-if="loadingBranches" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+            </div>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              选择要使用的分支
+              从 GitHub 仓库加载分支列表
             </p>
           </div>
 
@@ -87,22 +104,40 @@
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               存储目录
             </label>
-            <select
-              v-model="config.directory"
-              class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            >
-              <option value="images">images</option>
-              <option value="img">img</option>
-              <option value="assets">assets</option>
-              <option value="uploads">uploads</option>
-              <option value="public">public</option>
-              <option value="static">static</option>
-              <option value="pictures">pictures</option>
-              <option value="photos">photos</option>
-              <option value="gallery">gallery</option>
-            </select>
+            <div class="flex gap-2">
+              <select
+                v-model="config.directory"
+                :disabled="loadingDirectories"
+                class="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="" disabled>选择目录</option>
+                <option value="/">/ (根目录)</option>
+                <option value="images">images</option>
+                <option value="img">img</option>
+                <option value="assets">assets</option>
+                <option value="uploads">uploads</option>
+                <option value="public">public</option>
+                <option value="static">static</option>
+                <option v-for="dir in directories" :key="dir.path" :value="dir.path">
+                  {{ dir.name }}
+                </option>
+              </select>
+              <button
+                @click="loadDirectories"
+                :disabled="loadingDirectories || !config.repositoryOwner || !config.repositoryName || !config.branch"
+                class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                title="刷新目录列表"
+              >
+                <svg v-if="loadingDirectories" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+            </div>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              图片存储的目录路径
+              从 GitHub 仓库加载目录列表（需先选择分支）
             </p>
           </div>
         </div>
@@ -270,6 +305,8 @@
 </template>
 
 <script setup lang="ts">
+import { watch } from 'vue'
+
 const authStore = useAuthStore()
 const configStore = useConfigStore()
 const toastStore = useToastStore()
@@ -293,6 +330,100 @@ const loadingGitHub = ref(false)
 
 const repoStatus = ref<{ type: 'success' | 'error'; message: string } | null>(null)
 const repoInfo = ref<any>(null)
+
+// 分支和目录列表
+const branches = ref<string[]>([])
+const directories = ref<Array<{ path: string; name: string }>>([])
+const loadingBranches = ref(false)
+const loadingDirectories = ref(false)
+
+// 监听仓库信息变化，自动加载分支
+watch(() => [config.value.repositoryOwner, config.value.repositoryName], async ([owner, repo]) => {
+  if (owner && repo) {
+    await loadBranches()
+  }
+}, { immediate: false })
+
+// 监听分支变化，自动加载目录
+watch(() => config.value.branch, async (branch) => {
+  if (branch) {
+    await loadDirectories()
+  }
+}, { immediate: false })
+
+// 加载分支列表
+const loadBranches = async () => {
+  if (!config.value.repositoryOwner || !config.value.repositoryName) {
+    toastStore.error('请先填写仓库信息')
+    return
+  }
+
+  loadingBranches.value = true
+  branches.value = []
+
+  try {
+    const response = await $fetch('/api/repo/branches', {
+      query: {
+        owner: config.value.repositoryOwner,
+        name: config.value.repositoryName
+      },
+      headers: useRequestHeaders(['cookie'])
+    }) as any
+
+    if (response && response.branches) {
+      branches.value = response.branches
+      // 如果当前分支不在列表中，清空
+      if (config.value.branch && !branches.value.includes(config.value.branch)) {
+        // 保留原有选择，因为它可能是有效的
+      }
+      toastStore.success(`加载了 ${branches.value.length} 个分支`)
+    }
+  } catch (error: any) {
+    console.error('加载分支失败:', error)
+    toastStore.error(error.message || '加载分支失败')
+  } finally {
+    loadingBranches.value = false
+  }
+}
+
+// 加载目录列表
+const loadDirectories = async () => {
+  if (!config.value.repositoryOwner || !config.value.repositoryName || !config.value.branch) {
+    toastStore.error('请先填写仓库信息和选择分支')
+    return
+  }
+
+  loadingDirectories.value = true
+  directories.value = []
+
+  try {
+    const response = await $fetch('/api/repo/contents', {
+      query: {
+        owner: config.value.repositoryOwner,
+        name: config.value.repositoryName,
+        path: '',
+        ref: config.value.branch
+      },
+      headers: useRequestHeaders(['cookie'])
+    }) as any
+
+    if (response && Array.isArray(response)) {
+      // 只显示目录，过滤文件
+      directories.value = response
+        .filter((item: any) => item.type === 'dir')
+        .map((item: any) => ({
+          path: item.path,
+          name: item.name
+        }))
+      toastStore.success(`加载了 ${directories.value.length} 个目录`)
+    }
+  } catch (error: any) {
+    console.error('加载目录失败:', error)
+    toastStore.error(error.message || '加载目录失败')
+  } finally {
+    loadingDirectories.value = false
+  }
+}
 
 // 加载现有配置
 onMounted(async () => {
