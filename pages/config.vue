@@ -70,24 +70,37 @@
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               分支
             </label>
-            <input
+            <select
               v-model="config.branch"
-              type="text"
-              placeholder="main"
               class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
+            >
+              <option value="main">main</option>
+              <option value="master">master</option>
+              <option value="gh-pages">gh-pages</option>
+            </select>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              选择要使用的分支
+            </p>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               存储目录
             </label>
-            <input
+            <select
               v-model="config.directory"
-              type="text"
-              placeholder="images"
               class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
+            >
+              <option value="images">images</option>
+              <option value="img">img</option>
+              <option value="assets">assets</option>
+              <option value="uploads">uploads</option>
+              <option value="public">public</option>
+              <option value="static">static</option>
+              <option value="pictures">pictures</option>
+              <option value="photos">photos</option>
+              <option value="gallery">gallery</option>
+            </select>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
               图片存储的目录路径
             </p>
