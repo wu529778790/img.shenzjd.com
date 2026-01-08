@@ -16,7 +16,6 @@
 - 📤 **批量上传** - 支持拖拽、多文件上传
 - 🎨 **图片处理** - 压缩、加水印等工具
 - 📋 **文件管理** - 查看、重命名、删除已上传文件
-- 🌐 **多语言支持** - 简体中文、繁体中文、English
 - 🎨 **深色模式** - 完整的深色模式支持
 - 🔧 **工具箱** - Base64 转换、URL 生成、批量重命名等
 
@@ -52,11 +51,8 @@ cp .env.example .env
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
 
-# JWT 密钥 (生产环境请使用强密码)
+# JWT 密钥 (必须配置，生成命令: openssl rand -base64 32)
 JWT_SECRET=your_jwt_secret_key_change_this_in_production
-
-# 可选: 自定义域名
-# CUSTOM_DOMAIN=https://cdn.example.com
 ```
 
 ### 3. 安装依赖
@@ -140,10 +136,6 @@ img.shenzjd.com/
 │   ├── management.ts         # 管理状态
 │   └── toast.ts              # 通知状态
 │
-├── locales/                   # 3 种语言文件
-│   ├── zh-CN.json            # 简体中文
-│   ├── zh-TW.json            # 繁体中文
-│   └── en.json               # 英文
 │
 └── components/                # 组件
     └── Navigation.vue         # 导航菜单
@@ -373,7 +365,6 @@ interface StorageConfig {
 │                                         │
 │ ┌─ 外观设置 ─────────────────────────┐ │
 │ │ 主题: [深色] [浅色] [自动]           │ │
-│ │ 语言: [简体中文] [繁体中文] [English]│ │
 │ │ 组件大小: [小] [默认] [大]           │ │
 │ └─────────────────────────────────────┘ │
 │                                         │
@@ -438,9 +429,9 @@ interface StorageConfig {
 | 3. 仓库管理 | ✅ | 仓库操作 API + 配置页面 |
 | 4. 上传功能 | ✅ | 单图/批量上传 + 图片处理 |
 | 5. 文件管理 | ✅ | 列表/删除/重命名/预览 |
-| 6. 设置系统 | ✅ | 主题/语言/配置/备份 |
+| 6. 设置系统 | ✅ | 主题/配置/备份 |
 | 7. 工具箱 | ✅ | 5 个实用工具 |
-| 8. 国际化 | ✅ | 3 种语言 + 深色模式 |
+| 8. UI 优化 | ✅ | 深色模式 + 响应式设计 |
 | 9. 测试优化 | ⏳ | 单元测试 + E2E + 性能优化 |
 | 10. 部署文档 | ⏳ | Docker + CI/CD + 文档 |
 
@@ -453,8 +444,7 @@ interface StorageConfig {
 | Pinia 商店 | 5 个 |
 | 工具函数 | 2 个 |
 | 中间件 | 1 个 |
-| 语言文件 | 3 种 |
-| 构建大小 | 2.49 MB (615 kB gzip) |
+| 构建大小 | 2.31 MB (587 kB gzip) |
 
 ---
 
@@ -499,22 +489,13 @@ interface StorageConfig {
 | **样式** | TailwindCSS 3.4.0 | 实用优先 |
 | **HTTP** | $fetch (Nuxt 内置) | 原生集成 |
 | **JWT** | jose 5.9.6 | 安全处理 |
-| **国际化** | @nuxtjs/i18n 9.5.6 | 多语言 |
 | **日期处理** | date-fns 3.6.0 | 日期格式化 |
 | **压缩** | jszip 3.10.1 | 批量压缩 |
 
 ---
 
-## 🌐 国际化与主题
+## 🌐 主题模式
 
-### 支持语言
-- 简体中文 (zh-CN)
-- 繁体中文 (zh-TW)
-- English (en)
-
-语言会根据浏览器设置自动选择，也可以在设置页面手动切换。
-
-### 主题模式
 - **Light**: 亮色模式
 - **Dark**: 暗色模式
 - **Auto**: 跟随系统设置
@@ -583,7 +564,7 @@ CMD ["node", ".output/server/index.mjs"]
 - 环境变量配置:
   - `GITHUB_CLIENT_ID`
   - `GITHUB_CLIENT_SECRET`
-  - `JWT_SECRET`
+  - `JWT_SECRET` (必须配置)
 
 ### 生产环境检查清单
 - [ ] 设置 `.env` 环境变量
