@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { apiFetch } from '~/utils/api-fetch'
 
 export interface FileItem {
   name: string
@@ -52,7 +53,6 @@ export const useManagementStore = defineStore('management', {
      * 加载文件列表
      */
     async loadFileList(path: string = '') {
-      const { $fetch } = useNuxtApp()
       const configStore = useConfigStore()
       const authStore = useAuthStore()
 
@@ -62,7 +62,7 @@ export const useManagementStore = defineStore('management', {
       this.currentPath = path
 
       try {
-        const response = await $fetch('/api/management/list', {
+        const response = await apiFetch('/api/management/list', {
           query: {
             owner: configStore.config.storage.repository.owner,
             repo: configStore.config.storage.repository.name,
@@ -143,14 +143,13 @@ export const useManagementStore = defineStore('management', {
      * 删除单个文件
      */
     async deleteFile(file: FileItem) {
-      const { $fetch } = useNuxtApp()
       const configStore = useConfigStore()
       const toastStore = useToastStore()
 
       if (!configStore.config) return false
 
       try {
-        await $fetch('/api/management/delete', {
+        await apiFetch('/api/management/delete', {
           method: 'DELETE',
           body: {
             path: file.path,
@@ -270,7 +269,6 @@ export const useManagementStore = defineStore('management', {
      * 重命名文件
      */
     async renameFile(file: FileItem, newName: string) {
-      const { $fetch } = useNuxtApp()
       const configStore = useConfigStore()
       const toastStore = useToastStore()
 
@@ -281,7 +279,7 @@ export const useManagementStore = defineStore('management', {
       const newPath = directory ? `${directory}/${newName}` : newName
 
       try {
-        await $fetch('/api/management/rename', {
+        await apiFetch('/api/management/rename', {
           method: 'PATCH',
           body: {
             oldPath,

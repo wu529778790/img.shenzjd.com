@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { apiFetch } from '~/utils/api-fetch'
 
 export interface User {
   id: number
@@ -73,8 +74,7 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
-        const { $fetch } = useNuxtApp()
-        const response = await $fetch('/api/auth/verify', {
+        const response = await apiFetch('/api/auth/verify', {
           headers: {
             'Authorization': `Bearer ${this.token}`
           }
@@ -97,8 +97,7 @@ export const useAuthStore = defineStore('auth', {
      */
     async logout() {
       try {
-        const { $fetch } = useNuxtApp()
-        await $fetch('/api/auth/logout', {
+        await apiFetch('/api/auth/logout', {
           method: 'POST'
         })
       } catch (error) {

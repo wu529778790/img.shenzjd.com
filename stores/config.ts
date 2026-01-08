@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { apiFetch } from '~/utils/api-fetch'
 
 export interface StorageConfig {
   repository: {
@@ -83,7 +84,6 @@ export const useConfigStore = defineStore('config', {
      * 从云端加载配置
      */
     async loadConfig() {
-      const { $fetch } = useNuxtApp()
       const authStore = useAuthStore()
 
       if (!authStore.isAuthenticated) {
@@ -93,7 +93,7 @@ export const useConfigStore = defineStore('config', {
       this.loading = true
 
       try {
-        const response = await $fetch('/api/user/config', {
+        const response = await apiFetch('/api/user/config', {
           query: {
             owner: authStore.user?.login,
             repo: 'img.shenzjd.com'
@@ -118,7 +118,6 @@ export const useConfigStore = defineStore('config', {
      * 保存配置到云端
      */
     async saveConfig() {
-      const { $fetch } = useNuxtApp()
       const authStore = useAuthStore()
       const toastStore = useToastStore()
 
@@ -133,7 +132,7 @@ export const useConfigStore = defineStore('config', {
         // 更新最后同步时间
         this.config.lastSync = new Date().toISOString()
 
-        const response = await $fetch('/api/user/config', {
+        const response = await apiFetch('/api/user/config', {
           method: 'PUT',
           body: {
             config: this.config,
@@ -278,13 +277,12 @@ export const useConfigStore = defineStore('config', {
      * 获取仓库列表
      */
     async loadRepoList() {
-      const { $fetch } = useNuxtApp()
       const authStore = useAuthStore()
 
       if (!authStore.isAuthenticated) return
 
       try {
-        const response = await $fetch('/api/repo/list')
+        const response = await apiFetch('/api/repo/list')
         this.repoList = response.data || []
       } catch (error) {
         console.error('Load repo list error:', error)
@@ -295,10 +293,8 @@ export const useConfigStore = defineStore('config', {
      * 获取分支列表
      */
     async loadBranchList(owner: string, repo: string) {
-      const { $fetch } = useNuxtApp()
-
       try {
-        const response = await $fetch('/api/repo/branches', {
+        const response = await apiFetch('/api/repo/branches', {
           query: { owner, repo }
         })
         this.branchList = response.data || []
@@ -312,11 +308,10 @@ export const useConfigStore = defineStore('config', {
      * 创建新仓库
      */
     async createRepository(name: string, description: string, isPrivate: boolean) {
-      const { $fetch } = useNuxtApp()
       const toastStore = useToastStore()
 
       try {
-        const response = await $fetch('/api/repo/create', {
+        const response = await apiFetch('/api/repo/create', {
           method: 'POST',
           body: {
             name,
@@ -339,13 +334,12 @@ export const useConfigStore = defineStore('config', {
      * 初始化仓库
      */
     async initRepository() {
-      const { $fetch } = useNuxtApp()
       const toastStore = useToastStore()
 
       if (!this.config) return false
 
       try {
-        const response = await $fetch('/api/repo/init', {
+        const response = await apiFetch('/api/repo/init', {
           method: 'POST',
           body: {
             owner: this.config.storage.repository.owner,

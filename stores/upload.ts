@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { apiFetch } from '~/utils/api-fetch'
 
 export interface UploadFile {
   id: string
@@ -96,7 +97,6 @@ export const useUploadStore = defineStore('upload', {
      * 上传单个文件
      */
     async uploadFile(file: UploadFile) {
-      const { $fetch } = useNuxtApp()
       const configStore = useConfigStore()
       const toastStore = useToastStore()
 
@@ -114,7 +114,7 @@ export const useUploadStore = defineStore('upload', {
         const base64 = await this.fileToBase64(file.file)
 
         // 上传到服务器
-        const response = await $fetch('/api/upload/image', {
+        const response = await apiFetch('/api/upload/image', {
           method: 'PUT',
           body: {
             content: base64,

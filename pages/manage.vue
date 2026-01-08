@@ -313,6 +313,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useAuthStore } from '~/stores/auth'
 import { useConfigStore } from '~/stores/config'
 import { useToastStore } from '~/stores/toast'
 
@@ -325,6 +326,7 @@ interface FileItem {
   sha: string
 }
 
+const authStore = useAuthStore()
 const configStore = useConfigStore()
 const toastStore = useToastStore()
 
