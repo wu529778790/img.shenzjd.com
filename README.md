@@ -33,7 +33,7 @@
 
 1. 访问 [GitHub Developer Settings](https://github.com/settings/developers)
 2. 创建新的 OAuth App
-3. 设置 Authorization callback URL 为: `http://localhost:3000/api/auth/callback`
+3. 设置 Authorization callback URL 为: `http://localhost:3010/api/auth/callback`
 4. 获取 Client ID 和 Client Secret
 
 ### 2. 环境配置
@@ -67,7 +67,7 @@ pnpm install
 pnpm dev
 ```
 
-访问 http://localhost:3000
+访问 http://localhost:3010
 
 ### 5. 构建生产版本
 
@@ -216,8 +216,7 @@ interface StorageConfig {
   }
   links: {
     format: 'markdown' | 'html' | 'bbcode' | 'plain'
-    cdn: 'github' | 'jsdelivr' | 'custom'
-    customDomain: string
+    cdn: 'github' | 'jsdelivr'
   }
 }
 ```
@@ -279,8 +278,7 @@ interface StorageConfig {
 │                                         │
 │ ┌─ 链接格式 ─────────────────────────┐ │
 │ │ 格式: [Markdown] [HTML] [BBCode]    │ │
-│ │ CDN: [GitHub] [jsDelivr] [自定义]   │ │
-│ │ 自定义域名: https://cdn.example.com │ │
+│ │ CDN: [GitHub] [jsDelivr]            │ │
 │ └─────────────────────────────────────┘ │
 │                                         │
 │ [保存配置] [重置为默认] [导出配置]      │
