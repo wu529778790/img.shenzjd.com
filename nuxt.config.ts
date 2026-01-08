@@ -43,9 +43,9 @@ export default defineNuxtConfig({
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
     },
     jwt: {
-      // 生产环境必须配置 JWT_SECRET
-      // 开发环境会自动生成临时密钥
-      secret: process.env.JWT_SECRET || undefined,
+      // 必须配置 JWT_SECRET 环境变量
+      // 生成命令: openssl rand -base64 32
+      secret: process.env.JWT_SECRET,
     },
     // 公共配置
     public: {
