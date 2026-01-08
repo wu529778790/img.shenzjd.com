@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Install dependencies
 pnpm install
 
-# Development server (localhost:3000)
+# Development server (localhost:3010)
 pnpm dev
 
 # Type checking
@@ -26,9 +26,9 @@ pnpm preview
 Copy `.env.example` to `.env` and configure:
 - `GITHUB_CLIENT_ID` - From GitHub OAuth App settings
 - `GITHUB_CLIENT_SECRET` - From GitHub OAuth App settings
-- `JWT_SECRET` - Strong random secret for token signing
+- `JWT_SECRET` - Strong random secret for token signing (required)
 
-GitHub OAuth App callback URL: `http://localhost:3000/api/auth/callback`
+GitHub OAuth App callback URL: `http://localhost:3010/api/auth/callback`
 
 ## Architecture Overview
 
@@ -43,7 +43,7 @@ This is a **Nuxt 4 SSR application** with GitHub OAuth authentication. Users sto
 5. All API routes (except auth endpoints) protected by server middleware
 
 **Key files:**
-- `server/middleware/auth.ts` - Auth middleware for protected routes
+- `server/middleware/auth.ts` - Auth middleware (non-blocking, sets `event.context.auth`)
 - `server/utils/jwt.ts` - JWT generation/verification using `jose`
 - `server/utils/github.ts` - GitHub API wrapper using `ofetch`
 
@@ -76,20 +76,21 @@ All protected routes receive `event.context.auth` with user data from JWT.
 
 ### State Management (Pinia Stores)
 
-- `stores/auth.ts` - Authentication state, `initAuth()` restores from cookie
+- `stores/auth.ts` - Authentication state, `initAuth()` uses `useFetch` for cookie handling
 - `stores/config.ts` - Storage configuration
 - `stores/upload.ts` - Upload queue/progress
 - `stores/management.ts` - File list/management
 - `stores/toast.ts` - Notification system
 
-### Internationalization
+### Key UI Components
 
-3 languages: `zh-CN`, `zh-TW`, `en`. Locale files in `locales/`. Uses `@nuxtjs/i18n` with prefix strategy (default: `zh-CN`).
-
-### Styling
-
-- **Tailwind CSS** - Utility classes, config in `tailwind.config.ts`
-- **Element Plus** - UI components, dark theme enabled in `nuxt.config.ts`
+- `pages/config.vue` - Configuration page with dynamic GitHub data loading
+- `pages/index.vue` - Landing page with login引导
+- `pages/upload.vue` - Image upload interface
+- `pages/manage.vue` - File management
+- `pages/settings.vue` - Application settings
+- `pages/tools.vue` - Utility tools
+- `pages/login.vue` - Login page (redirects to GitHub OAuth)
 
 ## Important Constraints
 
@@ -98,6 +99,9 @@ All protected routes receive `event.context.auth` with user data from JWT.
 3. **Server routes must use `getTokenFromCookie()` or `getTokenFromHeader()`** - from `server/utils/jwt.ts`
 4. **All GitHub API calls go through `server/utils/github.ts`** - uses `ofetch` with Bearer auth
 5. **JWT expires in 7 days** - hardcoded in `generateToken()`
+6. **JWT_SECRET is required** - must be configured in `.env`, no auto-generation
+7. **Auth middleware is non-blocking** - allows pages to load without auth, shows引导界面
+8. **Client-side cookie handling** - Use `useFetch` not `$fetch` to automatically send httpOnly cookies
 
 ## Common Patterns
 
@@ -107,6 +111,11 @@ All protected routes receive `event.context.auth` with user data from JWT.
 // server/api/some-route.get.ts
 export default defineEventHandler(async (event) => {
   const auth = event.context.auth  // { id, login, email, avatarUrl }
+
+  if (!auth) {
+    throw createError({ statusCode: 401, message: '未登录' })
+  }
+
   // ... your logic
 })
 ```
@@ -115,7 +124,13 @@ export default defineEventHandler(async (event) => {
 
 ```typescript
 // JWT automatically sent via cookie
-const data = await $fetch('/api/user/config')
+// Use useFetch for SSR + cookie support
+const { data, error } = await useFetch('/api/user/config')
+
+// Or use $fetch with explicit headers
+const data = await $fetch('/api/user/config', {
+  headers: useRequestHeaders(['cookie'])
+})
 ```
 
 ### GitHub API calls from server:
@@ -126,3 +141,29 @@ import { createGitHubFetcher } from '~/server/utils/github'
 const fetcher = createGitHubFetcher(accessToken)
 const repos = await fetcher('/user/repos?per_page=100')
 ```
+
+### Dynamic data loading in pages:
+
+```typescript
+// pages/config.vue - Load branches from GitHub
+const loadBranches = async () => {
+  const response = await $fetch('/api/repo/branches', {
+    query: { owner, name },
+    headers: useRequestHeaders(['cookie'])
+  })
+  branches.value = response.branches
+}
+
+// Auto-load on user input
+watch(() => [owner, repo], async () => {
+  if (owner && repo) await loadBranches()
+})
+```
+
+## Important Notes
+
+- **Port**: Development server runs on port 3010 (not 3000)
+- **Language**: All UI text is in Chinese (no i18n)
+- **Theme**: Dark mode supported via Element Plus + Tailwind
+- **Cookie handling**: Client must use `useFetch` or `useRequestHeaders(['cookie'])` to send auth cookies
+- **Auth state**: `authStore.initAuth()` should be called in `onMounted` to restore session
