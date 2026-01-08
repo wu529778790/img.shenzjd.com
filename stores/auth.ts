@@ -35,24 +35,23 @@ export const useAuthStore = defineStore('auth', {
      * 初始化认证状态（从 Cookie 恢复）
      */
     async initAuth() {
-      // 使用 useFetch 确保请求携带 cookie
-      const { data, error } = await useFetch('/api/auth/verify', {
-        method: 'GET'
-      })
+      try {
+        // 使用 apiFetch 从 cookie 中恢复认证状态
+        const response = await apiFetch('/api/auth/verify', {
+          method: 'GET'
+        })
 
-      if (error.value) {
-        // 如果是 401 错误，说明未登录，这是正常情况
-        if (error.value.statusCode !== 401) {
-          console.error('Auth init error:', error.value)
+        if (response.valid) {
+          this.user = response.user
+          this.isAuthenticated = true
+        } else {
+          this.clearAuth()
         }
-        this.clearAuth()
-        return
-      }
-
-      if (data.value && data.value.valid) {
-        this.user = data.value.user
-        this.isAuthenticated = true
-      } else {
+      } catch (error: any) {
+        // 如果是 401 错误，说明未登录，这是正常情况
+        if (error?.statusCode !== 401) {
+          console.error('Auth init error:', error)
+        }
         this.clearAuth()
       }
     },

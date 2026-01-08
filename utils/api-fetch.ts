@@ -5,13 +5,20 @@ import { ofetch } from 'ofetch'
  * Works in both client and server contexts
  */
 export async function apiFetch(url: string, options: any = {}) {
-  // Use ofetch directly - it handles cookies automatically on same-origin requests
-  // For server-side, we need to construct the full URL
-  let fullUrl = url
+  // Client-side: use ofetch with credentials for cookie handling
+  if (process.client) {
+    return await ofetch(url, {
+      ...options,
+      credentials: 'include'
+    })
+  }
 
-  // On server side, prepend the API base URL if it's a relative path
-  if (!process.client && url.startsWith('/')) {
-    // Try to get runtime config, but fall back to '/api'
+  // Server-side: use ofetch with baseURL
+  // On server, we need to construct the full URL for external requests
+  // or use internal routing for same-server requests
+  let fullUrl = url
+  if (url.startsWith('/')) {
+    // Get the base URL from runtime config
     let baseURL = '/api'
     try {
       const config = useRuntimeConfig()
@@ -22,9 +29,5 @@ export async function apiFetch(url: string, options: any = {}) {
     fullUrl = baseURL + url
   }
 
-  // Use ofetch with credentials for cookie handling
-  return await ofetch(fullUrl, {
-    ...options,
-    credentials: 'include'
-  })
+  return await ofetch(fullUrl, options)
 }
