@@ -5,45 +5,6 @@
         设置
       </h1>
 
-      <!-- Language Settings -->
-      <div class="mb-8">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          语言设置
-        </h2>
-        <div class="space-y-2">
-          <label class="flex items-center gap-3 cursor-pointer">
-            <input
-              type="radio"
-              name="language"
-              value="zh-CN"
-              v-model="locale"
-              class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-            />
-            <span class="text-gray-700 dark:text-gray-300">简体中文</span>
-          </label>
-          <label class="flex items-center gap-3 cursor-pointer">
-            <input
-              type="radio"
-              name="language"
-              value="zh-TW"
-              v-model="locale"
-              class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-            />
-            <span class="text-gray-700 dark:text-gray-300">繁體中文</span>
-          </label>
-          <label class="flex items-center gap-3 cursor-pointer">
-            <input
-              type="radio"
-              name="language"
-              value="en"
-              v-model="locale"
-              class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-            />
-            <span class="text-gray-700 dark:text-gray-300">English</span>
-          </label>
-        </div>
-      </div>
-
       <!-- Theme Settings -->
       <div class="mb-8">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
@@ -279,11 +240,9 @@
 import { ref, watch } from 'vue'
 import { useConfigStore } from '~/stores/config'
 import { useToastStore } from '~/stores/toast'
-import { useI18n } from 'vue-i18n'
 
 const configStore = useConfigStore()
 const toastStore = useToastStore()
-const { locale } = useI18n()
 
 const saving = ref(false)
 const importInput = ref<HTMLInputElement | null>(null)
@@ -306,11 +265,6 @@ const theme = ref<'light' | 'dark' | 'auto'>('auto')
 watch(theme, (newTheme) => {
   applyTheme(newTheme)
   localStorage.setItem('theme', newTheme)
-})
-
-// 监听语言变化
-watch(locale, (newLocale) => {
-  localStorage.setItem('locale', newLocale)
 })
 
 // 应用主题
@@ -338,11 +292,6 @@ const loadSettings = async () => {
     if (savedTheme) {
       theme.value = savedTheme
       applyTheme(savedTheme)
-    }
-
-    const savedLocale = localStorage.getItem('locale')
-    if (savedLocale) {
-      locale.value = savedLocale
     }
 
     const savedSettings = localStorage.getItem('userSettings')
@@ -377,7 +326,6 @@ const saveSettings = async () => {
     // 保存到 localStorage
     localStorage.setItem('userSettings', JSON.stringify(settings.value))
     localStorage.setItem('theme', theme.value)
-    localStorage.setItem('locale', locale.value)
 
     // 同步到配置 store
     if (configStore.config) {
@@ -405,7 +353,6 @@ const exportSettings = () => {
   const exportData = {
     settings: settings.value,
     theme: theme.value,
-    locale: locale.value,
     exportDate: new Date().toISOString(),
     version: '2.0.0'
   }
@@ -440,14 +387,10 @@ const importSettings = async (event: Event) => {
         theme.value = data.theme
         applyTheme(data.theme)
       }
-      if (data.locale) {
-        locale.value = data.locale
-      }
 
       // 保存到 localStorage
       localStorage.setItem('userSettings', JSON.stringify(settings.value))
       localStorage.setItem('theme', theme.value)
-      localStorage.setItem('locale', locale.value)
 
       toastStore.success('导入成功')
     } catch (error) {
@@ -477,7 +420,6 @@ const clearCache = () => {
       watermarkPosition: 'bottom-right'
     }
     theme.value = 'auto'
-    locale.value = 'zh-CN'
 
     toastStore.success('缓存已清除')
   }

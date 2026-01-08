@@ -6,7 +6,10 @@ export default defineEventHandler((event) => {
   const config = useRuntimeConfig()
 
   const clientId = config.github.clientId
-  const redirectUri = `${config.public.apiBase}/auth/callback`
+  // 构建完整的回调 URL
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
+  const host = getRequestHeader(event, 'host') || 'localhost:3000'
+  const redirectUri = `${protocol}://${host}/api/auth/callback`
 
   // 构建 GitHub 授权 URL
   const authUrl = `https://github.com/login/oauth/authorize?` +
