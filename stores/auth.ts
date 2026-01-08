@@ -34,30 +34,24 @@ export const useAuthStore = defineStore('auth', {
      * 初始化认证状态（从 Cookie 恢复）
      */
     async initAuth() {
-      const { $fetch } = useNuxtApp()
+      // 使用 useFetch 确保请求携带 cookie
+      const { data, error } = await useFetch('/api/auth/verify', {
+        method: 'GET'
+      })
 
-      // 检查是否存在 auth_token cookie
-      const cookie = useCookie('auth_token')
-      if (!cookie.value) {
+      if (error.value) {
+        // 如果是 401 错误，说明未登录，这是正常情况
+        if (error.value.statusCode !== 401) {
+          console.error('Auth init error:', error.value)
+        }
         this.clearAuth()
         return
       }
 
-      try {
-        // 验证 token
-        const response = await $fetch('/api/auth/verify', {
-          headers: {
-            'Authorization': `Bearer ${cookie.value}`
-          }
-        })
-
-        if (response.valid) {
-          this.user = response.user
-          this.token = cookie.value
-          this.isAuthenticated = true
-        }
-      } catch (error) {
-        console.error('Auth init error:', error)
+      if (data.value && data.value.valid) {
+        this.user = data.value.user
+        this.isAuthenticated = true
+      } else {
         this.clearAuth()
       }
     },
@@ -121,19 +115,8 @@ export const useAuthStore = defineStore('auth', {
       this.user = null
       this.token = null
       this.isAuthenticated = false
-
-      // 清除 cookie
-      const cookie = useCookie('auth_token')
-      cookie.value = null
-    },
-
-    /**
-     * 设置 token（用于回调处理）
-     */
-    setToken(token: string) {
-      this.token = token
-      const cookie = useCookie('auth_token')
-      cookie.value = token
+      // 注意：httpOnly cookie 无法通过客户端 JavaScript 清除
+      // 需要通过服务端 API 清除
     }
   }
 })

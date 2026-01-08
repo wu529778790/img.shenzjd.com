@@ -283,6 +283,9 @@ const repoInfo = ref<any>(null)
 
 // 加载现有配置
 onMounted(async () => {
+  // 首先初始化认证状态
+  await authStore.initAuth()
+
   if (authStore.isAuthenticated) {
     try {
       await configStore.loadConfig()

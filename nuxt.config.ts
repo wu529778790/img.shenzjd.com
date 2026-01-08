@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: "2025-07-15",
 
   // 开发工具
   devtools: { enabled: true },
@@ -8,37 +8,31 @@ export default defineNuxtConfig({
   // 应用配置
   app: {
     head: {
-      title: '图床应用 - GitHub OAuth',
+      title: "图床应用 - GitHub OAuth",
       meta: [
-        { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: '基于 GitHub OAuth 的现代化图床应用' },
-        { name: 'theme-color', content: '#4975c6' }
+        { charset: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { name: "description", content: "基于 GitHub OAuth 的现代化图床应用" },
+        { name: "theme-color", content: "#4975c6" },
       ],
-      link: [
-        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }
-      ]
-    }
+      link: [{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }],
+    },
   },
 
   // 模块配置
-  modules: [
-    '@nuxtjs/tailwindcss',
-    '@element-plus/nuxt',
-    '@pinia/nuxt'
-  ],
+  modules: ["@nuxtjs/tailwindcss", "@element-plus/nuxt", "@pinia/nuxt"],
 
   // TailwindCSS 配置
   tailwindcss: {
-    configPath: 'tailwind.config.ts',
+    configPath: "tailwind.config.ts",
     exposeConfig: false,
-    viewer: true
+    viewer: true,
   },
 
   // Element Plus 配置
   elementPlus: {
-    importStyle: 'css',
-    themes: ['dark']
+    importStyle: "css",
+    themes: ["dark"],
   },
 
   // 运行时配置
@@ -46,21 +40,21 @@ export default defineNuxtConfig({
     // 服务端私有配置
     github: {
       clientId: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
     },
     jwt: {
       // 生产环境必须配置 JWT_SECRET
       // 开发环境会自动生成临时密钥
-      secret: process.env.JWT_SECRET || undefined
+      secret: process.env.JWT_SECRET || undefined,
     },
     // 公共配置
     public: {
-      apiBase: '/api',
-      githubOAuthUrl: 'https://github.com/login/oauth/authorize',
-      githubApiUrl: 'https://api.github.com',
-      defaultRepoOwner: 'wu529778790',
-      defaultRepoName: 'img.shenzjd.com'
-    }
+      apiBase: "/api",
+      githubOAuthUrl: "https://github.com/login/oauth/authorize",
+      githubApiUrl: "https://api.github.com",
+      defaultRepoOwner: "wu529778790",
+      defaultRepoName: "img.shenzjd.com",
+    },
   },
 
   // TypeScript 配置
@@ -79,31 +73,31 @@ export default defineNuxtConfig({
         noUnusedParameters: false,
         allowUnreachableCode: true,
         noFallthroughCasesInSwitch: false,
-        noUncheckedIndexedAccess: false
-      }
-    }
+        noUncheckedIndexedAccess: false,
+      },
+    },
   },
 
   // 构建配置
   build: {
-    transpile: ['element-plus']
+    transpile: ["element-plus"],
   },
 
   // 开发服务器
   devServer: {
-    port: 3000,
-    host: 'localhost'
+    port: 3010,
+    host: "localhost",
   },
 
   // 路由别名
   alias: {
-    '@': '.'
+    "@": ".",
   },
 
   // 优化
   experimental: {
     payloadExtraction: true,
-    asyncContext: true
+    asyncContext: true,
   },
 
   // SSR 配置
@@ -113,8 +107,8 @@ export default defineNuxtConfig({
   nitro: {
     esbuild: {
       options: {
-        target: 'esnext'
-      }
-    }
-  }
-})
+        target: "esnext",
+      },
+    },
+  },
+});
