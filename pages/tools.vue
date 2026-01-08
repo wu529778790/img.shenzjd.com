@@ -2,7 +2,7 @@
   <div class="max-w-6xl mx-auto">
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        {{ $t('tools.title') }}
+        工具箱
       </h1>
 
       <!-- Tool Tabs -->
@@ -20,16 +20,16 @@
 
       <!-- Base64 Converter -->
       <div v-if="currentTool === 'base64'" class="space-y-4">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $t('tools.base64Title') }}</h2>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Base64 编解码</h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('tools.input') }}
+              输入
             </label>
             <textarea
               v-model="base64Input"
-              :placeholder="$t('tools.base64Placeholder')"
+              placeholder="输入文本或选择文件..."
               class="w-full h-32 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-xs"
             ></textarea>
             <div class="mt-2 flex gap-2">
@@ -44,25 +44,25 @@
                 @click="$refs.base64FileInput?.click()"
                 class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
               >
-                {{ $t('tools.fileToBase64') }}
+                选择文件
               </button>
               <button
                 @click="convertToBase64"
                 class="px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-sm rounded transition-colors"
               >
-                {{ $t('tools.convert') }}
+                转换
               </button>
             </div>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('tools.output') }}
+              输出
             </label>
             <textarea
               v-model="base64Output"
               readonly
-              :placeholder="$t('tools.outputPlaceholder')"
+              placeholder="转换结果..."
               class="w-full h-32 px-3 py-2 bg-gray-50 dark:bg-gray-900/30 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white font-mono text-xs"
             ></textarea>
             <div class="mt-2 flex gap-2">
@@ -71,14 +71,14 @@
                 :disabled="!base64Output"
                 class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {{ $t('tools.copy') }}
+                复制
               </button>
               <button
                 @click="downloadBase64"
                 :disabled="!base64Output"
                 class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {{ $t('tools.download') }}
+                下载
               </button>
             </div>
           </div>
@@ -87,7 +87,7 @@
         <!-- Preview -->
         <div v-if="base64Output" class="mt-4">
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            {{ $t('tools.preview') }}
+            预览
           </label>
           <div class="bg-gray-50 dark:bg-gray-900/30 rounded-lg p-4 flex justify-center">
             <img :src="base64Output" alt="Preview" class="max-h-64 rounded" />
@@ -97,12 +97,12 @@
 
       <!-- URL Generator -->
       <div v-if="currentTool === 'url'" class="space-y-4">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $t('tools.urlTitle') }}</h2>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">URL 生成器</h2>
 
         <div class="space-y-3">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('tools.baseDomain') }}
+              基础域名
             </label>
             <input
               v-model="urlBase"
@@ -114,7 +114,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('tools.filePath') }}
+              文件路径
             </label>
             <input
               v-model="urlPath"
@@ -126,7 +126,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('tools.customDomain') }}
+              自定义域名
             </label>
             <input
               v-model="customDomain"
@@ -138,7 +138,7 @@
 
           <div class="bg-gray-50 dark:bg-gray-900/30 rounded-lg p-4">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('tools.generatedUrl') }}
+              生成的 URL
             </label>
             <div class="flex gap-2 items-start">
               <input
@@ -151,7 +151,7 @@
                 :disabled="!generatedUrl"
                 class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
               >
-                {{ $t('tools.copy') }}
+                复制
               </button>
             </div>
           </div>
@@ -161,14 +161,14 @@
               @click="generateUrl"
               class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
             >
-              {{ $t('tools.generate') }}
+              生成
             </button>
             <button
               @click="loadFromConfig"
               :disabled="!configStore.config?.repository"
               class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ $t('tools.loadFromConfig') }}
+              从配置加载
             </button>
           </div>
         </div>
@@ -176,12 +176,12 @@
 
       <!-- Image Compressor -->
       <div v-if="currentTool === 'compress'" class="space-y-4">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $t('tools.compressTitle') }}</h2>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">图片压缩</h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('tools.selectImage') }}
+              选择图片
             </label>
             <input
               ref="compressFileInput"
@@ -193,7 +193,7 @@
 
             <div v-if="compressImage" class="mt-4">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {{ $t('tools.quality') }}
+                质量
               </label>
               <input
                 v-model.number="compressQuality"
@@ -215,14 +215,14 @@
                   :disabled="compressing"
                   class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {{ compressing ? $t('tools.compressing') : $t('tools.compress') }}
+                  {{ compressing ? '压缩中...' : '压缩' }}
                 </button>
                 <button
                   @click="downloadCompressed"
                   :disabled="!compressedBlob"
                   class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {{ $t('tools.download') }}
+                  下载
                 </button>
               </div>
             </div>
@@ -231,19 +231,19 @@
           <div>
             <div class="grid grid-cols-2 gap-2 text-sm">
               <div class="bg-gray-50 dark:bg-gray-900/30 p-2 rounded">
-                <div class="text-gray-500 dark:text-gray-400">{{ $t('tools.originalSize') }}</div>
+                <div class="text-gray-500 dark:text-gray-400">原始大小</div>
                 <div class="font-semibold text-gray-900 dark:text-white">{{ formatFileSize(originalSize) }}</div>
               </div>
               <div class="bg-gray-50 dark:bg-gray-900/30 p-2 rounded">
-                <div class="text-gray-500 dark:text-gray-400">{{ $t('tools.compressedSize') }}</div>
+                <div class="text-gray-500 dark:text-gray-400">压缩后大小</div>
                 <div class="font-semibold text-gray-900 dark:text-white">{{ compressedSize ? formatFileSize(compressedSize) : '-' }}</div>
               </div>
               <div class="bg-gray-50 dark:bg-gray-900/30 p-2 rounded">
-                <div class="text-gray-500 dark:text-gray-400">{{ $t('tools.reduction') }}</div>
+                <div class="text-gray-500 dark:text-gray-400">压缩率</div>
                 <div class="font-semibold text-green-600">{{ reductionPercentage }}</div>
               </div>
               <div class="bg-gray-50 dark:bg-gray-900/30 p-2 rounded">
-                <div class="text-gray-500 dark:text-gray-400">{{ $t('tools.dimensions') }}</div>
+                <div class="text-gray-500 dark:text-gray-400">尺寸</div>
                 <div class="font-semibold text-gray-900 dark:text-white">{{ dimensions }}</div>
               </div>
             </div>
@@ -262,12 +262,12 @@
 
       <!-- Watermark Tool -->
       <div v-if="currentTool === 'watermark'" class="space-y-4">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $t('tools.watermarkTitle') }}</h2>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">图片水印</h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('tools.selectImage') }}
+              选择图片
             </label>
             <input
               ref="watermarkFileInput"
@@ -280,7 +280,7 @@
             <div v-if="watermarkImage" class="mt-4 space-y-3">
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {{ $t('tools.watermarkText') }}
+                  水印文字
                 </label>
                 <input
                   v-model="watermarkText"
@@ -292,23 +292,23 @@
 
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {{ $t('tools.position') }}
+                  位置
                 </label>
                 <select
                   v-model="watermarkPosition"
                   class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
                 >
-                  <option value="top-left">{{ $t('tools.posTopLeft') }}</option>
-                  <option value="top-right">{{ $t('tools.posTopRight') }}</option>
-                  <option value="bottom-left">{{ $t('tools.posBottomLeft') }}</option>
-                  <option value="bottom-right">{{ $t('tools.posBottomRight') }}</option>
-                  <option value="center">{{ $t('tools.posCenter') }}</option>
+                  <option value="top-left">左上</option>
+                  <option value="top-right">右上</option>
+                  <option value="bottom-left">左下</option>
+                  <option value="bottom-right">右下</option>
+                  <option value="center">居中</option>
                 </select>
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {{ $t('tools.opacity') }}
+                  透明度
                 </label>
                 <input
                   v-model.number="watermarkOpacity"
@@ -329,14 +329,14 @@
                   :disabled="addingWatermark"
                   class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {{ addingWatermark ? $t('tools.adding') : $t('tools.addWatermark') }}
+                  {{ addingWatermark ? '添加中...' : '添加水印' }}
                 </button>
                 <button
                   @click="downloadWatermarked"
                   :disabled="!watermarkedBlob"
                   class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {{ $t('tools.download') }}
+                  下载
                 </button>
               </div>
             </div>
@@ -345,11 +345,11 @@
           <div>
             <div v-if="watermarkImage" class="space-y-2">
               <div class="bg-gray-50 dark:bg-gray-900/30 rounded-lg p-2">
-                <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">{{ $t('tools.original') }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">原始</div>
                 <img :src="watermarkImage" alt="Original" class="max-h-40 w-auto mx-auto rounded" />
               </div>
               <div v-if="watermarkedPreview" class="bg-gray-50 dark:bg-gray-900/30 rounded-lg p-2">
-                <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">{{ $t('tools.withWatermark') }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">带水印</div>
                 <img :src="watermarkedPreview" alt="With Watermark" class="max-h-40 w-auto mx-auto rounded" />
               </div>
             </div>
@@ -359,12 +359,12 @@
 
       <!-- Batch Rename Tool -->
       <div v-if="currentTool === 'batch'" class="space-y-4">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $t('tools.batchTitle') }}</h2>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">批量重命名</h2>
 
         <div class="space-y-3">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('tools.selectFiles') }}
+              选择文件
             </label>
             <input
               ref="batchFileInput"
@@ -379,7 +379,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {{ $t('tools.prefix') }}
+                前缀
               </label>
               <input
                 v-model="batchPrefix"
@@ -391,7 +391,7 @@
 
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {{ $t('tools.suffix') }}
+                后缀
               </label>
               <input
                 v-model="batchSuffix"
@@ -409,13 +409,13 @@
               class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
             <label class="text-sm text-gray-700 dark:text-gray-300">
-              {{ $t('tools.useTimestamp') }}
+              使用时间戳
             </label>
           </div>
 
           <div v-if="batchFiles.length > 0" class="bg-gray-50 dark:bg-gray-900/30 rounded-lg p-4">
             <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('tools.preview') }}
+              预览
             </div>
             <div class="max-h-40 overflow-y-auto space-y-1">
               <div v-for="(file, idx) in batchPreview" :key="idx" class="text-xs font-mono text-gray-600 dark:text-gray-400">
@@ -430,14 +430,14 @@
               :disabled="batchFiles.length === 0"
               class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ $t('tools.generateNames') }}
+              生成名称
             </button>
             <button
               @click="downloadBatch"
               :disabled="batchFiles.length === 0"
               class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ $t('tools.downloadAll') }}
+              下载全部
             </button>
           </div>
         </div>
@@ -507,7 +507,7 @@ const batchPreview = ref<{ original: string; renamed: string }[]>([])
 // Base64 functions
 const convertToBase64 = () => {
   if (!base64Input.value) {
-    toastStore.error($t('tools.noInput'))
+    toastStore.error('请输入内容')
     return
   }
 
@@ -515,14 +515,14 @@ const convertToBase64 = () => {
     // Check if it's already base64 or needs conversion
     if (base64Input.value.startsWith('data:image/')) {
       base64Output.value = base64Input.value
-      toastStore.success($t('tools.alreadyBase64'))
+      toastStore.success('已经是 Base64 格式')
     } else {
       // Try to convert text to base64
       base64Output.value = 'data:text/plain;base64,' + btoa(base64Input.value)
-      toastStore.success($t('tools.converted'))
+      toastStore.success('转换成功')
     }
   } catch (error) {
-    toastStore.error($t('tools.convertFailed'))
+    toastStore.error('转换失败')
   }
 }
 
@@ -535,7 +535,7 @@ const fileToBase64 = (event: Event) => {
 
   reader.onload = (e) => {
     base64Output.value = e.target?.result as string
-    toastStore.success($t('tools.fileConverted'))
+    toastStore.success('文件已转换')
   }
 
   reader.readAsDataURL(file)
@@ -545,9 +545,9 @@ const fileToBase64 = (event: Event) => {
 const copyBase64 = async () => {
   try {
     await navigator.clipboard.writeText(base64Output.value)
-    toastStore.success($t('tools.copySuccess'))
+    toastStore.success('复制成功')
   } catch (error) {
-    toastStore.error($t('tools.copyFailed'))
+    toastStore.error('复制失败')
   }
 }
 
@@ -558,13 +558,13 @@ const downloadBase64 = () => {
   a.href = base64Output.value
   a.download = `base64-${Date.now()}.txt`
   a.click()
-  toastStore.success($t('tools.downloadSuccess'))
+  toastStore.success('下载成功')
 }
 
 // URL Generator functions
 const generateUrl = () => {
   if (!urlBase.value || !urlPath.value) {
-    toastStore.error($t('tools.fillUrlFields'))
+    toastStore.error('请填写域名和路径')
     return
   }
 
@@ -579,21 +579,21 @@ const generateUrl = () => {
     generatedUrl.value = generatedUrl.value.replace(rawBase, domain + '/')
   }
 
-  toastStore.success($t('tools.urlGenerated'))
+  toastStore.success('URL 生成成功')
 }
 
 const copyGeneratedUrl = async () => {
   try {
     await navigator.clipboard.writeText(generatedUrl.value)
-    toastStore.success($t('tools.copySuccess'))
+    toastStore.success('复制成功')
   } catch (error) {
-    toastStore.error($t('tools.copyFailed'))
+    toastStore.error('复制失败')
   }
 }
 
 const loadFromConfig = () => {
   if (!configStore.config?.repository) {
-    toastStore.error($t('tools.noConfig'))
+    toastStore.error('未配置仓库信息')
     return
   }
 
@@ -601,7 +601,7 @@ const loadFromConfig = () => {
   urlPath.value = `${configStore.config.directory || 'images'}/`
   customDomain.value = configStore.config.customDomain || ''
 
-  toastStore.success($t('tools.configLoaded'))
+  toastStore.success('配置已加载')
 }
 
 // Compressor functions
@@ -634,7 +634,7 @@ const loadCompressImage = (event: Event) => {
 
 const compressImageNow = async () => {
   if (!compressImage.value) {
-    toastStore.error($t('tools.noImage'))
+    toastStore.error('请选择图片')
     return
   }
 
@@ -676,9 +676,9 @@ const compressImageNow = async () => {
     }
     reader.readAsDataURL(blob)
 
-    toastStore.success($t('tools.compressSuccess'))
+    toastStore.success('压缩成功')
   } catch (error) {
-    toastStore.error($t('tools.compressFailed'))
+    toastStore.error('压缩失败')
   } finally {
     compressing.value = false
   }
@@ -694,7 +694,7 @@ const downloadCompressed = () => {
   a.click()
   URL.revokeObjectURL(url)
 
-  toastStore.success($t('tools.downloadSuccess'))
+  toastStore.success('下载成功')
 }
 
 const reductionPercentage = computed(() => {
@@ -723,7 +723,7 @@ const loadWatermarkImage = (event: Event) => {
 
 const addWatermark = async () => {
   if (!watermarkImage.value || !watermarkText.value) {
-    toastStore.error($t('tools.fillWatermarkFields'))
+    toastStore.error('请填写水印文字')
     return
   }
 
@@ -810,9 +810,9 @@ const addWatermark = async () => {
     }
     reader.readAsDataURL(blob)
 
-    toastStore.success($t('tools.watermarkSuccess'))
+    toastStore.success('水印添加成功')
   } catch (error) {
-    toastStore.error($t('tools.watermarkFailed'))
+    toastStore.error('水印添加失败')
   } finally {
     addingWatermark.value = false
   }
@@ -828,7 +828,7 @@ const downloadWatermarked = () => {
   a.click()
   URL.revokeObjectURL(url)
 
-  toastStore.success($t('tools.downloadSuccess'))
+  toastStore.success('下载成功')
 }
 
 // Batch rename functions
@@ -866,12 +866,12 @@ const generateBatchPreview = () => {
 
 const generateBatchNames = () => {
   if (batchFiles.value.length === 0) {
-    toastStore.error($t('tools.noFiles'))
+    toastStore.error('请选择文件')
     return
   }
 
   generateBatchPreview()
-  toastStore.success($t('tools.namesGenerated'))
+  toastStore.success('名称已生成')
 }
 
 const downloadBatch = () => {
@@ -887,7 +887,7 @@ const downloadBatch = () => {
     URL.revokeObjectURL(url)
   })
 
-  toastStore.success($t('tools.downloadAllSuccess'))
+  toastStore.success('下载开始')
 }
 
 // Watchers

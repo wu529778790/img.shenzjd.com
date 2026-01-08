@@ -2,13 +2,13 @@
   <div class="max-w-4xl mx-auto">
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        {{ $t('settings.title') }}
+        设置
       </h1>
 
       <!-- Language Settings -->
       <div class="mb-8">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          {{ $t('settings.language') }}
+          语言设置
         </h2>
         <div class="space-y-2">
           <label class="flex items-center gap-3 cursor-pointer">
@@ -47,7 +47,7 @@
       <!-- Theme Settings -->
       <div class="mb-8">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          {{ $t('settings.theme') }}
+          主题设置
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
           <button
@@ -56,7 +56,7 @@
             :class="theme === 'light' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'"
           >
             <div class="w-full h-12 bg-gray-100 rounded mb-2"></div>
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('settings.light') }}</span>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">浅色</span>
           </button>
           <button
             @click="setTheme('dark')"
@@ -64,7 +64,7 @@
             :class="theme === 'dark' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'"
           >
             <div class="w-full h-12 bg-gray-800 rounded mb-2"></div>
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('settings.dark') }}</span>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">深色</span>
           </button>
           <button
             @click="setTheme('auto')"
@@ -72,7 +72,7 @@
             :class="theme === 'auto' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'"
           >
             <div class="w-full h-12 bg-gradient-to-r from-gray-100 to-gray-800 rounded mb-2"></div>
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('settings.auto') }}</span>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">自动</span>
           </button>
         </div>
       </div>
@@ -80,27 +80,27 @@
       <!-- Upload Settings -->
       <div class="mb-8">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          {{ $t('settings.upload') }}
+          上传设置
         </h2>
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('settings.defaultCompression') }}
+              默认压缩
             </label>
             <select
               v-model="settings.defaultCompression"
               class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
-              <option value="none">{{ $t('settings.compressionNone') }}</option>
-              <option value="light">{{ $t('settings.compressionLight') }}</option>
-              <option value="medium">{{ $t('settings.compressionMedium') }}</option>
-              <option value="heavy">{{ $t('settings.compressionHeavy') }}</option>
+              <option value="none">不压缩</option>
+              <option value="light">轻度压缩</option>
+              <option value="medium">中度压缩</option>
+              <option value="heavy">重度压缩</option>
             </select>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('settings.maxFileSize') }}
+              最大文件大小 (MB)
             </label>
             <input
               v-model.number="settings.maxFileSize"
@@ -109,13 +109,13 @@
               class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {{ $t('settings.maxFileSizeDesc') }}
+              单个文件大小限制
             </p>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('settings.allowedTypes') }}
+              允许的文件类型
             </label>
             <input
               v-model="settings.allowedTypes"
@@ -132,7 +132,7 @@
               class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
             <label class="text-sm text-gray-700 dark:text-gray-300">
-              {{ $t('settings.autoCompress') }}
+              自动压缩图片
             </label>
           </div>
 
@@ -143,7 +143,7 @@
               class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
             <label class="text-sm text-gray-700 dark:text-gray-300">
-              {{ $t('settings.copyAfterUpload') }}
+              上传后自动复制链接
             </label>
           </div>
 
@@ -154,14 +154,14 @@
               class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
             <label class="text-sm text-gray-700 dark:text-gray-300">
-              {{ $t('settings.watermarkEnabled') }}
+              启用默认水印
             </label>
           </div>
 
           <div v-if="settings.watermarkEnabled" class="ml-6 space-y-2">
             <div>
               <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">
-                {{ $t('settings.watermarkText') }}
+                水印文字
               </label>
               <input
                 v-model="settings.watermarkText"
@@ -172,17 +172,17 @@
             </div>
             <div>
               <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">
-                {{ $t('settings.watermarkPosition') }}
+                水印位置
               </label>
               <select
                 v-model="settings.watermarkPosition"
                 class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="top-left">{{ $t('settings.posTopLeft') }}</option>
-                <option value="top-right">{{ $t('settings.posTopRight') }}</option>
-                <option value="bottom-left">{{ $t('settings.posBottomLeft') }}</option>
-                <option value="bottom-right">{{ $t('settings.posBottomRight') }}</option>
-                <option value="center">{{ $t('settings.posCenter') }}</option>
+                <option value="top-left">左上</option>
+                <option value="top-right">右上</option>
+                <option value="bottom-left">左下</option>
+                <option value="bottom-right">右下</option>
+                <option value="center">居中</option>
               </select>
             </div>
           </div>
@@ -192,20 +192,20 @@
       <!-- Export/Import Settings -->
       <div class="mb-8">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          {{ $t('settings.backup') }}
+          备份与恢复
         </h2>
         <div class="flex flex-wrap gap-3">
           <button
             @click="exportSettings"
             class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
           >
-            {{ $t('settings.exportSettings') }}
+            导出设置
           </button>
           <button
             @click="$refs.importInput?.click()"
             class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
           >
-            {{ $t('settings.importSettings') }}
+            导入设置
           </button>
           <input
             ref="importInput"
@@ -220,20 +220,20 @@
       <!-- Data Management -->
       <div class="mb-8">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          {{ $t('settings.dataManagement') }}
+          数据管理
         </h2>
         <div class="space-y-3">
           <button
             @click="clearCache"
             class="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold rounded-lg transition-colors"
           >
-            {{ $t('settings.clearCache') }}
+            清除缓存
           </button>
           <button
             @click="resetSettings"
             class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
           >
-            {{ $t('settings.resetSettings') }}
+            重置所有设置
           </button>
         </div>
       </div>
@@ -248,27 +248,27 @@
           <svg v-if="saving" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
-          <span>{{ saving ? $t('settings.saving') : $t('settings.save') }}</span>
+          <span>{{ saving ? '保存中...' : '保存' }}</span>
         </button>
 
         <button
           @click="loadSettings"
           class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold rounded-lg transition-colors"
         >
-          {{ $t('settings.reload') }}
+          重新加载
         </button>
       </div>
 
       <!-- About -->
       <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-          {{ $t('settings.about') }}
+          关于
         </h2>
         <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-          <p>{{ $t('settings.appName') }}: <span class="font-medium text-gray-900 dark:text-white">Image Hosting</span></p>
-          <p>{{ $t('settings.version') }}: <span class="font-medium text-gray-900 dark:text-white">2.0.0</span></p>
-          <p>{{ $t('settings.author') }}: <span class="font-medium text-gray-900 dark:text-white">wu529778790</span></p>
-          <p>{{ $t('settings.repo') }}: <a href="https://github.com/wu529778790/img.shenzjd.com" target="_blank" class="text-primary-600 hover:underline">wu529778790/img.shenzjd.com</a></p>
+          <p>应用名称: <span class="font-medium text-gray-900 dark:text-white">Image Hosting</span></p>
+          <p>版本: <span class="font-medium text-gray-900 dark:text-white">2.0.0</span></p>
+          <p>作者: <span class="font-medium text-gray-900 dark:text-white">wu529778790</span></p>
+          <p>仓库: <a href="https://github.com/wu529778790/img.shenzjd.com" target="_blank" class="text-primary-600 hover:underline">wu529778790/img.shenzjd.com</a></p>
         </div>
       </div>
     </div>
@@ -363,9 +363,9 @@ const loadSettings = async () => {
       }
     }
 
-    toastStore.success($t('settings.loadSuccess'))
+    toastStore.success('设置加载成功')
   } catch (error) {
-    toastStore.error($t('settings.loadFailed'))
+    toastStore.error('设置加载失败')
   }
 }
 
@@ -392,9 +392,9 @@ const saveSettings = async () => {
       })
     }
 
-    toastStore.success($t('settings.saveSuccess'))
+    toastStore.success('设置保存成功')
   } catch (error) {
-    toastStore.error($t('settings.saveFailed'))
+    toastStore.error('设置保存失败')
   } finally {
     saving.value = false
   }
@@ -418,7 +418,7 @@ const exportSettings = () => {
   a.click()
   URL.revokeObjectURL(url)
 
-  toastStore.success($t('settings.exportSuccess'))
+  toastStore.success('导出成功')
 }
 
 // 导入设置
@@ -449,9 +449,9 @@ const importSettings = async (event: Event) => {
       localStorage.setItem('theme', theme.value)
       localStorage.setItem('locale', locale.value)
 
-      toastStore.success($t('settings.importSuccess'))
+      toastStore.success('导入成功')
     } catch (error) {
-      toastStore.error($t('settings.importFailed'))
+      toastStore.error('导入失败')
     }
   }
 
@@ -461,7 +461,7 @@ const importSettings = async (event: Event) => {
 
 // 清除缓存
 const clearCache = () => {
-  if (confirm($t('settings.clearCacheConfirm'))) {
+  if (confirm('确定要清除所有缓存数据吗？')) {
     localStorage.clear()
     sessionStorage.clear()
 
@@ -479,13 +479,13 @@ const clearCache = () => {
     theme.value = 'auto'
     locale.value = 'zh-CN'
 
-    toastStore.success($t('settings.clearCacheSuccess'))
+    toastStore.success('缓存已清除')
   }
 }
 
 // 重置设置
 const resetSettings = () => {
-  if (confirm($t('settings.resetConfirm'))) {
+  if (confirm('确定要重置所有设置并刷新页面吗？')) {
     clearCache()
     window.location.reload()
   }

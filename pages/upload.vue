@@ -2,7 +2,7 @@
   <div class="max-w-6xl mx-auto">
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        {{ $t('upload.title') }}
+        图片上传
       </h1>
 
       <!-- Upload Area -->
@@ -19,10 +19,10 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
         </svg>
         <p class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-          {{ $t('upload.dragDrop') }}
+          拖拽图片到此处或点击选择
         </p>
         <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          {{ $t('upload.supportedFormats') }}
+          支持的格式：JPG、PNG、GIF、WebP、SVG
         </p>
         <input
           ref="fileInput"
@@ -36,7 +36,7 @@
           @click="$refs.fileInput?.click()"
           class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors"
         >
-          {{ $t('upload.selectFiles') }}
+          选择文件
         </button>
       </div>
 
@@ -50,14 +50,14 @@
           <svg v-if="uploading" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
-          <span>{{ uploading ? $t('upload.uploading') : $t('upload.uploadAll') }} ({{ selectedFiles.length }})</span>
+          <span>{{ uploading ? '上传中...' : '全部上传' }} ({{ selectedFiles.length }})</span>
         </button>
 
         <button
           @click="clearAll"
           class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold rounded-lg transition-colors"
         >
-          {{ $t('upload.clearAll') }}
+          清空
         </button>
 
         <button
@@ -68,7 +68,7 @@
           <svg v-if="compressing" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
-          <span>{{ compressing ? $t('upload.compressing') : $t('upload.compressAll') }}</span>
+          <span>{{ compressing ? '压缩中...' : '全部压缩' }}</span>
         </button>
 
         <button
@@ -76,21 +76,21 @@
           :disabled="selectedFiles.length === 0"
           class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {{ $t('upload.downloadAll') }}
+          下载全部
         </button>
       </div>
 
       <!-- Warning -->
       <div v-if="!configStore.config?.repository" class="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
         <p class="text-sm text-yellow-800 dark:text-yellow-200">
-          ⚠️ {{ $t('upload.noConfigWarning') }}
+          ⚠️ 请先配置仓库信息
         </p>
       </div>
 
       <!-- File List -->
       <div v-if="selectedFiles.length > 0" class="space-y-4">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-          {{ $t('upload.fileList') }}
+          文件列表
         </h2>
 
         <div
@@ -139,7 +139,7 @@
                     :disabled="file.uploading || !configStore.config?.repository"
                     class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {{ file.uploading ? $t('upload.uploading') : $t('upload.upload') }}
+                    {{ file.uploading ? '上传中...' : '上传' }}
                   </button>
 
                   <button
@@ -147,7 +147,7 @@
                     :disabled="file.compressing"
                     class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {{ file.compressing ? $t('upload.compressing') : $t('upload.compress') }}
+                    {{ file.compressing ? '压缩中...' : '压缩' }}
                   </button>
 
                   <button
@@ -155,14 +155,14 @@
                     :disabled="!file.uploadedUrl"
                     class="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {{ $t('upload.copy') }}
+                    复制链接
                   </button>
 
                   <button
                     @click="removeFile(index)"
                     class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors"
                   >
-                    {{ $t('upload.remove') }}
+                    移除
                   </button>
                 </div>
               </div>
@@ -183,12 +183,12 @@
               <!-- Custom Name -->
               <div class="mt-3" v-if="!file.uploadedUrl">
                 <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">
-                  {{ $t('upload.customName') }}
+                  自定义名称
                 </label>
                 <input
                   v-model="file.customName"
                   type="text"
-                  :placeholder="$t('upload.customNamePlaceholder')"
+                  placeholder="输入自定义文件名"
                   class="w-full px-2 py-1 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
@@ -200,7 +200,7 @@
       <!-- Upload Results -->
       <div v-if="uploadResults.length > 0" class="mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
         <h3 class="font-semibold text-green-800 dark:text-green-200 mb-2">
-          {{ $t('upload.uploadResults') }}
+          上传结果
         </h3>
         <div class="space-y-2">
           <div v-for="(result, idx) in uploadResults" :key="idx" class="text-sm text-green-700 dark:text-green-300 break-all">
@@ -212,13 +212,13 @@
             @click="copyAllUrls"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded transition-colors"
           >
-            {{ $t('upload.copyAllUrls') }}
+            复制全部链接
           </button>
           <button
             @click="exportResults"
             class="px-3 py-1.5 bg-green-700 hover:bg-green-800 text-white text-sm font-medium rounded transition-colors"
           >
-            {{ $t('upload.exportResults') }}
+            导出结果
           </button>
         </div>
       </div>
@@ -227,16 +227,16 @@
       <div v-if="showBatchModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div class="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-200 dark:border-gray-700">
           <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            {{ $t('upload.batchUpload') }}
+            批量上传
           </h3>
           <div class="space-y-3 mb-4">
             <div v-for="(file, idx) in batchUploadQueue" :key="idx" class="text-sm">
               <div class="flex items-center justify-between">
                 <span class="truncate">{{ file.name }}</span>
-                <span v-if="file.status === 'uploading'" class="text-blue-600">{{ $t('upload.uploading') }}</span>
+                <span v-if="file.status === 'uploading'" class="text-blue-600">上传中...</span>
                 <span v-else-if="file.status === 'success'" class="text-green-600">✓</span>
                 <span v-else-if="file.status === 'error'" class="text-red-600">✗</span>
-                <span v-else class="text-gray-500">{{ $t('upload.pending') }}</span>
+                <span v-else class="text-gray-500">等待中</span>
               </div>
               <div v-if="file.progress !== undefined" class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1 mt-1">
                 <div class="bg-primary-600 h-1 rounded-full" :style="{ width: file.progress + '%' }"></div>
@@ -248,7 +248,7 @@
               @click="showBatchModal = false"
               class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
             >
-              {{ $t('upload.close') }}
+              关闭
             </button>
           </div>
         </div>
@@ -318,7 +318,7 @@ const handleDrop = (event: DragEvent) => {
 // 添加文件
 const addFile = (file: File) => {
   if (!file.type.startsWith('image/')) {
-    toastStore.error(`${file.name}: ${$t('upload.notImage')}`)
+    toastStore.error(`${file.name}: 不是图片文件`)
     return
   }
 
@@ -385,9 +385,9 @@ const compressFile = async (index: number) => {
     const newFile = new File([compressed], file.file.name, { type: file.file.type })
     file.file = newFile
 
-    toastStore.success(`${file.customName}: ${$t('upload.compressSuccess')}`)
+    toastStore.success(`${file.customName}: 压缩成功`)
   } catch (error) {
-    toastStore.error(`${file.customName}: ${$t('upload.compressFailed')}`)
+    toastStore.error(`${file.customName}: 压缩失败`)
   } finally {
     file.compressing = false
     setTimeout(() => {
@@ -405,7 +405,7 @@ const compressAll = async () => {
     }
   }
   compressing.value = false
-  toastStore.success($t('upload.compressAllDone'))
+  toastStore.success('全部压缩完成')
 }
 
 // 上传单个文件
@@ -470,10 +470,10 @@ const uploadFile = async (index: number) => {
       url: file.uploadedUrl
     })
 
-    toastStore.success(`${fileName}: ${$t('upload.uploadSuccess')}`)
+    toastStore.success(`${fileName}: 上传成功`)
   } catch (error: any) {
-    file.error = error.message || $t('upload.uploadFailed')
-    toastStore.error(`${file.customName}: ${$t('upload.uploadFailed')}`)
+    file.error = error.message || '上传失败'
+    toastStore.error(`${file.customName}: ${'上传失败'}`)
   } finally {
     file.uploading = false
     file.progress = 100
@@ -486,7 +486,7 @@ const uploadFile = async (index: number) => {
 // 上传所有
 const uploadAll = async () => {
   if (!configStore.config?.repository) {
-    toastStore.error($t('upload.noConfigWarning'))
+    toastStore.error('请先配置仓库信息')
     return
   }
 
@@ -513,7 +513,7 @@ const uploadAll = async () => {
   }
 
   uploading.value = false
-  toastStore.success($t('upload.batchUploadDone'))
+  toastStore.success('批量上传完成')
 }
 
 // 复制单个 URL
@@ -523,9 +523,9 @@ const copyUrl = async (index: number) => {
 
   try {
     await navigator.clipboard.writeText(file.uploadedUrl)
-    toastStore.success($t('upload.copySuccess'))
+    toastStore.success('复制成功')
   } catch (error) {
-    toastStore.error($t('upload.copyFailed'))
+    toastStore.error('复制失败')
   }
 }
 
@@ -536,9 +536,9 @@ const copyAllUrls = async () => {
   const text = uploadResults.value.map(r => `${r.name}: ${r.url}`).join('\n')
   try {
     await navigator.clipboard.writeText(text)
-    toastStore.success($t('upload.copyAllSuccess'))
+    toastStore.success('全部链接已复制')
   } catch (error) {
-    toastStore.error($t('upload.copyAllFailed'))
+    toastStore.error('复制失败')
   }
 }
 
@@ -560,7 +560,7 @@ const exportResults = () => {
   a.click()
   URL.revokeObjectURL(url)
 
-  toastStore.success($t('upload.exportSuccess'))
+  toastStore.success('导出成功')
 }
 
 // 下载所有文件
@@ -582,7 +582,7 @@ const downloadAll = () => {
       URL.revokeObjectURL(url)
     }
   })
-  toastStore.success($t('upload.downloadAllDone'))
+  toastStore.success('下载开始')
 }
 
 // 压缩图片

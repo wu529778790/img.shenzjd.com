@@ -1,20 +1,47 @@
 <template>
   <div class="max-w-4xl mx-auto">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
+    <!-- 未登录状态：显示引导界面 -->
+    <div v-if="!authStore.isAuthenticated" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 border border-gray-200 dark:border-gray-700 text-center">
+      <div class="max-w-md mx-auto">
+        <div class="w-20 h-20 mx-auto mb-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+          <svg class="w-10 h-10 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+          需要登录
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400 mb-8">
+          请使用 GitHub 账号登录以配置图床
+        </p>
+        <button
+          @click="authStore.loginWithGitHub"
+          class="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 dark:bg-gray-100 hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-gray-900 font-semibold rounded-lg transition-colors"
+        >
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          使用 GitHub 登录
+        </button>
+      </div>
+    </div>
+
+    <!-- 已登录状态：显示配置界面 -->
+    <div v-else class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        {{ $t('config.title') }}
+        配置管理
       </h1>
 
       <!-- Repository Configuration -->
       <div class="mb-8">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          {{ $t('config.repository') }}
+          仓库配置
         </h2>
 
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('config.repositoryOwner') }}
+              仓库所有者
             </label>
             <input
               v-model="config.repositoryOwner"
@@ -23,13 +50,13 @@
               class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {{ $t('config.repositoryOwnerDesc') }}
+              GitHub 用户名
             </p>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('config.repositoryName') }}
+              仓库名称
             </label>
             <input
               v-model="config.repositoryName"
@@ -41,7 +68,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('config.branch') }}
+              分支
             </label>
             <input
               v-model="config.branch"
@@ -53,7 +80,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('config.directory') }}
+              存储目录
             </label>
             <input
               v-model="config.directory"
@@ -62,7 +89,7 @@
               class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {{ $t('config.directoryDesc') }}
+              图片存储的目录路径
             </p>
           </div>
         </div>
@@ -71,7 +98,7 @@
       <!-- Repository Actions -->
       <div class="mb-8">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          {{ $t('config.repositoryActions') }}
+          仓库操作
         </h2>
 
         <div class="flex flex-wrap gap-3">
@@ -83,7 +110,7 @@
             <svg v-if="checkingRepo" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            <span>{{ checkingRepo ? $t('config.checking') : $t('config.checkRepository') }}</span>
+            <span>{{ checkingRepo ? '检查中...' : '检查仓库' }}</span>
           </button>
 
           <button
@@ -94,7 +121,7 @@
             <svg v-if="creatingRepo" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            <span>{{ creatingRepo ? $t('config.creating') : $t('config.createRepository') }}</span>
+            <span>{{ creatingRepo ? '创建中...' : '创建仓库' }}</span>
           </button>
 
           <button
@@ -105,7 +132,7 @@
             <svg v-if="initializingRepo" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            <span>{{ initializingRepo ? $t('config.initializing') : $t('config.initializeRepository') }}</span>
+            <span>{{ initializingRepo ? '初始化中...' : '初始化仓库' }}</span>
           </button>
         </div>
 
@@ -117,13 +144,13 @@
       <!-- Advanced Settings -->
       <div class="mb-8">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          {{ $t('config.advanced') }}
+          高级设置
         </h2>
 
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('config.customDomain') }}
+              自定义域名
             </label>
             <input
               v-model="config.customDomain"
@@ -132,13 +159,13 @@
               class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {{ $t('config.customDomainDesc') }}
+              CDN 域名，留空使用默认链接
             </p>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('config.watermarkText') }}
+              水印文字
             </label>
             <input
               v-model="config.watermarkText"
@@ -150,22 +177,22 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('config.imageCompression') }}
+              图片压缩
             </label>
             <select
               v-model="config.imageCompression"
               class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
-              <option value="none">{{ $t('config.compressionNone') }}</option>
-              <option value="light">{{ $t('config.compressionLight') }}</option>
-              <option value="medium">{{ $t('config.compressionMedium') }}</option>
-              <option value="heavy">{{ $t('config.compressionHeavy') }}</option>
+              <option value="none">不压缩</option>
+              <option value="light">轻度压缩</option>
+              <option value="medium">中度压缩</option>
+              <option value="heavy">重度压缩</option>
             </select>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ $t('config.timestampDir') }}
+              按日期分类
             </label>
             <div class="flex items-center">
               <input
@@ -174,7 +201,7 @@
                 class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
               <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                {{ $t('config.timestampDirDesc') }}
+                自动按年/月/日创建子目录
               </span>
             </div>
           </div>
@@ -191,14 +218,14 @@
           <svg v-if="saving" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
-          <span>{{ saving ? $t('config.saving') : $t('config.save') }}</span>
+          <span>{{ saving ? '保存中...' : '保存配置' }}</span>
         </button>
 
         <button
           @click="resetConfig"
           class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold rounded-lg transition-colors"
         >
-          {{ $t('config.reset') }}
+          重置
         </button>
 
         <button
@@ -209,20 +236,20 @@
           <svg v-if="loadingGitHub" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
-          <span>{{ loadingGitHub ? $t('config.loading') : $t('config.loadFromGitHub') }}</span>
+          <span>{{ loadingGitHub ? '加载中...' : '从 GitHub 加载' }}</span>
         </button>
       </div>
 
       <!-- Repository Info -->
       <div v-if="repoInfo" class="mt-6 p-4 bg-gray-50 dark:bg-gray-900/30 rounded-lg border border-gray-200 dark:border-gray-700">
         <h3 class="font-semibold text-gray-900 dark:text-white mb-2">
-          {{ $t('config.repositoryInfo') }}
+          仓库信息
         </h3>
         <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-          <div>{{ $t('config.repoFullName') }}: {{ repoInfo.full_name }}</div>
-          <div>{{ $t('config.repoDescription') }}: {{ repoInfo.description || '-' }}</div>
-          <div>{{ $t('config.repoDefaultBranch') }}: {{ repoInfo.default_branch }}</div>
-          <div>{{ $t('config.repoPrivate') }}: {{ repoInfo.private ? $t('config.yes') : $t('config.no') }}</div>
+          <div>完整名称: {{ repoInfo.full_name }}</div>
+          <div>描述: {{ repoInfo.description || '-' }}</div>
+          <div>默认分支: {{ repoInfo.default_branch }}</div>
+          <div>私有仓库: {{ repoInfo.private ? '是' : '否' }}</div>
         </div>
       </div>
     </div>
@@ -294,19 +321,19 @@ const checkRepository = async () => {
     if (repo) {
       repoStatus.value = {
         type: 'success',
-        message: '✅ ' + $t('config.repoExists')
+        message: '✅ 仓库存在'
       }
       repoInfo.value = repo
     } else {
       repoStatus.value = {
         type: 'error',
-        message: '❌ ' + $t('config.repoNotExists')
+        message: '❌ 仓库不存在'
       }
     }
   } catch (error: any) {
     repoStatus.value = {
       type: 'error',
-      message: '❌ ' + (error.message || $t('config.checkFailed'))
+      message: '❌ ' + (error.message || '检查失败')
     }
   } finally {
     checkingRepo.value = false
@@ -331,16 +358,16 @@ const createRepository = async () => {
 
     repoStatus.value = {
       type: 'success',
-      message: '✅ ' + $t('config.createSuccess')
+      message: '✅ 仓库创建成功'
     }
     repoInfo.value = response
-    toastStore.success($t('config.createSuccess'))
+    toastStore.success('仓库创建成功')
   } catch (error: any) {
     repoStatus.value = {
       type: 'error',
-      message: '❌ ' + (error.message || $t('config.createFailed'))
+      message: '❌ ' + (error.message || '创建失败')
     }
-    toastStore.error($t('config.createFailed'))
+    toastStore.error('创建失败')
   } finally {
     creatingRepo.value = false
   }
@@ -364,15 +391,15 @@ const initializeRepository = async () => {
 
     repoStatus.value = {
       type: 'success',
-      message: '✅ ' + $t('config.initSuccess')
+      message: '✅ 初始化成功'
     }
-    toastStore.success($t('config.initSuccess'))
+    toastStore.success('初始化成功')
   } catch (error: any) {
     repoStatus.value = {
       type: 'error',
-      message: '❌ ' + (error.message || $t('config.initFailed'))
+      message: '❌ ' + (error.message || '初始化失败')
     }
-    toastStore.error($t('config.initFailed'))
+    toastStore.error('初始化失败')
   } finally {
     initializingRepo.value = false
   }
@@ -381,7 +408,7 @@ const initializeRepository = async () => {
 // 保存配置
 const saveConfig = async () => {
   if (!config.value.repositoryOwner || !config.value.repositoryName || !config.value.branch || !config.value.directory) {
-    toastStore.error($t('config.fillAllRequired'))
+    toastStore.error('请填写所有必填项')
     return
   }
 
@@ -397,9 +424,9 @@ const saveConfig = async () => {
       imageCompression: config.value.imageCompression,
       timestampDir: config.value.timestampDir
     })
-    toastStore.success($t('config.saveSuccess'))
+    toastStore.success('保存成功')
   } catch (error) {
-    toastStore.error($t('config.saveFailed'))
+    toastStore.error('保存失败')
   } finally {
     saving.value = false
   }
@@ -419,13 +446,13 @@ const resetConfig = () => {
   }
   repoStatus.value = null
   repoInfo.value = null
-  toastStore.info($t('config.resetInfo'))
+  toastStore.info('已重置为默认配置')
 }
 
 // 从 GitHub 加载配置
 const loadFromGitHub = async () => {
   if (!config.value.repositoryOwner || !config.value.repositoryName) {
-    toastStore.error($t('config.fillRepoFirst'))
+    toastStore.error('请先填写仓库信息')
     return
   }
 
@@ -451,13 +478,13 @@ const loadFromGitHub = async () => {
       if (configData) {
         const parsed = JSON.parse(configData)
         config.value = { ...config.value, ...parsed }
-        toastStore.success($t('config.loadSuccess'))
+        toastStore.success('加载成功')
       }
     } else {
-      toastStore.info($t('config.noConfigFile'))
+      toastStore.info('未找到配置文件')
     }
   } catch (error) {
-    toastStore.error($t('config.loadFailed'))
+    toastStore.error('加载失败')
   } finally {
     loadingGitHub.value = false
   }

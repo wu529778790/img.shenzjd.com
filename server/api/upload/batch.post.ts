@@ -5,10 +5,11 @@
 export default defineEventHandler(async (event) => {
   const auth = event.context.auth
   if (!auth) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Unauthorized'
-    })
+    return {
+      success: false,
+      authenticated: false,
+      message: '请先登录'
+    }
   }
 
   const body = await readBody(event)

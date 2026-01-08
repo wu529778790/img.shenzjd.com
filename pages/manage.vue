@@ -2,13 +2,13 @@
   <div class="max-w-7xl mx-auto">
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        {{ $t('manage.title') }}
+        文件管理
       </h1>
 
       <!-- Warning -->
       <div v-if="!configStore.config?.repository" class="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
         <p class="text-sm text-yellow-800 dark:text-yellow-200">
-          ⚠️ {{ $t('manage.noConfigWarning') }}
+          ⚠️ 请先配置仓库信息
         </p>
       </div>
 
@@ -23,7 +23,7 @@
             <svg v-if="loading" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            <span>{{ loading ? $t('manage.loading') : $t('manage.loadFiles') }}</span>
+            <span>{{ loading ? '加载中...' : '加载文件' }}</span>
           </button>
 
           <button
@@ -31,7 +31,7 @@
             :disabled="files.length === 0"
             class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {{ $t('manage.selectAll') }}
+            全选
           </button>
 
           <button
@@ -39,7 +39,7 @@
             :disabled="selectedFiles.size === 0"
             class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {{ $t('manage.deselectAll') }}
+            取消全选
           </button>
 
           <button
@@ -50,7 +50,7 @@
             <svg v-if="deleting" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            <span>{{ deleting ? $t('manage.deleting') : $t('manage.deleteSelected') }} ({{ selectedFiles.size }})</span>
+            <span>{{ deleting ? '删除中...' : '删除选中' }} ({{ selectedFiles.size }})</span>
           </button>
 
           <button
@@ -58,7 +58,7 @@
             :disabled="selectedFiles.size === 0"
             class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {{ $t('manage.downloadSelected') }}
+            下载选中
           </button>
 
           <button
@@ -66,7 +66,7 @@
             :disabled="selectedFiles.size === 0"
             class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {{ $t('manage.copySelectedUrls') }}
+            复制选中链接
           </button>
         </div>
 
@@ -75,7 +75,7 @@
           <input
             v-model="searchQuery"
             type="text"
-            :placeholder="$t('manage.searchPlaceholder')"
+            placeholder="搜索文件名或路径..."
             class="flex-1 min-w-[200px] px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
 
@@ -83,18 +83,18 @@
             v-model="filterType"
             class="px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
-            <option value="all">{{ $t('manage.filterAll') }}</option>
-            <option value="image">{{ $t('manage.filterImages') }}</option>
-            <option value="other">{{ $t('manage.filterOther') }}</option>
+            <option value="all">全部</option>
+            <option value="image">图片</option>
+            <option value="other">其他</option>
           </select>
 
           <select
             v-model="sortBy"
             class="px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
-            <option value="name">{{ $t('manage.sortName') }}</option>
-            <option value="date">{{ $t('manage.sortDate') }}</option>
-            <option value="size">{{ $t('manage.sortSize') }}</option>
+            <option value="name">按名称</option>
+            <option value="date">按日期</option>
+            <option value="size">按大小</option>
           </select>
         </div>
       </div>
@@ -164,28 +164,28 @@
                     @click="copyUrl(file)"
                     class="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded transition-colors"
                   >
-                    {{ $t('manage.copy') }}
+                    复制链接
                   </button>
 
                   <button
                     @click="previewFile(file)"
                     class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors"
                   >
-                    {{ $t('manage.preview') }}
+                    预览
                   </button>
 
                   <button
                     @click="renameFile(file)"
                     class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded transition-colors"
                   >
-                    {{ $t('manage.rename') }}
+                    重命名
                   </button>
 
                   <button
                     @click="deleteFile(file)"
                     class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors"
                   >
-                    {{ $t('manage.delete') }}
+                    删除
                   </button>
                 </div>
               </div>
@@ -199,7 +199,7 @@
         <svg class="w-16 h-16 mx-auto mb-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
         </svg>
-        <p class="text-gray-500 dark:text-gray-400">{{ $t('manage.noFiles') }}</p>
+        <p class="text-gray-500 dark:text-gray-400">暂无文件，请先加载</p>
       </div>
 
       <!-- Preview Modal -->
@@ -221,9 +221,9 @@
               class="max-h-[70vh] w-auto mx-auto rounded"
             />
             <div v-else class="text-center py-8">
-              <p class="text-gray-600 dark:text-gray-400">{{ $t('manage.previewNotAvailable') }}</p>
+              <p class="text-gray-600 dark:text-gray-400">预览不可用</p>
               <a :href="previewItem.download_url" target="_blank" class="text-primary-600 hover:underline mt-2 inline-block">
-                {{ $t('manage.openInNewTab') }}
+                在新标签页打开
               </a>
             </div>
           </div>
@@ -234,12 +234,12 @@
       <div v-if="renameItem" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div class="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-200 dark:border-gray-700">
           <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            {{ $t('manage.renameFile') }}
+            重命名文件
           </h3>
           <div class="space-y-3 mb-4">
             <div>
               <label class="block text-sm text-gray-700 dark:text-gray-300 mb-1">
-                {{ $t('manage.currentName') }}
+                当前名称
               </label>
               <input
                 :value="renameItem.name"
@@ -249,12 +249,12 @@
             </div>
             <div>
               <label class="block text-sm text-gray-700 dark:text-gray-300 mb-1">
-                {{ $t('manage.newName') }}
+                新名称
               </label>
               <input
                 v-model="newName"
                 type="text"
-                :placeholder="$t('manage.newNamePlaceholder')"
+                placeholder="输入新文件名"
                 class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
@@ -264,14 +264,14 @@
               @click="renameItem = null"
               class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
             >
-              {{ $t('manage.cancel') }}
+              取消
             </button>
             <button
               @click="confirmRename"
               :disabled="!newName || renaming"
               class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ renaming ? $t('manage.renaming') : $t('manage.confirmRename') }}
+              {{ renaming ? '重命名中...' : '确认重命名' }}
             </button>
           </div>
         </div>
@@ -281,10 +281,10 @@
       <div v-if="deleteConfirmItem" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div class="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-200 dark:border-gray-700">
           <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            {{ $t('manage.confirmDelete') }}
+            确认删除
           </h3>
           <p class="text-gray-600 dark:text-gray-400 mb-4">
-            {{ $t('manage.deleteWarning') }}
+            此操作将永久删除文件，且无法恢复
           </p>
           <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3 mb-4">
             <p class="text-sm text-red-800 dark:text-red-200 font-mono break-all">
@@ -296,13 +296,13 @@
               @click="deleteConfirmItem = null"
               class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
             >
-              {{ $t('manage.cancel') }}
+              取消
             </button>
             <button
               @click="confirmDelete"
               class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
             >
-              {{ $t('manage.confirmDelete') }}
+              确认删除
             </button>
           </div>
         </div>
@@ -381,7 +381,7 @@ const filteredFiles = computed(() => {
 // 加载文件列表
 const loadFiles = async () => {
   if (!configStore.config?.repository) {
-    toastStore.error($t('manage.noConfigWarning'))
+    toastStore.error('请先配置仓库信息')
     return
   }
 
@@ -401,9 +401,9 @@ const loadFiles = async () => {
     })
 
     files.value = response
-    toastStore.success($t('manage.loadSuccess', { count: response.length }))
+    toastStore.success(`成功加载 ${response.length} 个文件`)
   } catch (error: any) {
-    toastStore.error(error.message || $t('manage.loadFailed'))
+    toastStore.error(error.message || '加载失败')
   } finally {
     loading.value = false
   }
@@ -452,9 +452,9 @@ const confirmDelete = async () => {
 
     files.value = files.value.filter(f => f.path !== deleteConfirmItem.value?.path)
     selectedFiles.value.delete(deleteConfirmItem.value.path)
-    toastStore.success($t('manage.deleteSuccess'))
+    toastStore.success('删除成功')
   } catch (error: any) {
-    toastStore.error(error.message || $t('manage.deleteFailed'))
+    toastStore.error(error.message || '删除失败')
   } finally {
     deleteConfirmItem.value = null
   }
@@ -464,7 +464,7 @@ const confirmDelete = async () => {
 const deleteSelected = async () => {
   if (selectedFiles.value.size === 0) return
 
-  if (!confirm($t('manage.deleteSelectedConfirm', { count: selectedFiles.value.size }))) {
+  if (!confirm(`确定要删除选中的 ${selectedFiles.value.size} 个文件吗？`)) {
     return
   }
 
@@ -491,9 +491,9 @@ const deleteSelected = async () => {
 
     files.value = files.value.filter(f => !pathsToDelete.includes(f.path))
     selectedFiles.value.clear()
-    toastStore.success($t('manage.deleteSuccess'))
+    toastStore.success('删除成功')
   } catch (error: any) {
-    toastStore.error(error.message || $t('manage.deleteFailed'))
+    toastStore.error(error.message || '删除失败')
   } finally {
     deleting.value = false
   }
@@ -548,11 +548,11 @@ const confirmRename = async () => {
       selectedFiles.value.add(newPath)
     }
 
-    toastStore.success($t('manage.renameSuccess'))
+    toastStore.success('重命名成功')
     renameItem.value = null
     newName.value = ''
   } catch (error: any) {
-    toastStore.error(error.message || $t('manage.renameFailed'))
+    toastStore.error(error.message || '重命名失败')
   } finally {
     renaming.value = false
   }
@@ -566,9 +566,9 @@ const copyUrl = async (file: FileItem) => {
 const copyToClipboard = async (text: string) => {
   try {
     await navigator.clipboard.writeText(text)
-    toastStore.success($t('manage.copySuccess'))
+    toastStore.success('复制成功')
   } catch (error) {
-    toastStore.error($t('manage.copyFailed'))
+    toastStore.error('复制失败')
   }
 }
 
@@ -600,7 +600,7 @@ const downloadSelected = () => {
     a.click()
   })
 
-  toastStore.success($t('manage.downloadStarted'))
+  toastStore.success('下载已开始')
 }
 
 // 判断是否为图片

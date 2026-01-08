@@ -25,7 +25,6 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/tailwindcss',
     '@element-plus/nuxt',
-    '@nuxtjs/i18n',
     '@pinia/nuxt'
   ],
 
@@ -40,26 +39,6 @@ export default defineNuxtConfig({
   elementPlus: {
     importStyle: 'css',
     themes: ['dark']
-  },
-
-  // i18n 配置
-  i18n: {
-    locales: [
-      { code: 'zh-CN', name: '简体中文', file: 'zh-CN.json' },
-      { code: 'zh-TW', name: '繁体中文', file: 'zh-TW.json' },
-      { code: 'en', name: 'English', file: 'en.json' }
-    ],
-    defaultLocale: 'zh-CN',
-    langDir: './locales',
-    strategy: 'prefix_except_default',
-    detectBrowserLanguage: {
-      useCookie: true,
-      cookieKey: 'i18n_redirected',
-      redirectOn: 'root'
-    },
-    bundle: {
-      optimizeTranslationDirective: false
-    }
   },
 
   // 运行时配置

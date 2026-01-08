@@ -7,10 +7,11 @@ import { createGitHubFetcher } from '../../utils/github'
 export default defineEventHandler(async (event) => {
   const auth = event.context.auth
   if (!auth) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Unauthorized'
-    })
+    return {
+      success: false,
+      authenticated: false,
+      message: '请先登录'
+    }
   }
 
   // 从请求中获取配置的仓库信息（可选）

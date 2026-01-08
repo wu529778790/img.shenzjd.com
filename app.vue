@@ -8,7 +8,7 @@
             <span class="text-white font-bold text-sm">IMG</span>
           </div>
           <h1 class="text-xl font-bold text-gray-900 dark:text-white">
-            {{ $t('app.title') }}
+            图床应用
           </h1>
         </div>
 
@@ -21,7 +21,7 @@
             @click="handleLogout"
             class="px-3 py-1.5 text-sm bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 rounded-md transition-colors"
           >
-            {{ $t('auth.logout') }}
+            退出登录
           </button>
         </div>
       </div>

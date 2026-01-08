@@ -5,20 +5,20 @@
       <div class="flex flex-col md:flex-row items-center justify-between gap-8">
         <div class="flex-1">
           <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            {{ $t('home.welcome') }}
+            欢迎使用
           </h1>
           <p class="text-lg text-gray-600 dark:text-gray-300 mb-6">
-            {{ $t('home.description') }}
+            基于 GitHub OAuth 的现代化图床应用
           </p>
           <div class="flex gap-3">
             <NuxtLink to="/upload">
               <button class="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors">
-                {{ $t('nav.upload') }}
+                上传
               </button>
             </NuxtLink>
             <NuxtLink to="/config">
               <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold py-2.5 px-6 rounded-lg transition-colors">
-                {{ $t('nav.config') }}
+                配置
               </button>
             </NuxtLink>
           </div>
@@ -35,10 +35,10 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
         <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">
-          {{ $t('home.currentRepo') }}
+          当前仓库
         </div>
         <div class="text-xl font-semibold text-gray-900 dark:text-white">
-          {{ configStore.config?.repository || $t('home.notConfigured') }}
+          {{ configStore.config?.repository || '未配置' }}
         </div>
         <div class="text-xs text-gray-500 dark:text-gray-400 mt-1" v-if="configStore.config?.branch">
           {{ configStore.config.branch }}
@@ -46,18 +46,18 @@
       </div>
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
         <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">
-          {{ $t('home.storagePath') }}
+          存储路径
         </div>
         <div class="text-xl font-semibold text-gray-900 dark:text-white">
-          {{ configStore.config?.directory || $t('home.notConfigured') }}
+          {{ configStore.config?.directory || '未配置' }}
         </div>
         <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          {{ $t('home.configurable') }}
+          可在配置中修改
         </div>
       </div>
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
         <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">
-          {{ $t('home.user') }}
+          用户
         </div>
         <div class="text-xl font-semibold text-gray-900 dark:text-white">
           {{ authStore.user?.login || '-' }}
@@ -71,7 +71,7 @@
     <!-- Features -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
       <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        {{ $t('home.features') }}
+        功能特点
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div class="flex items-start gap-3">
@@ -82,10 +82,10 @@
           </div>
           <div>
             <h3 class="font-semibold text-gray-900 dark:text-white mb-1">
-              {{ $t('home.feature1Title') }}
+              批量上传
             </h3>
             <p class="text-sm text-gray-600 dark:text-gray-400">
-              {{ $t('home.feature1Desc') }}
+              支持多张图片同时上传，节省时间
             </p>
           </div>
         </div>
@@ -97,10 +97,10 @@
           </div>
           <div>
             <h3 class="font-semibold text-gray-900 dark:text-white mb-1">
-              {{ $t('home.feature2Title') }}
+              图片压缩
             </h3>
             <p class="text-sm text-gray-600 dark:text-gray-400">
-              {{ $t('home.feature2Desc') }}
+              自动压缩图片，优化存储空间
             </p>
           </div>
         </div>
@@ -113,10 +113,10 @@
           </div>
           <div>
             <h3 class="font-semibold text-gray-900 dark:text-white mb-1">
-              {{ $t('home.feature3Title') }}
+              水印添加
             </h3>
             <p class="text-sm text-gray-600 dark:text-gray-400">
-              {{ $t('home.feature3Desc') }}
+              自定义水印文字和位置
             </p>
           </div>
         </div>
@@ -128,10 +128,10 @@
           </div>
           <div>
             <h3 class="font-semibold text-gray-900 dark:text-white mb-1">
-              {{ $t('home.feature4Title') }}
+              文件管理
             </h3>
             <p class="text-sm text-gray-600 dark:text-gray-400">
-              {{ $t('home.feature4Desc') }}
+              轻松管理和预览已上传的文件
             </p>
           </div>
         </div>
@@ -143,10 +143,10 @@
           </div>
           <div>
             <h3 class="font-semibold text-gray-900 dark:text-white mb-1">
-              {{ $t('home.feature5Title') }}
+              多格式支持
             </h3>
             <p class="text-sm text-gray-600 dark:text-gray-400">
-              {{ $t('home.feature5Desc') }}
+              支持常见图片格式
             </p>
           </div>
         </div>
@@ -158,10 +158,10 @@
           </div>
           <div>
             <h3 class="font-semibold text-gray-900 dark:text-white mb-1">
-              {{ $t('home.feature6Title') }}
+              灵活配置
             </h3>
             <p class="text-sm text-gray-600 dark:text-gray-400">
-              {{ $t('home.feature6Desc') }}
+              自定义存储路径和命名规则
             </p>
           </div>
         </div>
@@ -176,15 +176,15 @@
         </svg>
         <div class="flex-1">
           <h3 class="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">
-            {{ $t('home.setupRequired') }}
+            需要设置
           </h3>
           <p class="text-sm text-yellow-700 dark:text-yellow-300">
-            {{ $t('home.setupRequiredDesc') }}
+            请先配置您的仓库信息以开始使用
           </p>
         </div>
         <NuxtLink to="/config">
           <button class="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
-            {{ $t('home.goToConfig') }}
+            前往配置
           </button>
         </NuxtLink>
       </div>
