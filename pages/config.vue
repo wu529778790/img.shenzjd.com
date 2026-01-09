@@ -491,37 +491,49 @@ watch(
   () => authStore.isAuthenticated,
   async (isAuthenticated) => {
     if (isAuthenticated) {
-      try {
-        await configStore.loadConfig();
-        if (configStore.config) {
-          // 从嵌套结构转换为页面使用的扁平结构
-          config.value.repositoryOwner =
-            configStore.config.storage.repository.owner;
-          config.value.repositoryName =
-            configStore.config.storage.repository.name;
-          config.value.branch = configStore.config.storage.repository.branch;
-          config.value.directory = configStore.config.storage.directory.path;
-          config.value.customDomain = configStore.config.links.customDomain;
-          config.value.watermarkText = configStore.config.image.watermark.text;
-          config.value.imageCompression = configStore.config.image.autoCompress
-            ? "medium"
-            : "none";
-          config.value.timestampDir =
-            configStore.config.storage.directory.autoPattern ===
-            "year/month/day";
-        } else {
-          // 设置默认值
-          config.value.repositoryOwner = authStore.user?.login || "";
-          config.value.repositoryName = "img.shenzjd.com";
-          config.value.branch = "main";
-          config.value.directory = "images";
-        }
-      } catch (error) {
-        toastStore.error("加载配置失败");
-      }
+      await loadConfigFromStore();
     }
   }
 );
+
+// 组件挂载时自动加载配置
+onMounted(async () => {
+  if (authStore.isAuthenticated) {
+    await loadConfigFromStore();
+  }
+});
+
+// 从store加载配置的函数
+async function loadConfigFromStore() {
+  try {
+    await configStore.loadConfig();
+    if (configStore.config) {
+      // 从嵌套结构转换为页面使用的扁平结构
+      config.value.repositoryOwner =
+        configStore.config.storage.repository.owner;
+      config.value.repositoryName =
+        configStore.config.storage.repository.name;
+      config.value.branch = configStore.config.storage.repository.branch;
+      config.value.directory = configStore.config.storage.directory.path;
+      config.value.customDomain = configStore.config.links.customDomain;
+      config.value.watermarkText = configStore.config.image.watermark.text;
+      config.value.imageCompression = configStore.config.image.autoCompress
+        ? "medium"
+        : "none";
+      config.value.timestampDir =
+        configStore.config.storage.directory.autoPattern ===
+        "year/month/day";
+    } else {
+      // 设置默认值
+      config.value.repositoryOwner = authStore.user?.login || "";
+      config.value.repositoryName = "img.shenzjd.com";
+      config.value.branch = "main";
+      config.value.directory = "images";
+    }
+  } catch (error) {
+    toastStore.error("加载配置失败");
+  }
+};
 
 const config = ref({
   repositoryOwner: "",
