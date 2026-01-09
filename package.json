@@ -11,7 +11,13 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit/",
+    "test:watch": "vitest watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@element-plus/nuxt": "^1.1.1",
@@ -29,11 +35,19 @@
   },
   "devDependencies": {
     "@nuxt/devtools": "^1.6.3",
+    "@nuxt/eslint-config": "^1.12.1",
     "@nuxt/test-utils": "^3.15.1",
     "@types/node": "^22.10.2",
+    "@typescript-eslint/eslint-plugin": "^8.52.0",
+    "@typescript-eslint/parser": "^8.52.0",
     "@vue/test-utils": "^2.4.6",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-define-config": "^2.1.0",
+    "eslint-plugin-prettier": "^5.5.4",
     "happy-dom": "^15.11.6",
     "playwright": "^1.49.1",
+    "prettier": "^3.7.4",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8",
     "vue-tsc": "^3.2.2"

@@ -59,21 +59,15 @@ export default defineNuxtConfig({
 
   // TypeScript 配置
   typescript: {
-    typeCheck: false, // Temporarily disabled for initial build
+    typeCheck: true,
     tsConfig: {
       compilerOptions: {
-        strict: false,
-        noImplicitAny: false,
-        strictNullChecks: false,
-        strictFunctionTypes: false,
-        noImplicitThis: false,
-        noImplicitReturns: false,
-        exactOptionalPropertyTypes: false,
-        noUnusedLocals: false,
-        noUnusedParameters: false,
-        allowUnreachableCode: true,
-        noFallthroughCasesInSwitch: false,
-        noUncheckedIndexedAccess: false,
+        strict: true,
+        noUnusedLocals: true,
+        noUnusedParameters: true,
+        noFallthroughCasesInSwitch: true,
+        noUncheckedIndexedAccess: true,
+        allowUnreachableCode: false,
       },
     },
   },

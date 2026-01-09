@@ -1,26 +1,26 @@
+import {
+  getTokenFromCookie,
+  getTokenFromHeader,
+  verifyToken,
+} from "../../utils/jwt";
+import { createAuthError } from "../../utils/errors";
+
 /**
  * GET /api/auth/verify
  * 验证 JWT Token 有效性
+ * @returns { object } 包含验证结果和用户信息的对象
  */
 export default defineEventHandler(async (event) => {
-  const token = getTokenFromCookie(event) || getTokenFromHeader(event)
+  const token = getTokenFromCookie(event) || getTokenFromHeader(event);
 
   if (!token) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Unauthorized',
-      message: '未提供认证令牌'
-    })
+    throw createAuthError("未提供认证令牌");
   }
 
-  const payload = await verifyToken(token)
+  const payload = await verifyToken(token);
 
   if (!payload) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Unauthorized',
-      message: '认证令牌无效或已过期'
-    })
+    throw createAuthError("认证令牌无效或已过期");
   }
 
   // 从 token 中提取 GitHub token
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
       id: payload.id,
       login: payload.login,
       email: payload.email,
-      avatarUrl: payload.avatarUrl
-    }
-  }
-})
+      avatarUrl: payload.avatarUrl,
+    },
+  };
+});

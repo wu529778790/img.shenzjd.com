@@ -1,43 +1,63 @@
-import { ofetch } from 'ofetch'
+import { ofetch } from "ofetch";
 
 export interface GitHubUser {
-  id: number
-  login: string
-  email: string | null
-  avatar_url: string
-  name?: string
+  id: number;
+  login: string;
+  email: string | null;
+  avatar_url: string;
+  name?: string;
 }
 
 export interface GitHubRepo {
-  full_name: string
-  name: string
+  full_name: string;
+  name: string;
   owner: {
-    login: string
-  }
-  default_branch: string
-  private: boolean
+    login: string;
+  };
+  default_branch: string;
+  private: boolean;
+}
+
+export interface GitHubBranch {
+  name: string;
+  commit: {
+    sha: string;
+    url: string;
+  };
+  protected: boolean;
 }
 
 export interface GitHubContent {
-  type: 'file' | 'dir' | 'symlink' | 'submodule'
-  name: string
-  path: string
-  sha: string
-  size?: number
-  download_url?: string
-  url: string
+  type: "file" | "dir" | "symlink" | "submodule";
+  name: string;
+  path: string;
+  sha: string;
+  size?: number;
+  download_url?: string;
+  url: string;
 }
 
 export interface GitHubCommit {
   commit: {
-    sha: string
-    message: string
-  }
-  content?: GitHubContent
+    sha: string;
+    message: string;
+  };
+  content?: GitHubContent;
 }
 
 export interface GitHubFileResponse extends GitHubCommit {
-  content?: GitHubContent
+  content?: GitHubContent;
+}
+
+export interface GitHubRef {
+  ref: string;
+  node_id: string;
+  url: string;
+  object: {
+    sha: string;
+    type: string;
+    url: string;
+  };
 }
 
 /**
@@ -45,31 +65,31 @@ export interface GitHubFileResponse extends GitHubCommit {
  */
 export function createGitHubFetcher(accessToken: string) {
   return ofetch.create({
-    baseURL: 'https://api.github.com',
+    baseURL: "https://api.github.com",
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28'
-    }
-  })
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+    },
+  });
 }
 
 /**
  * 获取用户信息
  */
 export async function getGitHubUser(accessToken: string): Promise<GitHubUser> {
-  const fetcher = createGitHubFetcher(accessToken)
-  return await fetcher('/user')
+  const fetcher = createGitHubFetcher(accessToken);
+  return await fetcher("/user");
 }
 
 /**
  * 获取用户仓库列表
  */
 export async function getUserRepos(accessToken: string): Promise<GitHubRepo[]> {
-  const fetcher = createGitHubFetcher(accessToken)
+  const fetcher = createGitHubFetcher(accessToken);
   // 获取用户所有仓库（包括私有）
-  const repos = await fetcher('/user/repos?per_page=100&sort=updated')
-  return repos
+  const repos = await fetcher("/user/repos?per_page=100&sort=updated");
+  return repos;
 }
 
 /**
@@ -78,10 +98,10 @@ export async function getUserRepos(accessToken: string): Promise<GitHubRepo[]> {
 export async function getRepoBranches(
   owner: string,
   repo: string,
-  accessToken: string
-): Promise<any[]> {
-  const fetcher = createGitHubFetcher(accessToken)
-  return await fetcher(`/repos/${owner}/${repo}/branches`)
+  accessToken: string,
+): Promise<GitHubBranch[]> {
+  const fetcher = createGitHubFetcher(accessToken);
+  return await fetcher(`/repos/${owner}/${repo}/branches`);
 }
 
 /**
@@ -92,15 +112,17 @@ export async function getRepoContent(
   repo: string,
   path: string,
   ref?: string,
-  accessToken?: string
+  accessToken?: string,
 ): Promise<GitHubContent | GitHubContent[]> {
-  const fetcher = createGitHubFetcher(accessToken || '')
-  const params: any = {}
-  if (ref) params.ref = ref
+  const fetcher = createGitHubFetcher(accessToken || "");
+  const params = ref ? { ref } : {};
 
-  return await fetcher(`/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
-    query: params
-  })
+  return await fetcher(
+    `/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`,
+    {
+      query: params,
+    },
+  );
 }
 
 /**
@@ -110,18 +132,18 @@ export async function createRepository(
   name: string,
   description: string,
   accessToken: string,
-  privateRepo: boolean = true
+  privateRepo: boolean = true,
 ): Promise<GitHubRepo> {
-  const fetcher = createGitHubFetcher(accessToken)
-  return await fetcher('/user/repos', {
-    method: 'POST',
+  const fetcher = createGitHubFetcher(accessToken);
+  return await fetcher("/user/repos", {
+    method: "POST",
     body: {
       name,
       description,
       private: privateRepo,
-      auto_init: true
-    }
-  })
+      auto_init: true,
+    },
+  });
 }
 
 /**
@@ -135,22 +157,24 @@ export async function createOrUpdateFile(
   message: string,
   accessToken: string,
   branch?: string,
-  sha?: string
+  sha?: string,
 ): Promise<GitHubCommit> {
-  const fetcher = createGitHubFetcher(accessToken)
+  const fetcher = createGitHubFetcher(accessToken);
 
-  const body: any = {
+  const body = {
     message,
-    content: Buffer.from(content).toString('base64')
-  }
+    content: Buffer.from(content).toString("base64"),
+    ...(branch && { branch }),
+    ...(sha && { sha }),
+  };
 
-  if (branch) body.branch = branch
-  if (sha) body.sha = sha
-
-  return await fetcher(`/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
-    method: 'PUT',
-    body
-  })
+  return await fetcher(
+    `/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`,
+    {
+      method: "PUT",
+      body,
+    },
+  );
 }
 
 /**
@@ -163,21 +187,23 @@ export async function deleteFile(
   message: string,
   sha: string,
   accessToken: string,
-  branch?: string
+  branch?: string,
 ): Promise<GitHubCommit> {
-  const fetcher = createGitHubFetcher(accessToken)
+  const fetcher = createGitHubFetcher(accessToken);
 
-  const body: any = {
+  const body = {
     message,
-    sha
-  }
+    sha,
+    ...(branch && { branch }),
+  };
 
-  if (branch) body.branch = branch
-
-  return await fetcher(`/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
-    method: 'DELETE',
-    body
-  })
+  return await fetcher(
+    `/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`,
+    {
+      method: "DELETE",
+      body,
+    },
+  );
 }
 
 /**
@@ -188,22 +214,24 @@ export async function createBranch(
   repo: string,
   branchName: string,
   fromBranch: string,
-  accessToken: string
-): Promise<any> {
-  const fetcher = createGitHubFetcher(accessToken)
+  accessToken: string,
+): Promise<GitHubRef> {
+  const fetcher = createGitHubFetcher(accessToken);
 
   // 获取源分支的最新 commit SHA
-  const branchData = await fetcher(`/repos/${owner}/${repo}/branches/${fromBranch}`)
-  const sha = branchData.commit.sha
+  const branchData = await fetcher<GitHubBranch>(
+    `/repos/${owner}/${repo}/branches/${fromBranch}`,
+  );
+  const sha = branchData.commit.sha;
 
   // 创建新分支
-  return await fetcher(`/repos/${owner}/${repo}/git/refs`, {
-    method: 'POST',
+  return await fetcher<GitHubRef>(`/repos/${owner}/${repo}/git/refs`, {
+    method: "POST",
     body: {
       ref: `refs/heads/${branchName}`,
-      sha
-    }
-  })
+      sha,
+    },
+  });
 }
 
 /**
@@ -212,17 +240,17 @@ export async function createBranch(
 export async function checkRepositoryExists(
   owner: string,
   repo: string,
-  accessToken: string
+  accessToken: string,
 ): Promise<boolean> {
   try {
-    const fetcher = createGitHubFetcher(accessToken)
-    await fetcher(`/repos/${owner}/${repo}`)
-    return true
+    const fetcher = createGitHubFetcher(accessToken);
+    await fetcher(`/repos/${owner}/${repo}`);
+    return true;
   } catch (error: any) {
     if (error.response?.status === 404) {
-      return false
+      return false;
     }
-    throw error
+    throw error;
   }
 }
 
@@ -234,28 +262,30 @@ export async function getSha(
   repo: string,
   path: string,
   accessToken: string,
-  branch?: string
+  branch?: string,
 ): Promise<string | null> {
   try {
-    const content = await getRepoContent(owner, repo, path, branch, accessToken)
+    const content = await getRepoContent(
+      owner,
+      repo,
+      path,
+      branch,
+      accessToken,
+    );
 
     if (Array.isArray(content)) {
       // 目录，返回第一个文件的 SHA（用于目录删除）
       if (content.length > 0) {
-        const firstItem = content[0] as GitHubContent
-        if (firstItem.sha) {
-          return firstItem.sha
-        }
+        return content[0]?.sha || "";
       }
-      return null
+      return null;
     }
 
-    const singleContent = content as GitHubContent
-    return singleContent.sha || null
+    return content.sha;
   } catch (error: any) {
     if (error.response?.status === 404) {
-      return null
+      return null;
     }
-    throw error
+    throw error;
   }
 }

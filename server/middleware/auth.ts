@@ -1,4 +1,10 @@
-import { defineEventHandler } from 'h3'
+import { defineEventHandler } from "h3";
+import {
+  getTokenFromCookie,
+  getTokenFromHeader,
+  verifyToken,
+} from "../utils/jwt";
+import type { JWTPayload } from "../utils/jwt";
 
 /**
  * 认证中间件
@@ -7,34 +13,41 @@ import { defineEventHandler } from 'h3'
  */
 export default defineEventHandler(async (event) => {
   // 获取请求路径
-  const path = event.node.req.url || ''
+  const path = event.node.req.url || "";
 
   // 公开路径直接放行
   const publicPaths = [
-    '/api/auth/github',
-    '/api/auth/callback',
-    '/api/auth/verify'
-  ]
+    "/api/auth/github",
+    "/api/auth/callback",
+    "/api/auth/verify",
+  ];
 
-  if (publicPaths.some(p => path.startsWith(p))) {
-    return
+  if (publicPaths.some((p) => path.startsWith(p))) {
+    return;
   }
 
   // 尝试从请求中获取 token
-  const token = getTokenFromCookie(event) || getTokenFromHeader(event)
+  const token = getTokenFromCookie(event) || getTokenFromHeader(event);
 
   if (token) {
     // 有 token，尝试验证
-    const payload = await verifyToken(token)
+    const payload = await verifyToken(token);
     if (payload) {
       // token 有效，将用户信息附加到事件对象上
-      event.context.auth = payload
+      event.context.auth = payload;
     } else {
       // token 无效，标记为未认证
-      event.context.auth = null
+      event.context.auth = null;
     }
   } else {
     // 没有 token，标记为未认证
-    event.context.auth = null
+    event.context.auth = null;
   }
-})
+});
+
+// 扩展 H3Event 类型，添加 auth 属性
+declare module "h3" {
+  interface H3EventContext {
+    auth?: JWTPayload | null;
+  }
+}

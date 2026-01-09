@@ -1,37 +1,46 @@
-import { createOrUpdateFile, getSha } from '../../utils/github'
+import { createOrUpdateFile, getSha } from "../../utils/github";
 
 /**
  * PUT /api/user/config
  * 保存用户配置到 GitHub 仓库
  */
 export default defineEventHandler(async (event) => {
-  const auth = event.context.auth
+  const auth = event.context.auth;
   if (!auth) {
     return {
       success: false,
       authenticated: false,
-      message: '请先登录'
-    }
+      message: "请先登录",
+    };
   }
 
-  const body = await readBody(event)
+  // 确保auth.githubToken存在
+  if (!auth.githubToken) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: "Unauthorized",
+      message: "缺少GitHub Token",
+    });
+  }
+
+  const body = await readBody(event);
   if (!body || !body.config) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Bad Request',
-      message: '缺少配置数据'
-    })
+      statusMessage: "Bad Request",
+      message: "缺少配置数据",
+    });
   }
 
   const {
     config,
-    repository = { owner: auth.login, name: 'img.shenzjd.com', branch: 'main' }
-  } = body
+    repository = { owner: auth.login, name: "img.shenzjd.com", branch: "main" },
+  } = body;
 
   try {
-    const path = '.image-hosting/config.json'
-    const content = JSON.stringify(config, null, 2)
-    const message = 'Update config via Image Hosting App'
+    const path = ".image-hosting/config.json";
+    const content = JSON.stringify(config, null, 2);
+    const message = "Update config via Image Hosting App";
 
     // 获取现有文件的 SHA（如果存在）
     const sha = await getSha(
@@ -39,8 +48,8 @@ export default defineEventHandler(async (event) => {
       repository.name,
       path,
       auth.githubToken,
-      repository.branch
-    )
+      repository.branch,
+    );
 
     // 创建或更新文件
     const result = await createOrUpdateFile(
@@ -51,20 +60,20 @@ export default defineEventHandler(async (event) => {
       message,
       auth.githubToken,
       repository.branch,
-      sha || undefined
-    )
+      sha || undefined,
+    );
 
     return {
       success: true,
-      message: '配置已保存',
-      commit: result.commit.sha
-    }
+      message: "配置已保存",
+      commit: result.commit.sha,
+    };
   } catch (error: any) {
-    console.error('Save config error:', error)
+    console.error("Save config error:", error);
     throw createError({
       statusCode: 500,
-      statusMessage: 'Internal Server Error',
-      message: '保存配置失败: ' + (error.message || '未知错误')
-    })
+      statusMessage: "Internal Server Error",
+      message: "保存配置失败: " + (error.message || "未知错误"),
+    });
   }
-})
+});
