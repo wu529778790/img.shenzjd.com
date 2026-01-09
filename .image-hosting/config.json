@@ -9,7 +9,7 @@
     "directory": {
       "mode": "auto",
       "path": "blog",
-      "autoPattern": "date"
+      "autoPattern": "year/month/day"
     },
     "naming": {
       "strategy": "hash",
@@ -18,7 +18,7 @@
     }
   },
   "image": {
-    "autoCompress": false,
+    "autoCompress": true,
     "compressionQuality": 0.85,
     "maxWidth": 1920,
     "maxHeight": 1080,
@@ -40,5 +40,5 @@
     "email": "529778790@qq.com",
     "avatar": "https://avatars.githubusercontent.com/u/11481938?v=4"
   },
-  "lastSync": "2026-01-09T15:17:25.206Z"
+  "lastSync": "2026-01-09T15:31:10.861Z"
 }
