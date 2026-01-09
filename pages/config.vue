@@ -339,6 +339,26 @@
             <label
               class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
+              图片链接规则
+            </label>
+            <select
+              v-model="config.cdn"
+              class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="github">GitHub</option>
+              <option value="jsdelivr">jsDelivr</option>
+              <option value="staticaly">Staticaly</option>
+              <option value="chinajsdelivr">ChinaJSdelivr</option>
+            </select>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              选择图片链接使用的 CDN 前缀
+            </p>
+          </div>
+          
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
               自定义域名
             </label>
             <input
@@ -513,6 +533,7 @@ async function loadConfigFromStore() {
       config.value.repositoryName = configStore.config.storage.repository.name;
       config.value.branch = configStore.config.storage.repository.branch;
       config.value.directory = configStore.config.storage.directory.path;
+      config.value.cdn = configStore.config.links.cdn;
       config.value.customDomain = configStore.config.links.customDomain;
       config.value.watermarkText = configStore.config.image.watermark.text;
       config.value.imageCompression = configStore.config.image.autoCompress
@@ -525,6 +546,7 @@ async function loadConfigFromStore() {
       config.value.repositoryName = "img.shenzjd.com";
       config.value.branch = "main";
       config.value.directory = "images";
+      config.value.cdn = "github";
     }
   } catch (error) {
     toastStore.error("加载配置失败");
@@ -551,6 +573,7 @@ async function loadFromGitHub() {
       config.value.repositoryName = response.data.storage.repository.name;
       config.value.branch = response.data.storage.repository.branch;
       config.value.directory = response.data.storage.directory.path;
+      config.value.cdn = response.data.links.cdn;
       config.value.customDomain = response.data.links.customDomain;
       config.value.watermarkText = response.data.image.watermark.text;
       config.value.imageCompression = response.data.image.autoCompress ? "medium" : "none";
@@ -571,6 +594,7 @@ const config = ref({
   repositoryName: "",
   branch: "",
   directory: "",
+  cdn: "github",
   customDomain: "",
   watermarkText: "",
   imageCompression: "none",
@@ -848,7 +872,7 @@ const saveConfig = async () => {
       },
       links: {
         format: "markdown",
-        cdn: "github",
+        cdn: config.value.cdn as "github" | "jsdelivr" | "custom" | "staticaly" | "chinajsdelivr",
         customDomain: config.value.customDomain,
       },
       user: {
@@ -872,6 +896,7 @@ const saveConfig = async () => {
       config.value.imageCompression !== "none";
     configStore.config.image.watermark.text = config.value.watermarkText;
     configStore.config.image.watermark.enabled = !!config.value.watermarkText;
+    configStore.config.links.cdn = config.value.cdn as "github" | "jsdelivr" | "custom" | "staticaly" | "chinajsdelivr";
     configStore.config.links.customDomain = config.value.customDomain;
   }
 
@@ -893,6 +918,7 @@ const resetConfig = () => {
     repositoryName: "img.shenzjd.com",
     branch: "main",
     directory: "images",
+    cdn: "github",
     customDomain: "",
     watermarkText: "",
     imageCompression: "none",

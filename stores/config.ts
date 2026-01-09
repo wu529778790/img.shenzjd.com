@@ -34,7 +34,7 @@ export interface ImageConfig {
 
 export interface LinkConfig {
   format: "markdown" | "html" | "bbcode" | "plain";
-  cdn: "github" | "jsdelivr" | "custom";
+  cdn: "github" | "jsdelivr" | "custom" | "staticaly" | "chinajsdelivr";
   customDomain: string;
 }
 
