@@ -1,0 +1,44 @@
+{
+  "version": "3.0.0",
+  "storage": {
+    "repository": {
+      "owner": "wu529778790",
+      "name": "img.shenzjd.com",
+      "branch": "master"
+    },
+    "directory": {
+      "mode": "auto",
+      "path": "blog",
+      "autoPattern": "date"
+    },
+    "naming": {
+      "strategy": "hash",
+      "prefix": "",
+      "suffix": ""
+    }
+  },
+  "image": {
+    "autoCompress": false,
+    "compressionQuality": 0.85,
+    "maxWidth": 1920,
+    "maxHeight": 1080,
+    "watermark": {
+      "enabled": false,
+      "text": "",
+      "position": "bottom-right",
+      "opacity": 0.5
+    }
+  },
+  "links": {
+    "format": "markdown",
+    "cdn": "github",
+    "customDomain": ""
+  },
+  "user": {
+    "id": 11481938,
+    "login": "wu529778790",
+    "email": "529778790@qq.com",
+    "avatar": "https://avatars.githubusercontent.com/u/11481938?v=4"
+  },
+  "lastSync": "2026-01-09T15:17:25.206Z"
+}
