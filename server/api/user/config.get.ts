@@ -27,7 +27,8 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   const owner = (query.owner as string) || auth.login;
   const repo = (query.repo as string) || "img.shenzjd.com";
-  const branch = (query.branch as string) || "main";
+  // 优先使用请求中的branch参数，否则使用默认值
+  const branch = (query.branch as string) || "master";
 
   try {
     // 尝试从 GitHub 读取配置文件

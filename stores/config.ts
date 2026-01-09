@@ -93,10 +93,15 @@ export const useConfigStore = defineStore("config", {
       this.loading = true;
 
       try {
+        // 使用当前配置的仓库名称，如果不存在则使用默认值
+        const repoName = this.config?.storage.repository.name || "img.shenzjd.com";
+        const branch = this.config?.storage.repository.branch || "master";
+        
         const response = await apiFetch("/api/user/config", {
           query: {
             owner: authStore.user?.login,
-            repo: "img.shenzjd.com",
+            repo: repoName,
+            branch: branch
           },
         });
 

@@ -154,6 +154,7 @@
 
             <!-- File Card -->
             <div 
+              v-memo="[file.name, file.path, selectedPaths.has(file.path)]"
               class="bg-gray-50 dark:bg-gray-900/50 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 transition-all duration-200 hover:shadow-md cursor-pointer"
               @click="handleFileClick(file)"
             >
@@ -161,7 +162,7 @@
               <div class="relative aspect-square bg-gray-200 dark:bg-gray-700 overflow-hidden">
                 <img
                   v-if="isImage(file)"
-                  :src="file.download_url"
+                  :src="getImageUrl(file)"
                   :alt="file.name"
                   class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   loading="lazy"
@@ -262,6 +263,7 @@
             <tr 
               v-for="file in paginatedFiles" 
               :key="file.path"
+              v-memo="[file.name, file.path, selectedPaths.has(file.path)]"
               class="hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors"
             >
               <td class="px-4 py-3 whitespace-nowrap">
@@ -275,7 +277,7 @@
               <td class="px-4 py-3 whitespace-nowrap">
                 <img
                   v-if="isImage(file)"
-                  :src="file.download_url"
+                  :src="getImageUrl(file)"
                   :alt="file.name"
                   class="w-12 h-12 object-cover rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
                   @click="previewFile(file)"
@@ -375,7 +377,7 @@
       <div class="p-4 bg-gray-50 dark:bg-gray-900/30">
         <img
           v-if="isImage(previewItem)"
-          :src="previewItem.download_url"
+          :src="getImageUrl(previewItem)"
           :alt="previewItem.name"
           class="max-h-[70vh] max-w-full mx-auto rounded object-contain"
         />
@@ -493,7 +495,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 import { useConfigStore } from '~/stores/config'
 import { useToastStore } from '~/stores/toast'
@@ -522,11 +524,24 @@ const selectedPaths = ref<Set<string>>(new Set())
 
 // UI state
 const searchQuery = ref('')
+const debouncedSearchQuery = ref('')
 const filterType = ref<'all' | 'image' | 'other'>('all')
 const sortBy = ref<'name' | 'date' | 'size'>('name')
 const viewMode = ref<'grid' | 'list'>('grid')
 const itemsPerPage = ref(20)
 const currentPage = ref(1)
+
+// Debounce search input
+let searchTimeout: NodeJS.Timeout | null = null
+watch(searchQuery, (newValue) => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+  searchTimeout = setTimeout(() => {
+    debouncedSearchQuery.value = newValue
+    currentPage.value = 1 // Reset to first page when search changes
+  }, 300)
+})
 
 // Modal state
 const previewItem = ref<FileItem | null>(null)
@@ -539,9 +554,9 @@ const showDeleteConfirm = ref(false)
 const filteredFiles = computed(() => {
   let result = [...files.value]
 
-  // Search
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
+  // Search with debounce
+  if (debouncedSearchQuery.value) {
+    const query = debouncedSearchQuery.value.toLowerCase()
     result = result.filter(f => f.name.toLowerCase().includes(query) || f.path.toLowerCase().includes(query))
   }
 
@@ -552,7 +567,7 @@ const filteredFiles = computed(() => {
     result = result.filter(f => !isImage(f))
   }
 
-  // Sort
+  // Sort - optimize by only sorting when necessary
   result.sort((a, b) => {
     switch (sortBy.value) {
       case 'name':
@@ -618,6 +633,39 @@ const loadFiles = async () => {
   }
 }
 
+// 根据配置的链接规则构建图片URL
+const getImageUrl = (file: FileItem) => {
+  if (!configStore.config) {
+    return file.download_url
+  }
+  
+  const { owner, name, branch } = configStore.config.storage.repository
+  const { cdn, customDomain } = configStore.config.links
+  let url = ''
+  
+  // 根据配置的CDN类型构建URL
+  switch (cdn) {
+    case 'github':
+      url = `https://github.com/${owner}/${name}/raw/${branch}/${file.path}`
+      break
+    case 'jsdelivr':
+      url = `https://cdn.jsdelivr.net/gh/${owner}/${name}@${branch}/${file.path}`
+      break
+    default:
+      url = file.download_url
+  }
+  
+  // 应用自定义域名替换
+  if (customDomain) {
+    const baseUrl = `https://raw.githubusercontent.com/${owner}/${name}/${branch}/`
+    if (url.startsWith(baseUrl)) {
+      url = url.replace(baseUrl, customDomain.replace(/\/$/, '') + '/')
+    }
+  }
+  
+  return url
+}
+
 const toggleSelection = (path: string) => {
   if (selectedPaths.value.has(path)) {
     selectedPaths.value.delete(path)
@@ -644,7 +692,8 @@ const toggleSelectAll = () => {
 
 const copyUrl = async (file: FileItem) => {
   try {
-    await navigator.clipboard.writeText(file.download_url)
+    const url = getImageUrl(file)
+    await navigator.clipboard.writeText(url)
     toastStore.success('链接已复制到剪贴板')
   } catch (error) {
     toastStore.error('复制失败')
@@ -655,7 +704,7 @@ const copySelectedUrls = async () => {
   if (selectedPaths.value.size === 0) return
 
   const selected = files.value.filter(f => selectedPaths.value.has(f.path))
-  const text = selected.map(f => `${f.name}: ${f.download_url}`).join('\n')
+  const text = selected.map(f => `${f.name}: ${getImageUrl(f)}`).join('\n')
 
   try {
     await navigator.clipboard.writeText(text)
@@ -667,7 +716,7 @@ const copySelectedUrls = async () => {
 
 const downloadFile = (file: FileItem) => {
   const a = document.createElement('a')
-  a.href = file.download_url
+  a.href = getImageUrl(file)
   a.download = file.name
   a.target = '_blank'
   a.click()
@@ -832,8 +881,11 @@ const formatFileSize = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
-const formatDate = (url: string): string => {
+const formatDate = (url: string | undefined | null): string => {
   // Try to extract date from URL
+  if (!url) {
+    return new Date().toLocaleDateString()
+  }
   const dateMatch = url.match(/(\d{4})[-/](\d{2})[-/](\d{2})/)
   if (dateMatch) {
     return `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}`

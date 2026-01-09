@@ -509,10 +509,8 @@ async function loadConfigFromStore() {
     await configStore.loadConfig();
     if (configStore.config) {
       // 从嵌套结构转换为页面使用的扁平结构
-      config.value.repositoryOwner =
-        configStore.config.storage.repository.owner;
-      config.value.repositoryName =
-        configStore.config.storage.repository.name;
+      config.value.repositoryOwner = configStore.config.storage.repository.owner;
+      config.value.repositoryName = configStore.config.storage.repository.name;
       config.value.branch = configStore.config.storage.repository.branch;
       config.value.directory = configStore.config.storage.directory.path;
       config.value.customDomain = configStore.config.links.customDomain;
@@ -520,9 +518,7 @@ async function loadConfigFromStore() {
       config.value.imageCompression = configStore.config.image.autoCompress
         ? "medium"
         : "none";
-      config.value.timestampDir =
-        configStore.config.storage.directory.autoPattern ===
-        "year/month/day";
+      config.value.timestampDir = configStore.config.storage.directory.autoPattern === "year/month/day";
     } else {
       // 设置默认值
       config.value.repositoryOwner = authStore.user?.login || "";
@@ -532,6 +528,41 @@ async function loadConfigFromStore() {
     }
   } catch (error) {
     toastStore.error("加载配置失败");
+  }
+};
+
+// 从GitHub直接加载配置
+async function loadFromGitHub() {
+  loadingGitHub.value = true;
+  try {
+    // 使用用户配置的分支，而不是默认值
+    const branch = config.value.branch;
+    const response = await apiFetch('/api/user/config', {
+      query: {
+        owner: config.value.repositoryOwner,
+        repo: config.value.repositoryName,
+        branch: branch
+      }
+    });
+    if (response.success && response.data) {
+      await configStore.loadConfig();
+      // 更新表单
+      config.value.repositoryOwner = response.data.storage.repository.owner;
+      config.value.repositoryName = response.data.storage.repository.name;
+      config.value.branch = response.data.storage.repository.branch;
+      config.value.directory = response.data.storage.directory.path;
+      config.value.customDomain = response.data.links.customDomain;
+      config.value.watermarkText = response.data.image.watermark.text;
+      config.value.imageCompression = response.data.image.autoCompress ? "medium" : "none";
+      config.value.timestampDir = response.data.storage.directory.autoPattern === "year/month/day";
+      toastStore.success("从GitHub加载配置成功");
+    } else {
+      toastStore.warning("未找到配置文件，将使用默认配置");
+    }
+  } catch (error: any) {
+    toastStore.error("加载配置失败: " + (error.message || "未知错误"));
+  } finally {
+    loadingGitHub.value = false;
   }
 };
 
@@ -871,42 +902,5 @@ const resetConfig = () => {
   repoInfo.value = null;
   toastStore.info("已重置为默认配置");
 };
-// 从 GitHub 加载配置
-const loadFromGitHub = async () => {
-  if (!config.value.repositoryOwner || !config.value.repositoryName) {
-    toastStore.error("请先填写仓库信息");
-    return;
-  }
 
-  loadingGitHub.value = true;
-  try {
-    const response = await apiFetch("/api/repo/contents", {
-      query: {
-        owner: config.value.repositoryOwner,
-        repo: config.value.repositoryName,
-        path: "",
-        ref: config.value.branch || "main",
-      },
-    });
-    // 检查是否有 .imgconfig.json 文件
-    const configFile = response.data?.find(
-      (f: any) => f.name === ".imgconfig.json"
-    );
-    if (configFile) {
-      const configData = await apiFetch(configFile.download_url);
-
-      if (configData) {
-        const parsed = JSON.parse(configData);
-        config.value = { ...config.value, ...parsed };
-        toastStore.success("加载成功");
-      }
-    } else {
-      toastStore.info("未找到配置文件");
-    }
-  } catch (error) {
-    toastStore.error("加载失败");
-  } finally {
-    loadingGitHub.value = false;
-  }
-};
 </script>
