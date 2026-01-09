@@ -31,7 +31,7 @@
   },
   "links": {
     "format": "markdown",
-    "cdn": "chinajsdelivr",
+    "cdn": "jsdelivr",
     "customDomain": ""
   },
   "user": {
@@ -40,5 +40,5 @@
     "email": "529778790@qq.com",
     "avatar": "https://avatars.githubusercontent.com/u/11481938?v=4"
   },
-  "lastSync": "2026-01-09T16:08:37.575Z"
+  "lastSync": "2026-01-09T16:10:05.255Z"
 }
