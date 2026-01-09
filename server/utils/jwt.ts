@@ -5,6 +5,7 @@ export interface JWTPayload {
   login: string
   email: string
   avatarUrl: string
+  githubToken?: string
 }
 
 /**
@@ -54,7 +55,8 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
       id: Number(payload.id),
       login: String(payload.login || ''),
       email: String(payload.email || ''),
-      avatarUrl: String(payload.avatarUrl || '')
+      avatarUrl: String(payload.avatarUrl || ''),
+      githubToken: payload.githubToken ? String(payload.githubToken) : undefined
     }
   } catch (error) {
     return null

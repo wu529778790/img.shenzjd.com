@@ -41,7 +41,7 @@
                 @change="fileToBase64"
               />
               <button
-                @click="$refs.base64FileInput?.click()"
+                @click="base64FileInput?.click()"
                 class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
               >
                 选择文件
@@ -165,7 +165,7 @@
             </button>
             <button
               @click="loadFromConfig"
-              :disabled="!configStore.config?.repository"
+              :disabled="!configStore.config?.storage.repository.name"
               class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               从配置加载
@@ -575,7 +575,7 @@ const generateUrl = () => {
 
   if (customDomain.value) {
     const domain = customDomain.value.replace(/\/$/, '')
-    const rawBase = `https://raw.githubusercontent.com/${configStore.config?.repositoryOwner}/${configStore.config?.repositoryName}/${configStore.config?.branch}/`
+    const rawBase = `https://raw.githubusercontent.com/${configStore.config?.storage.repository.owner}/${configStore.config?.storage.repository.name}/${configStore.config?.storage.repository.branch}/`
     generatedUrl.value = generatedUrl.value.replace(rawBase, domain + '/')
   }
 
@@ -592,14 +592,14 @@ const copyGeneratedUrl = async () => {
 }
 
 const loadFromConfig = () => {
-  if (!configStore.config?.repository) {
+  if (!configStore.config?.storage.repository.name) {
     toastStore.error('未配置仓库信息')
     return
   }
 
-  urlBase.value = `https://raw.githubusercontent.com/${configStore.config.repositoryOwner}/${configStore.config.repositoryName}/${configStore.config.branch}`
-  urlPath.value = `${configStore.config.directory || 'images'}/`
-  customDomain.value = configStore.config.customDomain || ''
+  urlBase.value = `https://raw.githubusercontent.com/${configStore.config.storage.repository.owner}/${configStore.config.storage.repository.name}/${configStore.config.storage.repository.branch}`
+  urlPath.value = `${configStore.config.storage.directory.path || 'images'}/`
+  customDomain.value = configStore.config.links.customDomain || ''
 
   toastStore.success('配置已加载')
 }
@@ -908,8 +908,8 @@ const formatFileSize = (bytes: number): string => {
 
 // Initialize URL base from config
 onMounted(() => {
-  if (configStore.config?.repository) {
-    urlBase.value = `https://raw.githubusercontent.com/${configStore.config.repositoryOwner}/${configStore.config.repositoryName}/${configStore.config.branch}`
+  if (configStore.config?.storage.repository.name) {
+    urlBase.value = `https://raw.githubusercontent.com/${configStore.config.storage.repository.owner}/${configStore.config.storage.repository.name}/${configStore.config.storage.repository.branch}`
   }
 })
 </script>

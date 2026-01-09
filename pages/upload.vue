@@ -33,7 +33,7 @@
           @change="handleFileSelect"
         />
         <button
-          @click="$refs.fileInput?.click()"
+          @click="fileInput?.click()"
           class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors"
         >
           选择文件
@@ -44,7 +44,7 @@
       <div class="flex flex-wrap gap-3 mb-6" v-if="selectedFiles.length > 0">
         <button
           @click="uploadAll"
-          :disabled="uploading || !configStore.config?.repository"
+          :disabled="uploading || !configStore.config?.storage.repository.name"
           class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           <svg v-if="uploading" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,7 +81,7 @@
       </div>
 
       <!-- Warning -->
-      <div v-if="!configStore.config?.repository" class="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+      <div v-if="!configStore.config?.storage.repository.name" class="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
         <p class="text-sm text-yellow-800 dark:text-yellow-200">
           ⚠️ 请先配置仓库信息
         </p>
@@ -136,7 +136,7 @@
                 <div class="flex flex-col gap-2 flex-shrink-0">
                   <button
                     @click="uploadFile(index)"
-                    :disabled="file.uploading || !configStore.config?.repository"
+                    :disabled="file.uploading || !configStore.config?.storage.repository.name"
                     class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {{ file.uploading ? '上传中...' : '上传' }}
@@ -261,6 +261,7 @@
 import { ref, computed } from 'vue'
 import { useConfigStore } from '~/stores/config'
 import { useToastStore } from '~/stores/toast'
+import { apiFetch } from '~/utils/api-fetch'
 
 interface SelectedFile {
   id: string
@@ -376,7 +377,8 @@ const compressFile = async (index: number) => {
       }
     }, 100)
 
-    const compressed = await compressImage(file.file, configStore.config?.imageCompression || 'none')
+    const compressionLevel = configStore.config?.image.autoCompress ? (configStore.config.image.compressionQuality === 0.85 ? 'light' : 'medium') : 'none'
+    const compressed = await compressImage(file.file, compressionLevel)
     clearInterval(interval)
     file.progress = 100
     file.compressedBlob = compressed
@@ -411,7 +413,7 @@ const compressAll = async () => {
 // 上传单个文件
 const uploadFile = async (index: number) => {
   const file = selectedFiles.value[index]
-  if (file.uploading || !configStore.config?.repository) return
+  if (file.uploading || !configStore.config?.storage.repository.name) return
 
   file.uploading = true
   file.progress = 0
@@ -425,8 +427,8 @@ const uploadFile = async (index: number) => {
     }
 
     // 添加时间戳目录
-    let uploadPath = configStore.config.directory || 'images'
-    if (configStore.config.timestampDir) {
+    let uploadPath = configStore.config?.storage.directory.path || 'images'
+    if (configStore.config?.storage.directory.autoPattern === 'year/month/day') {
       const now = new Date()
       const datePath = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`
       uploadPath = `${uploadPath}/${datePath}`
@@ -442,26 +444,25 @@ const uploadFile = async (index: number) => {
     )
 
     // 上传到 GitHub
-    const response = await $fetch('/api/upload/image', {
+    const response = await apiFetch('/api/upload/image', {
       method: 'PUT',
       body: {
         path: fullPath,
         content: base64Content,
         message: `Upload: ${fileName}`,
         repository: {
-          owner: configStore.config.repositoryOwner,
-          name: configStore.config.repositoryName,
-          branch: configStore.config.branch
+          owner: configStore.config.storage.repository.owner,
+          name: configStore.config.storage.repository.name,
+          branch: configStore.config.storage.repository.branch
         }
-      },
-      headers: useRequestHeaders(['cookie'])
+      }
     })
 
     file.uploadedUrl = response.content.download_url
-    if (configStore.config.customDomain) {
+    if (configStore.config?.links.customDomain) {
       file.uploadedUrl = file.uploadedUrl.replace(
-        `https://raw.githubusercontent.com/${configStore.config.repositoryOwner}/${configStore.config.repositoryName}/${configStore.config.branch}/`,
-        configStore.config.customDomain.replace(/\/$/, '') + '/'
+        `https://raw.githubusercontent.com/${configStore.config.storage.repository.owner}/${configStore.config.storage.repository.name}/${configStore.config.storage.repository.branch}/`,
+        configStore.config.links.customDomain.replace(/\/$/, '') + '/'
       )
     }
 
@@ -485,7 +486,7 @@ const uploadFile = async (index: number) => {
 
 // 上传所有
 const uploadAll = async () => {
-  if (!configStore.config?.repository) {
+  if (!configStore.config?.storage.repository.name) {
     toastStore.error('请先配置仓库信息')
     return
   }

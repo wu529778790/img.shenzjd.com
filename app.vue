@@ -58,8 +58,15 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
+
 const authStore = useAuthStore()
 const toastStore = useToastStore()
+
+// 初始化认证状态（从 Cookie 恢复）
+onMounted(async () => {
+  await authStore.initAuth()
+})
 
 const handleLogout = async () => {
   try {

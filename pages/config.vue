@@ -306,10 +306,39 @@
 
 <script setup lang="ts">
 import { watch } from 'vue'
+import { apiFetch } from '~/utils/api-fetch'
 
 const authStore = useAuthStore()
 const configStore = useConfigStore()
 const toastStore = useToastStore()
+
+// 监听认证状态变化，自动加载配置
+watch(() => authStore.isAuthenticated, async (isAuthenticated) => {
+  if (isAuthenticated) {
+    try {
+      await configStore.loadConfig()
+      if (configStore.config) {
+        // 从嵌套结构转换为页面使用的扁平结构
+        config.value.repositoryOwner = configStore.config.storage.repository.owner
+        config.value.repositoryName = configStore.config.storage.repository.name
+        config.value.branch = configStore.config.storage.repository.branch
+        config.value.directory = configStore.config.storage.directory.path
+        config.value.customDomain = configStore.config.links.customDomain
+        config.value.watermarkText = configStore.config.image.watermark.text
+        config.value.imageCompression = configStore.config.image.autoCompress ? 'medium' : 'none'
+        config.value.timestampDir = configStore.config.storage.directory.autoPattern === 'year/month/day'
+      } else {
+        // 设置默认值
+        config.value.repositoryOwner = authStore.user?.login || ''
+        config.value.repositoryName = 'img.shenzjd.com'
+        config.value.branch = 'main'
+        config.value.directory = 'images'
+      }
+    } catch (error) {
+      toastStore.error('加载配置失败')
+    }
+  }
+})
 
 const config = ref({
   repositoryOwner: '',
@@ -362,16 +391,15 @@ const loadBranches = async () => {
   branches.value = []
 
   try {
-    const response = await $fetch('/api/repo/branches', {
+    const response = await apiFetch('/api/repo/branches', {
       query: {
         owner: config.value.repositoryOwner,
-        name: config.value.repositoryName
-      },
-      headers: useRequestHeaders(['cookie'])
+        repo: config.value.repositoryName
+      }
     }) as any
 
-    if (response && response.branches) {
-      branches.value = response.branches
+    if (response && response.data) {
+      branches.value = response.data.map((b: any) => b.name)
       // 如果当前分支不在列表中，清空
       if (config.value.branch && !branches.value.includes(config.value.branch)) {
         // 保留原有选择，因为它可能是有效的
@@ -397,19 +425,18 @@ const loadDirectories = async () => {
   directories.value = []
 
   try {
-    const response = await $fetch('/api/repo/contents', {
+    const response = await apiFetch('/api/repo/contents', {
       query: {
         owner: config.value.repositoryOwner,
-        name: config.value.repositoryName,
+        repo: config.value.repositoryName,
         path: '',
         ref: config.value.branch
-      },
-      headers: useRequestHeaders(['cookie'])
+      }
     }) as any
 
-    if (response && Array.isArray(response)) {
+    if (response && response.data && Array.isArray(response.data)) {
       // 只显示目录，过滤文件
-      directories.value = response
+      directories.value = response.data
         .filter((item: any) => item.type === 'dir')
         .map((item: any) => ({
           path: item.path,
@@ -425,29 +452,6 @@ const loadDirectories = async () => {
   }
 }
 
-// 加载现有配置
-onMounted(async () => {
-  // 首先初始化认证状态
-  await authStore.initAuth()
-
-  if (authStore.isAuthenticated) {
-    try {
-      await configStore.loadConfig()
-      if (configStore.config) {
-        config.value = { ...configStore.config }
-      } else {
-        // 设置默认值
-        config.value.repositoryOwner = authStore.user?.login || ''
-        config.value.repositoryName = 'img.shenzjd.com'
-        config.value.branch = 'main'
-        config.value.directory = 'images'
-      }
-    } catch (error) {
-      toastStore.error('加载配置失败')
-    }
-  }
-})
-
 // 检查仓库是否存在
 const checkRepository = async () => {
   checkingRepo.value = true
@@ -455,14 +459,12 @@ const checkRepository = async () => {
   repoInfo.value = null
 
   try {
-    const response = await $fetch('/api/repo/list', {
-      headers: useRequestHeaders(['cookie'])
-    })
+    const response = await apiFetch('/api/repo/list')
 
-    const repo = response.find(
+    const repo = response.data?.find(
       (r: any) =>
         r.name === config.value.repositoryName &&
-        r.owner.login === config.value.repositoryOwner
+        r.owner === config.value.repositoryOwner
     )
 
     if (repo) {
@@ -493,21 +495,20 @@ const createRepository = async () => {
   repoStatus.value = null
 
   try {
-    const response = await $fetch('/api/repo/create', {
+    const response = await apiFetch('/api/repo/create', {
       method: 'POST',
       body: {
         name: config.value.repositoryName,
         private: false,
         autoInit: false
-      },
-      headers: useRequestHeaders(['cookie'])
+      }
     })
 
     repoStatus.value = {
       type: 'success',
       message: '✅ 仓库创建成功'
     }
-    repoInfo.value = response
+    repoInfo.value = response.data
     toastStore.success('仓库创建成功')
   } catch (error: any) {
     repoStatus.value = {
@@ -526,14 +527,13 @@ const initializeRepository = async () => {
   repoStatus.value = null
 
   try {
-    await $fetch('/api/repo/init', {
+    await apiFetch('/api/repo/init', {
       method: 'POST',
       body: {
         owner: config.value.repositoryOwner,
-        name: config.value.repositoryName,
+        repo: config.value.repositoryName,
         branch: config.value.branch
-      },
-      headers: useRequestHeaders(['cookie'])
+      }
     })
 
     repoStatus.value = {
@@ -559,18 +559,69 @@ const saveConfig = async () => {
     return
   }
 
+  // 先更新 store 中的配置
+  if (!configStore.config) {
+    // 创建新配置
+    configStore.config = {
+      version: '3.0.0',
+      storage: {
+        repository: {
+          owner: config.value.repositoryOwner,
+          name: config.value.repositoryName,
+          branch: config.value.branch
+        },
+        directory: {
+          mode: 'custom',
+          path: config.value.directory,
+          autoPattern: config.value.timestampDir ? 'year/month/day' : 'date'
+        },
+        naming: {
+          strategy: 'hash',
+          prefix: '',
+          suffix: ''
+        }
+      },
+      image: {
+        autoCompress: config.value.imageCompression !== 'none',
+        compressionQuality: 0.85,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        watermark: {
+          enabled: !!config.value.watermarkText,
+          text: config.value.watermarkText,
+          position: 'bottom-right',
+          opacity: 0.5
+        }
+      },
+      links: {
+        format: 'markdown',
+        cdn: 'github',
+        customDomain: config.value.customDomain
+      },
+      user: {
+        id: authStore.user?.id || 0,
+        login: authStore.user?.login || '',
+        email: authStore.user?.email || '',
+        avatar: authStore.user?.avatarUrl || ''
+      },
+      lastSync: new Date().toISOString()
+    }
+  } else {
+    // 更新现有配置
+    configStore.config.storage.repository.owner = config.value.repositoryOwner
+    configStore.config.storage.repository.name = config.value.repositoryName
+    configStore.config.storage.repository.branch = config.value.branch
+    configStore.config.storage.directory.path = config.value.directory
+    configStore.config.storage.directory.autoPattern = config.value.timestampDir ? 'year/month/day' : 'date'
+    configStore.config.image.autoCompress = config.value.imageCompression !== 'none'
+    configStore.config.image.watermark.text = config.value.watermarkText
+    configStore.config.image.watermark.enabled = !!config.value.watermarkText
+    configStore.config.links.customDomain = config.value.customDomain
+  }
+
   saving.value = true
   try {
-    await configStore.saveConfig({
-      repositoryOwner: config.value.repositoryOwner,
-      repositoryName: config.value.repositoryName,
-      branch: config.value.branch,
-      directory: config.value.directory,
-      customDomain: config.value.customDomain,
-      watermarkText: config.value.watermarkText,
-      imageCompression: config.value.imageCompression,
-      timestampDir: config.value.timestampDir
-    })
+    await configStore.saveConfig()
     toastStore.success('保存成功')
   } catch (error) {
     toastStore.error('保存失败')
@@ -605,22 +656,19 @@ const loadFromGitHub = async () => {
 
   loadingGitHub.value = true
   try {
-    const response = await $fetch('/api/repo/contents', {
+    const response = await apiFetch('/api/repo/contents', {
       query: {
         owner: config.value.repositoryOwner,
-        name: config.value.repositoryName,
+        repo: config.value.repositoryName,
         path: '',
         ref: config.value.branch || 'main'
-      },
-      headers: useRequestHeaders(['cookie'])
+      }
     })
 
     // 检查是否有 .imgconfig.json 文件
-    const configFile = response.find((f: any) => f.name === '.imgconfig.json')
+    const configFile = response.data?.find((f: any) => f.name === '.imgconfig.json')
     if (configFile) {
-      const configData = await $fetch(configFile.download_url, {
-        headers: useRequestHeaders(['cookie'])
-      })
+      const configData = await apiFetch(configFile.download_url)
 
       if (configData) {
         const parsed = JSON.parse(configData)

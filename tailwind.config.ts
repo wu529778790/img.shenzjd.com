@@ -1,4 +1,4 @@
-import type { Config } from 'tailwindcss'
+// Tailwind config - no type import needed
 
 export default {
   darkMode: 'class',
@@ -34,4 +34,4 @@ export default {
     './server/**/*.{ts,tsx}'
   ],
   plugins: []
-} satisfies Config
+} as any

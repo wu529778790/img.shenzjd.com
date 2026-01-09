@@ -163,7 +163,7 @@
             导出设置
           </button>
           <button
-            @click="$refs.importInput?.click()"
+            @click="importInput?.click()"
             class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
           >
             导入设置
@@ -247,8 +247,20 @@ const toastStore = useToastStore()
 const saving = ref(false)
 const importInput = ref<HTMLInputElement | null>(null)
 
+// Define interface for settings
+interface AppSettings {
+  defaultCompression: string
+  maxFileSize: number
+  allowedTypes: string
+  autoCompress: boolean
+  copyAfterUpload: boolean
+  watermarkEnabled: boolean
+  watermarkText: string
+  watermarkPosition: string
+}
+
 // 本地设置状态
-const settings = ref({
+const settings = ref<AppSettings>({
   defaultCompression: 'none',
   maxFileSize: 10,
   allowedTypes: 'jpg,jpeg,png,gif,webp,svg',
@@ -301,14 +313,13 @@ const loadSettings = async () => {
 
     // 从配置 store 加载
     if (configStore.config) {
-      if (configStore.config.watermarkText) {
-        settings.value.watermarkText = configStore.config.watermarkText
+      if (configStore.config.image.watermark.text) {
+        settings.value.watermarkText = configStore.config.image.watermark.text
+        settings.value.watermarkEnabled = configStore.config.image.watermark.enabled
       }
-      if (configStore.config.imageCompression) {
-        settings.value.defaultCompression = configStore.config.imageCompression
-      }
-      if (configStore.config.timestampDir !== undefined) {
-        // timestampDir 对应 autoCompress 的反向逻辑，这里简化处理
+      if (configStore.config.image.autoCompress) {
+        settings.value.defaultCompression = 'medium'
+        settings.value.autoCompress = true
       }
     }
 
@@ -329,15 +340,13 @@ const saveSettings = async () => {
 
     // 同步到配置 store
     if (configStore.config) {
-      configStore.config.watermarkText = settings.value.watermarkText
-      configStore.config.imageCompression = settings.value.defaultCompression
+      configStore.config.image.watermark.text = settings.value.watermarkText
+      configStore.config.image.watermark.enabled = settings.value.watermarkEnabled
+      configStore.config.image.autoCompress = settings.value.autoCompress
+      configStore.config.image.compressionQuality = settings.value.defaultCompression === 'light' ? 0.85 : settings.value.defaultCompression === 'medium' ? 0.7 : settings.value.defaultCompression === 'heavy' ? 0.5 : 0.92
 
       // 保存到服务器
-      await configStore.saveConfig({
-        ...configStore.config,
-        watermarkText: settings.value.watermarkText,
-        imageCompression: settings.value.defaultCompression
-      })
+      await configStore.saveConfig()
     }
 
     toastStore.success('设置保存成功')

@@ -38,10 +38,10 @@
           当前仓库
         </div>
         <div class="text-xl font-semibold text-gray-900 dark:text-white">
-          {{ configStore.config?.repository || '未配置' }}
+          {{ configStore.config?.storage.repository.owner }}/{{ configStore.config?.storage.repository.name || '未配置' }}
         </div>
-        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1" v-if="configStore.config?.branch">
-          {{ configStore.config.branch }}
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1" v-if="configStore.config?.storage.repository.branch">
+          {{ configStore.config.storage.repository.branch }}
         </div>
       </div>
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
@@ -49,7 +49,7 @@
           存储路径
         </div>
         <div class="text-xl font-semibold text-gray-900 dark:text-white">
-          {{ configStore.config?.directory || '未配置' }}
+          {{ configStore.config?.storage.directory.path || '未配置' }}
         </div>
         <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
           可在配置中修改
@@ -63,7 +63,7 @@
           {{ authStore.user?.login || '-' }}
         </div>
         <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          {{ authStore.user?.name || '' }}
+          {{ authStore.user?.email || '' }}
         </div>
       </div>
     </div>
@@ -169,7 +169,7 @@
     </div>
 
     <!-- Quick Actions -->
-    <div class="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700" v-if="!configStore.config?.repository">
+    <div class="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700" v-if="!configStore.config?.storage.repository.name">
       <div class="flex items-center gap-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
         <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />

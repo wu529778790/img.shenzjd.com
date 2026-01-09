@@ -1,3 +1,5 @@
+import { ofetch } from 'ofetch'
+
 /**
  * POST /api/upload/batch
  * 批量上传图片
@@ -31,7 +33,7 @@ export default defineEventHandler(async (event) => {
     const file = files[i]
     try {
       // 调用单个上传接口
-      const response = await $fetch('/api/upload/image', {
+      const response = await ofetch('/api/upload/image', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

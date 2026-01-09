@@ -6,7 +6,7 @@
       </h1>
 
       <!-- Warning -->
-      <div v-if="!configStore.config?.repository" class="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+      <div v-if="!configStore.config?.storage.repository.name" class="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
         <p class="text-sm text-yellow-800 dark:text-yellow-200">
           ⚠️ 请先配置仓库信息
         </p>
@@ -17,7 +17,7 @@
         <div class="flex flex-wrap gap-3">
           <button
             @click="loadFiles"
-            :disabled="loading || !configStore.config?.repository"
+            :disabled="loading || !configStore.config?.storage.repository.name"
             class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <svg v-if="loading" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,7 +195,7 @@
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="!loading && configStore.config?.repository" class="text-center py-12">
+      <div v-else-if="!loading && configStore.config?.storage.repository.name" class="text-center py-12">
         <svg class="w-16 h-16 mx-auto mb-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
         </svg>
@@ -316,6 +316,7 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 import { useConfigStore } from '~/stores/config'
 import { useToastStore } from '~/stores/toast'
+import { apiFetch } from '~/utils/api-fetch'
 
 interface FileItem {
   name: string
@@ -382,7 +383,7 @@ const filteredFiles = computed(() => {
 
 // 加载文件列表
 const loadFiles = async () => {
-  if (!configStore.config?.repository) {
+  if (!configStore.config?.storage.repository.name) {
     toastStore.error('请先配置仓库信息')
     return
   }
@@ -392,14 +393,13 @@ const loadFiles = async () => {
   selectedFiles.value.clear()
 
   try {
-    const response = await $fetch('/api/management/list', {
+    const response = await apiFetch('/api/management/list', {
       query: {
-        owner: configStore.config.repositoryOwner,
-        name: configStore.config.repositoryName,
-        path: configStore.config.directory || '',
-        ref: configStore.config.branch || 'main'
-      },
-      headers: useRequestHeaders(['cookie'])
+        owner: configStore.config.storage.repository.owner,
+        name: configStore.config.storage.repository.name,
+        path: configStore.config.storage.directory.path || '',
+        ref: configStore.config.storage.repository.branch || 'main'
+      }
     })
 
     files.value = response
@@ -437,19 +437,18 @@ const confirmDelete = async () => {
   if (!deleteConfirmItem.value) return
 
   try {
-    await $fetch('/api/management/delete', {
+    await apiFetch('/api/management/delete', {
       method: 'DELETE',
       body: {
         paths: [deleteConfirmItem.value.path],
         message: `Delete: ${deleteConfirmItem.value.name}`,
         repository: {
-          owner: configStore.config.repositoryOwner,
-          name: configStore.config.repositoryName,
-          branch: configStore.config.branch
+          owner: configStore.config.storage.repository.owner,
+          name: configStore.config.storage.repository.name,
+          branch: configStore.config.storage.repository.branch
         },
         shas: [deleteConfirmItem.value.sha]
-      },
-      headers: useRequestHeaders(['cookie'])
+      }
     })
 
     files.value = files.value.filter(f => f.path !== deleteConfirmItem.value?.path)
@@ -476,19 +475,18 @@ const deleteSelected = async () => {
   const filesToDelete = files.value.filter(f => pathsToDelete.includes(f.path))
 
   try {
-    await $fetch('/api/management/delete', {
+    await apiFetch('/api/management/delete', {
       method: 'DELETE',
       body: {
         paths: pathsToDelete,
         message: `Delete ${pathsToDelete.length} files`,
         repository: {
-          owner: configStore.config.repositoryOwner,
-          name: configStore.config.repositoryName,
-          branch: configStore.config.branch
+          owner: configStore.config.storage.repository.owner,
+          name: configStore.config.storage.repository.name,
+          branch: configStore.config.storage.repository.branch
         },
         shas: filesToDelete.map(f => f.sha)
-      },
-      headers: useRequestHeaders(['cookie'])
+      }
     })
 
     files.value = files.value.filter(f => !pathsToDelete.includes(f.path))
@@ -523,18 +521,17 @@ const confirmRename = async () => {
   const newPath = directory + newName.value
 
   try {
-    await $fetch('/api/management/rename', {
+    await apiFetch('/api/management/rename', {
       method: 'PATCH',
       body: {
         oldPath,
         newPath,
         repository: {
-          owner: configStore.config.repositoryOwner,
-          name: configStore.config.repositoryName,
-          branch: configStore.config.branch
+          owner: configStore.config.storage.repository.owner,
+          name: configStore.config.storage.repository.name,
+          branch: configStore.config.storage.repository.branch
         }
-      },
-      headers: useRequestHeaders(['cookie'])
+      }
     })
 
     // 更新本地列表
@@ -631,7 +628,7 @@ const formatDate = (url: string): string => {
 
 // 初始化
 onMounted(async () => {
-  if (authStore.isAuthenticated && configStore.config?.repository) {
+  if (authStore.isAuthenticated && configStore.config?.storage.repository.name) {
     await loadFiles()
   }
 })
