@@ -33,7 +33,7 @@
 
 1. 访问 [GitHub Developer Settings](https://github.com/settings/developers)
 2. 创建新的 OAuth App
-3. 设置 Authorization callback URL 为: `http://localhost:3010/api/auth/callback`
+3. 设置 Authorization callback URL 为: `http://localhost:3000/api/auth/callback`
 4. 获取 Client ID 和 Client Secret
 
 ### 2. 环境配置
@@ -67,7 +67,7 @@ pnpm install
 pnpm dev
 ```
 
-访问 http://localhost:3010
+访问 <http://localhost:3000>
 
 ### 5. 构建生产版本
 
@@ -226,6 +226,7 @@ interface StorageConfig {
 ## 📤 页面功能预览
 
 ### 1. 首页 /index.vue
+
 ```
 ┌─────────────────────────────────────────┐
 │           欢迎使用图床应用                │
@@ -244,6 +245,7 @@ interface StorageConfig {
 ```
 
 ### 2. 配置页面 /config.vue
+
 ```
 ┌─────────────────────────────────────────┐
 │        图床配置 (必须登录)               │
@@ -286,6 +288,7 @@ interface StorageConfig {
 ```
 
 ### 3. 上传页面 /upload.vue
+
 ```
 ┌─────────────────────────────────────────┐
 │              图片上传                    │
@@ -322,6 +325,7 @@ interface StorageConfig {
 ```
 
 ### 4. 管理页面 /manage.vue
+
 ```
 ┌─────────────────────────────────────────┐
 │              图床管理                    │
@@ -356,6 +360,7 @@ interface StorageConfig {
 ```
 
 ### 5. 设置页面 /settings.vue
+
 ```
 ┌─────────────────────────────────────────┐
 │              应用设置                    │
@@ -387,6 +392,7 @@ interface StorageConfig {
 ```
 
 ### 6. 工具箱 /tools.vue
+
 ```
 ┌─────────────────────────────────────────┐
 │              工具箱                      │
@@ -449,16 +455,19 @@ interface StorageConfig {
 ## 🔐 API 端点
 
 ### 认证
+
 - `GET /api/auth/github` - 发起 OAuth 流程
 - `GET /api/auth/callback` - OAuth 回调处理
 - `POST /api/auth/logout` - 登出
 - `GET /api/auth/verify` - 验证令牌
 
 ### 用户 & 配置
+
 - `GET /api/user/config` - 获取配置
 - `PUT /api/user/config` - 保存配置
 
 ### 仓库
+
 - `GET /api/repo/list` - 列出仓库
 - `POST /api/repo/create` - 创建仓库
 - `POST /api/repo/init` - 初始化仓库
@@ -466,10 +475,12 @@ interface StorageConfig {
 - `GET /api/repo/contents` - 列出目录内容
 
 ### 上传
+
 - `PUT /api/upload/image` - 单图上传
 - `POST /api/upload/batch` - 批量上传
 
 ### 管理
+
 - `GET /api/management/list` - 列出文件
 - `DELETE /api/management/delete` - 删除文件
 - `PATCH /api/management/rename` - 重命名文件
@@ -513,15 +524,18 @@ interface StorageConfig {
 ## 🐛 问题排查
 
 ### 问题: "Cannot find module"
+
 ```bash
 pnpm install
 pnpm build
 ```
 
 ### 问题: "OAuth callback error"
+
 检查 `.env` 中的 GitHub Client ID 和 Secret
 
 ### 问题: "Build failed"
+
 ```bash
 rm -rf .nuxt .output node_modules/.cache
 pnpm install
@@ -529,6 +543,7 @@ pnpm build
 ```
 
 ### 问题: GitHub API 限流
+
 - 未授权: 60次/小时
 - 授权: 5000次/小时
 - **解决**: 实现请求缓存或等待重置
@@ -538,6 +553,7 @@ pnpm build
 ## 🚀 部署指南
 
 ### Node.js 服务器 (推荐)
+
 ```bash
 pnpm build
 pnpm preview
@@ -546,6 +562,7 @@ node .output/server/index.mjs
 ```
 
 ### Docker 部署
+
 ```dockerfile
 FROM node:20-alpine
 WORKDIR /app
@@ -558,6 +575,7 @@ CMD ["node", ".output/server/index.mjs"]
 ```
 
 ### Vercel / Netlify
+
 - 自动检测 Nuxt 项目
 - 环境变量配置:
   - `GITHUB_CLIENT_ID`
@@ -565,6 +583,7 @@ CMD ["node", ".output/server/index.mjs"]
   - `JWT_SECRET` (必须配置)
 
 ### 生产环境检查清单
+
 - [ ] 设置 `.env` 环境变量
 - [ ] 配置 GitHub OAuth App
 - [ ] 使用 HTTPS

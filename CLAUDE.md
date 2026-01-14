@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Install dependencies
 pnpm install
 
-# Development server (localhost:3010)
+# Development server (localhost:3000)
 pnpm dev
 
 # Type checking
@@ -24,11 +24,12 @@ pnpm preview
 ## Environment Setup
 
 Copy `.env.example` to `.env` and configure:
+
 - `GITHUB_CLIENT_ID` - From GitHub OAuth App settings
 - `GITHUB_CLIENT_SECRET` - From GitHub OAuth App settings
 - `JWT_SECRET` - Strong random secret for token signing (required)
 
-GitHub OAuth App callback URL: `http://localhost:3010/api/auth/callback`
+GitHub OAuth App callback URL: `http://localhost:3000/api/auth/callback`
 
 ## Architecture Overview
 
@@ -43,6 +44,7 @@ This is a **Nuxt 4 SSR application** with GitHub OAuth authentication. Users sto
 5. All API routes (except auth endpoints) protected by server middleware
 
 **Key files:**
+
 - `server/middleware/auth.ts` - Auth middleware (non-blocking, sets `event.context.auth`)
 - `server/utils/jwt.ts` - JWT generation/verification using `jose`
 - `server/utils/github.ts` - GitHub API wrapper using `ofetch`
@@ -105,7 +107,7 @@ All protected routes receive `event.context.auth` with user data from JWT.
 
 ## Common Patterns
 
-### Creating a protected API endpoint:
+### Creating a protected API endpoint
 
 ```typescript
 // server/api/some-route.get.ts
@@ -120,7 +122,7 @@ export default defineEventHandler(async (event) => {
 })
 ```
 
-### Making authenticated API calls from client:
+### Making authenticated API calls from client
 
 ```typescript
 // JWT automatically sent via cookie
@@ -133,7 +135,7 @@ const data = await $fetch('/api/user/config', {
 })
 ```
 
-### GitHub API calls from server:
+### GitHub API calls from server
 
 ```typescript
 import { createGitHubFetcher } from '~/server/utils/github'
@@ -142,7 +144,7 @@ const fetcher = createGitHubFetcher(accessToken)
 const repos = await fetcher('/user/repos?per_page=100')
 ```
 
-### Dynamic data loading in pages:
+### Dynamic data loading in pages
 
 ```typescript
 // pages/config.vue - Load branches from GitHub
@@ -162,7 +164,7 @@ watch(() => [owner, repo], async () => {
 
 ## Important Notes
 
-- **Port**: Development server runs on port 3010 (not 3000)
+- **Port**: Development server runs on port 3000 (not 3000)
 - **Language**: All UI text is in Chinese (no i18n)
 - **Theme**: Dark mode supported via Element Plus + Tailwind
 - **Cookie handling**: Client must use `useFetch` or `useRequestHeaders(['cookie'])` to send auth cookies

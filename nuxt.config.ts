@@ -81,7 +81,7 @@ export default defineNuxtConfig({
 
   // 开发服务器
   devServer: {
-    port: 3010,
+    port: 3000,
     host: 'localhost'
   },
 
