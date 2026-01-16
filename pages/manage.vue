@@ -8,62 +8,39 @@
         </h1>
         
         <!-- Warning -->
-        <div v-if="!configStore.config?.storage.repository.name" class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg mb-3">
+          <div v-if="!configStore.config?.storage.repository.name" class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg mb-3">
           <p class="text-sm text-yellow-800 dark:text-yellow-200">
-            ⚠️ 请先在<a href="/config" class="text-yellow-600 dark:text-yellow-300 hover:underline">配置页</a>设置仓库信息
+            ⚠️ 请先在<a href="/settings" class="text-yellow-600 dark:text-yellow-300 hover:underline">设置页</a>配置仓库信息
           </p>
         </div>
 
         <!-- Search and Filter -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
           <div class="relative">
             <input
               v-model="searchQuery"
               type="text"
               placeholder="搜索文件名或路径..."
-              class="w-full px-4 py-2 pl-10 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+              class="w-full px-4 py-2 pl-10 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
             />
-            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          
           <div class="flex gap-2">
             <select
               v-model="filterType"
-              class="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+              class="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
             >
-              <option value="all">全部文件</option>
+              <option value="all">全部</option>
               <option value="image">图片</option>
-              <option value="other">其他文件</option>
             </select>
-            
             <select
               v-model="sortBy"
-              class="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+              class="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
             >
               <option value="name">按名称</option>
-              <option value="size">按大小</option>
               <option value="date">按日期</option>
-            </select>
-          </div>
-          
-          <div class="flex gap-2">
-            <select
-              v-model="viewMode"
-              class="px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            >
-              <option value="grid">网格视图</option>
-              <option value="list">列表视图</option>
-            </select>
-            
-            <select
-              v-model="itemsPerPage"
-              class="px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            >
-              <option value="20">20个/页</option>
-              <option value="50">50个/页</option>
-              <option value="100">100个/页</option>
             </select>
           </div>
         </div>
@@ -81,33 +58,24 @@
             <span>{{ loading ? '加载中...' : '刷新文件' }}</span>
           </button>
 
-          <div v-if="selectedPaths.size > 0" class="flex gap-2">
+          <div v-if="selectedPaths.size > 0" class="flex gap-2 flex-wrap">
             <button
               @click="copySelectedUrls"
-              class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+              class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg"
             >
-              📋 复制链接 ({{ selectedPaths.size }})
+              复制 ({{ selectedPaths.size }})
             </button>
-            
-            <button
-              @click="downloadSelected"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
-            >
-              💾 下载 ({{ selectedPaths.size }})
-            </button>
-            
             <button
               @click="showDeleteConfirm = true"
-              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+              class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg"
             >
-              🗑️ 删除 ({{ selectedPaths.size }})
+              删除 ({{ selectedPaths.size }})
             </button>
-            
             <button
               @click="deselectAll"
-              class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
+              class="px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm rounded-lg"
             >
-              取消选择
+              取消
             </button>
           </div>
         </div>
@@ -135,7 +103,7 @@
       </div>
 
       <!-- Files Grid -->
-      <div v-else-if="viewMode === 'grid'" class="p-4">
+      <div v-else class="p-4">
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           <div
             v-for="file in paginatedFiles"
@@ -192,42 +160,20 @@
             </div>
 
             <!-- File Actions -->
-            <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 space-y-1">
+            <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
               <button
                 @click.stop="copyUrl(file)"
-                class="p-1.5 bg-gray-800/80 hover:bg-gray-800 text-white rounded-lg transition-colors"
-                title="复制链接"
+                class="p-1.5 bg-gray-800/80 hover:bg-gray-800 text-white rounded-lg text-xs"
+                title="复制"
               >
-                📋
-              </button>
-              <button
-                @click.stop="downloadFile(file)"
-                class="p-1.5 bg-gray-800/80 hover:bg-gray-800 text-white rounded-lg transition-colors"
-                title="下载文件"
-              >
-                💾
-              </button>
-              <button
-                @click.stop="renameFile(file)"
-                class="p-1.5 bg-gray-800/80 hover:bg-gray-800 text-white rounded-lg transition-colors"
-                title="重命名"
-              >
-                ✏️
-              </button>
-              <button
-                @click.stop="showDeleteConfirmForSingle(file)"
-                class="p-1.5 bg-gray-800/80 hover:bg-red-800 text-white rounded-lg transition-colors"
-                title="删除"
-              >
-                🗑️
+                复制
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- List View -->
-      <div v-else-if="viewMode === 'list'" class="overflow-x-auto">
+      <!-- List View - Removed for simplicity -->
         <table class="w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-900/50">
             <tr>
@@ -307,20 +253,9 @@
                 {{ formatDate(file.download_url) }}
               </td>
               <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                <div class="flex gap-2">
-                  <button @click="copyUrl(file)" class="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors" title="复制链接">
-                    📋
-                  </button>
-                  <button @click="downloadFile(file)" class="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors" title="下载">
-                    💾
-                  </button>
-                  <button @click="renameFile(file)" class="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors" title="重命名">
-                    ✏️
-                  </button>
-                  <button @click="showDeleteConfirmForSingle(file)" class="text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors" title="删除">
-                    🗑️
-                  </button>
-                </div>
+                <button @click="copyUrl(file)" class="text-gray-500 hover:text-primary-600 transition-colors" title="复制">
+                  复制
+                </button>
               </td>
             </tr>
           </tbody>
@@ -362,10 +297,7 @@
         <h3 class="font-bold text-gray-900 dark:text-white">{{ previewItem.name }}</h3>
         <div class="flex gap-2">
           <button @click="copyUrl(previewItem)" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-            📋
-          </button>
-          <button @click="downloadFile(previewItem)" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-            💾
+            复制
           </button>
           <button @click="previewItem = null" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -387,54 +319,6 @@
             在新标签页打开
           </a>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Rename Modal -->
-  <div v-if="renameItem" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-200 dark:border-gray-700">
-      <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">
-        重命名文件
-      </h3>
-      <div class="space-y-3 mb-4">
-        <div>
-          <label class="block text-sm text-gray-700 dark:text-gray-300 mb-1">
-            当前名称
-          </label>
-          <input
-            :value="renameItem.name"
-            disabled
-            class="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white opacity-60"
-          />
-        </div>
-        <div>
-          <label class="block text-sm text-gray-700 dark:text-gray-300 mb-1">
-            新名称
-          </label>
-          <input
-            v-model="newName"
-            type="text"
-            placeholder="输入新文件名"
-            class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            @keydown.enter="confirmRename"
-          />
-        </div>
-      </div>
-      <div class="flex justify-end gap-2">
-        <button
-          @click="cancelRename"
-          class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
-        >
-          取消
-        </button>
-        <button
-          @click="confirmRename"
-          :disabled="!newName || newName === renameItem.name || renaming"
-          class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {{ renaming ? '重命名中...' : '确认重命名' }}
-        </button>
       </div>
     </div>
   </div>
@@ -516,10 +400,9 @@ const toastStore = useToastStore()
 
 // Core state
 const files = ref<FileItem[]>([])
-const directories = ref<DirectoryItem[]>([])
+const directories = ref<any[]>([])
 const loading = ref(false)
 const deleting = ref(false)
-const renaming = ref(false)
 const selectedPaths = ref<Set<string>>(new Set())
 
 // UI state
@@ -527,7 +410,6 @@ const searchQuery = ref('')
 const debouncedSearchQuery = ref('')
 const filterType = ref<'all' | 'image' | 'other'>('all')
 const sortBy = ref<'name' | 'date' | 'size'>('name')
-const viewMode = ref<'grid' | 'list'>('grid')
 const itemsPerPage = ref(20)
 const currentPage = ref(1)
 
@@ -545,8 +427,6 @@ watch(searchQuery, (newValue) => {
 
 // Modal state
 const previewItem = ref<FileItem | null>(null)
-const renameItem = ref<FileItem | null>(null)
-const newName = ref('')
 const deleteSingleItem = ref<FileItem | null>(null)
 const showDeleteConfirm = ref(false)
 
@@ -714,21 +594,6 @@ const copySelectedUrls = async () => {
   }
 }
 
-const downloadFile = (file: FileItem) => {
-  const a = document.createElement('a')
-  a.href = getImageUrl(file)
-  a.download = file.name
-  a.target = '_blank'
-  a.click()
-  toastStore.success(`开始下载: ${file.name}`)
-}
-
-const downloadSelected = () => {
-  if (selectedPaths.value.size === 0) return
-
-  const selected = files.value.filter(f => selectedPaths.value.has(f.path))
-  selected.forEach(f => downloadFile(f))
-}
 
 const previewFile = (file: FileItem) => {
   previewItem.value = file
@@ -740,66 +605,6 @@ const handleFileClick = (file: FileItem) => {
   }
 }
 
-const renameFile = (file: FileItem) => {
-  renameItem.value = file
-  newName.value = file.name
-}
-
-const cancelRename = () => {
-  renameItem.value = null
-  newName.value = ''
-}
-
-const confirmRename = async () => {
-  if (!renameItem.value || !newName.value) return
-
-  if (newName.value === renameItem.value.name) {
-    cancelRename()
-    return
-  }
-
-  renaming.value = true
-
-  const oldPath = renameItem.value.path
-  const oldName = renameItem.value.name
-  const directory = oldPath.substring(0, oldPath.length - oldName.length)
-  const newPath = directory + newName.value
-
-  try {
-    await apiFetch('/api/management/rename', {
-      method: 'PATCH',
-      body: {
-        oldPath,
-        newPath,
-        repository: {
-          owner: configStore.config?.storage.repository.owner || '',
-          name: configStore.config?.storage.repository.name || '',
-          branch: configStore.config?.storage.repository.branch || ''
-        }
-      }
-    })
-
-    // Update local list
-    const index = files.value.findIndex(f => f.path === oldPath)
-    if (index !== -1 && files.value[index]) {
-      files.value[index].name = newName.value
-      files.value[index].path = newPath
-    }
-
-    // Update selected state
-    if (selectedPaths.value.has(oldPath)) {
-      selectedPaths.value.delete(oldPath)
-      selectedPaths.value.add(newPath)
-    }
-
-    toastStore.success('重命名成功')
-    cancelRename()
-  } catch (error: any) {
-    toastStore.error(error.message || '重命名失败')
-  } finally {
-    renaming.value = false
-  }
-}
 
 const showDeleteConfirmForSingle = (file: FileItem) => {
   deleteSingleItem.value = file

@@ -11,10 +11,17 @@ export default defineEventHandler((event) => {
   const host = getRequestHeader(event, 'host') || 'localhost:3000'
   const redirectUri = `${protocol}://${host}/api/auth/callback`
 
-  // 构建 GitHub 授权 URL
+  // 检查是否在弹窗中（通过 query 参数）
+  const isPopup = getQuery(event).popup === 'true'
+  
+  // 构建 GitHub 授权 URL，如果是弹窗模式，在回调 URL 中添加 popup 参数
+  const finalRedirectUri = isPopup 
+    ? `${redirectUri}?popup=true`
+    : redirectUri
+  
   const authUrl = `https://github.com/login/oauth/authorize?` +
     `client_id=${clientId}&` +
-    `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+    `redirect_uri=${encodeURIComponent(finalRedirectUri)}&` +
     `scope=repo,workflow,user:email`
 
   // 重定向到 GitHub 授权页面

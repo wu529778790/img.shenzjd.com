@@ -1,110 +1,106 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex overflow-hidden">
-    <!-- Sidebar Navigation - Desktop -->
-    <aside 
-      v-if="authStore.isAuthenticated" 
-      class="hidden md:flex flex-col w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm"
-    >
-      <!-- Logo and User Info -->
-      <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-            <span class="text-white font-bold text-sm">IMG</span>
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+    <!-- Top Navigation -->
+    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm sticky top-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <!-- Logo -->
+          <div class="flex items-center space-x-4">
+            <NuxtLink to="/" class="flex items-center space-x-2">
+              <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+                <span class="text-white font-bold text-sm">IMG</span>
+              </div>
+              <span class="text-lg font-bold text-gray-900 dark:text-white hidden sm:inline">图床应用</span>
+            </NuxtLink>
           </div>
-          <h1 class="text-lg font-bold text-gray-900 dark:text-white">
-            图床应用
-          </h1>
-        </div>
-        <div class="mt-4 flex items-center space-x-3">
-          <img 
-            v-if="authStore.user?.avatarUrl" 
-            :src="authStore.user.avatarUrl" 
-            :alt="authStore.user.login" 
-            class="w-8 h-8 rounded-full object-cover"
-          />
-          <span class="text-sm font-medium text-gray-900 dark:text-white truncate">
-            {{ authStore.user?.login }}
-          </span>
-        </div>
-      </div>
 
-      <!-- Navigation Menu -->
-      <nav class="flex-1 p-2 overflow-y-auto">
-        <NuxtLink
-          v-for="item in navItems"
-          :key="item.path"
-          :to="item.path"
-          class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors mb-1"
-          :class="[
-            $route.path === item.path
-              ? 'bg-primary-600 text-white'
-              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-          ]"
-        >
-          <span>{{ item.icon }}</span>
-          <span>{{ item.label }}</span>
-        </NuxtLink>
-      </nav>
+          <!-- Desktop Navigation -->
+          <nav v-if="authStore.isAuthenticated" class="hidden md:flex items-center space-x-1">
+            <NuxtLink
+              v-for="item in navItems"
+              :key="item.path"
+              :to="item.path"
+              class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              :class="[
+                $route.path === item.path || ($route.path === '/' && item.path === '/')
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              ]"
+            >
+              {{ item.label }}
+            </NuxtLink>
+          </nav>
 
-      <!-- Logout Button -->
-      <div class="p-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          @click="handleLogout"
-          class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-        >
-          <span>🚪</span>
-          <span>退出登录</span>
-        </button>
-      </div>
-    </aside>
-
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col overflow-hidden">
-      <!-- Header - Mobile -->
-      <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 md:hidden">
-        <div class="p-4 flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span class="text-white font-bold text-sm">IMG</span>
+          <!-- User Menu -->
+          <div class="flex items-center space-x-4">
+            <div v-if="authStore.isAuthenticated" class="flex items-center space-x-3">
+              <img 
+                v-if="authStore.user?.avatarUrl" 
+                :src="authStore.user.avatarUrl" 
+                :alt="authStore.user.login" 
+                class="w-8 h-8 rounded-full object-cover hidden sm:block"
+              />
+              <span class="text-sm font-medium text-gray-900 dark:text-white hidden sm:inline">
+                {{ authStore.user?.login }}
+              </span>
+              <button
+                @click="handleLogout"
+                class="px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+              >
+                退出
+              </button>
             </div>
-            <h1 class="text-lg font-bold text-gray-900 dark:text-white">
-              图床应用
-            </h1>
+            <button
+              v-else
+              @click="showLoginModal = true"
+              class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              登录
+            </button>
           </div>
-          <span class="text-sm font-medium text-gray-900 dark:text-white">
-            {{ authStore.user?.login }}
-          </span>
-        </div>
-      </header>
 
-      <!-- Main Content -->
-      <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-gray-50 dark:bg-gray-900">
-        <NuxtPage />
-      </main>
-
-      <!-- Bottom Navigation - Mobile -->
-      <nav 
-        v-if="authStore.isAuthenticated" 
-        class="md:hidden bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 fixed bottom-0 left-0 right-0 z-50"
-      >
-        <div class="flex justify-around items-center h-16">
-          <NuxtLink
-            v-for="item in mobileNavItems"
-            :key="item.path"
-            :to="item.path"
-            class="flex flex-col items-center justify-center space-y-1 p-2 text-sm transition-colors"
-            :class="[
-              $route.path === item.path
-                ? 'text-primary-600 dark:text-primary-400'
-                : 'text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400'
-            ]"
+          <!-- Mobile Menu Button -->
+          <button
+            v-if="authStore.isAuthenticated"
+            @click="mobileMenuOpen = !mobileMenuOpen"
+            class="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
           >
-            <span class="text-lg">{{ item.icon }}</span>
-            <span class="text-xs font-medium">{{ item.label }}</span>
-          </NuxtLink>
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path v-if="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-      </nav>
-    </div>
+
+        <!-- Mobile Navigation -->
+        <div v-if="mobileMenuOpen && authStore.isAuthenticated" class="md:hidden py-4 border-t border-gray-200 dark:border-gray-700">
+          <nav class="flex flex-col space-y-1">
+            <NuxtLink
+              v-for="item in navItems"
+              :key="item.path"
+              :to="item.path"
+              @click="mobileMenuOpen = false"
+              class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              :class="[
+                $route.path === item.path || ($route.path === '/' && item.path === '/')
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              ]"
+            >
+              {{ item.label }}
+            </NuxtLink>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+      <NuxtPage />
+    </main>
+
+    <!-- Login Modal -->
+    <LoginModal v-model:visible="showLoginModal" />
 
     <!-- Toast Notifications -->
     <div class="fixed bottom-4 right-4 space-y-2 z-50">
@@ -129,27 +125,18 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 
 const authStore = useAuthStore()
 const toastStore = useToastStore()
+const showLoginModal = ref(false)
+const mobileMenuOpen = ref(false)
 
-// Navigation items
+// Navigation items - 简化后的导航
 const navItems = computed(() => [
-  { path: '/', icon: '🏠', label: '首页' },
-  { path: '/upload', icon: '📤', label: '上传' },
-  { path: '/manage', icon: '📁', label: '管理' },
-  { path: '/config', icon: '⚙️', label: '配置' },
-  { path: '/tools', icon: '🔧', label: '工具箱' },
-  { path: '/settings', icon: '🎯', label: '设置' }
-])
-
-// Mobile navigation items (show only most important)
-const mobileNavItems = computed(() => [
-  { path: '/upload', icon: '📤', label: '上传' },
-  { path: '/manage', icon: '📁', label: '管理' },
-  { path: '/config', icon: '⚙️', label: '配置' },
-  { path: '/settings', icon: '🎯', label: '设置' }
+  { path: '/', label: '首页' },
+  { path: '/manage', label: '管理' },
+  { path: '/settings', label: '设置' }
 ])
 
 // 初始化认证状态（从 Cookie 恢复）
@@ -160,8 +147,8 @@ onMounted(async () => {
 const handleLogout = async () => {
   try {
     await authStore.logout()
-    await navigateTo('/login')
     toastStore.success('已退出登录')
+    await navigateTo('/')
   } catch (error) {
     toastStore.error('退出登录失败')
   }
