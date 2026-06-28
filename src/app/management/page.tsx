@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useCallback, useEffect } from 'react'
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Lock, FolderTree, Image as ImageIcon } from 'lucide-react'
@@ -32,6 +32,10 @@ export default function ManagementPage() {
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set())
+
+  // 防抖定时器 ref
+  const directoryDebounceRef = useRef<NodeJS.Timeout | null>(null)
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null)
 
   // 检查配置是否完整
   const isConfigured = configStore.owner && configStore.repo && configStore.branch
@@ -90,7 +94,36 @@ export default function ManagementPage() {
   }, [])
 
   const handleDirectoryChange = useCallback((dir: string) => {
-    setSelectedDirectory(dir)
+    // 清除之前的定时器
+    if (directoryDebounceRef.current) {
+      clearTimeout(directoryDebounceRef.current)
+    }
+    // 设置新的定时器，300ms 延迟
+    directoryDebounceRef.current = setTimeout(() => {
+      setSelectedDirectory(dir)
+    }, 300)
+  }, [])
+
+  // 防抖搜索
+  const handleSearchChange = useCallback((query: string) => {
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current)
+    }
+    searchDebounceRef.current = setTimeout(() => {
+      setSearchQuery(query)
+    }, 200)
+  }, [])
+
+  // 清理定时器
+  useEffect(() => {
+    return () => {
+      if (directoryDebounceRef.current) {
+        clearTimeout(directoryDebounceRef.current)
+      }
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current)
+      }
+    }
   }, [])
 
   // 多选相关
@@ -211,7 +244,7 @@ export default function ManagementPage() {
               images={images}
               filteredCount={filteredImages.length}
               searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
+              onSearchChange={handleSearchChange}
               sortField={sortField}
               sortOrder={sortOrder}
               onSortFieldChange={handleSortFieldChange}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import Image from 'next/image'
 import { MoreVertical, Trash2, Link2 } from 'lucide-react'
 import { formatFileSize } from '@/lib/utils'
@@ -34,7 +34,7 @@ interface ImageCardProps {
   onPreview?: (image: ImageFile) => void
 }
 
-export function ImageCard({ image, onDelete, onSelect, selected, selectable, priority, onPreview }: ImageCardProps) {
+export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, selected, selectable, priority, onPreview }: ImageCardProps) {
   const { data: session } = useSession()
   const token = session?.accessToken || ''
   const configStore = useConfigStore()
@@ -199,4 +199,6 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
 
     </>
   )
-}
+})
+
+ImageCard.displayName = 'ImageCard'
