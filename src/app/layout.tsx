@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
+import { Header } from "@/components/layout/Header";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +23,12 @@ export default function RootLayout({
       <body className={inter.className}>
         <ReactQueryProvider>
           <AuthProvider>
-            {children}
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+              <Header />
+              <main className="flex-1">
+                {children}
+              </main>
+            </div>
             <Toaster position="top-right" richColors />
           </AuthProvider>
         </ReactQueryProvider>
