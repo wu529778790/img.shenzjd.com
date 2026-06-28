@@ -6,9 +6,23 @@ import { toast } from 'sonner'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { useOperationLogStore } from '@/stores/operationLogStore'
-import { GitHubAPI } from '@/lib/github'
+import { GitHubAPI, GitHubFileInfo } from '@/lib/github'
 import { generateLink } from '@/lib/link'
 import type { ImageFile } from '@/types/image'
+
+// ── Conversion: GitHub API layer → Business layer ──────────────────────────
+// GitHubFileInfo 是 API 层的原始类型（来自 GitHub REST API）
+// ImageFile 是业务层类型（含 cdnUrl, uploaded_at 等派生字段）
+// 这个转换函数是两层之间的唯一边界
+function toImageFile(file: GitHubFileInfo, cdnUrl: string): ImageFile {
+  return {
+    ...file,
+    id: file.sha,
+    type: 'file' as const,
+    uploaded_at: new Date(file.sha),
+    cdnUrl,
+  }
+}
 
 export function useImages() {
   const { data: session } = useSession()
@@ -29,7 +43,7 @@ export function useImages() {
       const api = new GitHubAPI(token, owner, repo, branch)
 
       // 递归获取所有文件（包括子文件夹）
-      const allFiles = await api.listAllFiles('')
+      const allFiles: GitHubFileInfo[] = await api.listAllFiles('')
 
       // 过滤出图片文件
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
@@ -51,13 +65,8 @@ export function useImages() {
             useRaw: useRaw ?? true,
           })
 
-          return {
-            ...file,
-            id: file.sha,
-            type: 'file' as const,
-            uploaded_at: new Date(file.sha), // 使用 SHA 创建日期（GitHub API 不返回文件创建时间）
-            cdnUrl, // 添加 CDN URL
-          }
+          // API 层 → 业务层显式转换
+          return toImageFile(file, cdnUrl)
         })
 
       return imageFiles
