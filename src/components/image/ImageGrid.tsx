@@ -6,10 +6,9 @@ import { toast } from 'sonner'
 import { ImageCard } from './ImageCard'
 import { ImageGridListView } from './ImageGridListView'
 import { BulkDeleteConfirm } from './BulkDeleteConfirm'
-import { VirtualizedImageGrid, shouldVirtualize } from './VirtualizedImageGrid'
+import { LazyImageGrid } from './LazyImageGrid'
 import type { ImageFile } from '@/types/image'
 import { motion } from 'framer-motion'
-import { ANIMATION_CONFIG, createStaggerVariants, AnimatedListItem } from '@/components/animations/PageAnimations'
 
 type ViewMode = 'grid' | 'list'
 
@@ -47,9 +46,6 @@ export function ImageGrid({
   const viewMode = externalViewMode ?? internalViewMode
   const selectionMode = externalSelectionMode ?? internalSelectionMode
   const selectedIds = externalSelectedIds ?? internalSelectedIds
-
-  // 性能优化：超过 30 张图片时，直接渲染，不使用 stagger 动画
-  const shouldUseAnimation = images.length <= 30
 
   const handleSelect = (id: string, selected: boolean) => {
     if (onSelect) {
@@ -110,56 +106,16 @@ export function ImageGrid({
             </div>
           </motion.div>
         ) : viewMode === 'grid' ? (
-          shouldVirtualize(images.length) ? (
-            <VirtualizedImageGrid
-              images={images}
-              onDelete={onDelete}
-              onSelect={handleSelect}
-              selectedIds={selectedIds}
-              selectable={selectionMode}
-            />
-          ) : (
-            <motion.div
-              variants={createStaggerVariants(shouldUseAnimation ? ANIMATION_CONFIG.stagger.small / 1000 : 0)}
-              initial="initial"
-              animate="animate"
-              className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4"
-            >
-              {images.map((image, index) => {
-                // 性能优化：超过 30 张图片时，只给前 20 张添加动画组件
-                const shouldAnimate = shouldUseAnimation || index < 20
-
-                return shouldAnimate ? (
-                  <AnimatedListItem key={image.id}>
-                    <ImageCard
-                      image={image}
-                      images={images}
-                      onImageChange={onImageChange}
-                      onDelete={onDelete}
-                      onSelect={handleSelect}
-                      selected={selectedIds.has(image.id)}
-                      selectable={selectionMode}
-                      priority={index < 5}
-                    />
-                  </AnimatedListItem>
-                ) : (
-                  // 静态渲染（无动画）
-                  <div key={image.id}>
-                    <ImageCard
-                      image={image}
-                      images={images}
-                      onImageChange={onImageChange}
-                      onDelete={onDelete}
-                      onSelect={handleSelect}
-                      selected={selectedIds.has(image.id)}
-                      selectable={selectionMode}
-                      priority={index < 5}
-                    />
-                  </div>
-                )
-              })}
-            </motion.div>
-          )
+          <LazyImageGrid
+            images={images}
+            onDelete={onDelete}
+            onSelect={handleSelect}
+            selectedIds={selectedIds}
+            selectable={selectionMode}
+            onImageChange={onImageChange}
+            initialLoadCount={images.length <= 30 ? images.length : 12}
+            batchSize={12}
+          />
         ) : (
           <ImageGridListView
             images={images}
