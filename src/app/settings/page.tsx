@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Settings, Moon, Sun, Monitor, Trash2 } from 'lucide-react'
+import { Settings, Moon, Sun, Monitor, Trash2, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -18,11 +17,23 @@ export default function SettingsPage() {
   const configStore = useConfigStore()
   const { theme, setTheme } = useThemeStore()
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login')
-    }
-  }, [isAuthenticated, router])
+  // 如果未登录，显示登录提示
+  if (!isAuthenticated) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="text-center py-12">
+          <Lock className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <h2 className="text-xl font-semibold mb-2">需要登录</h2>
+          <p className="text-gray-500 mb-4">
+            登录后才能管理设置
+          </p>
+          <Button onClick={() => router.push('/login')}>
+            去登录
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
     setTheme(newTheme)

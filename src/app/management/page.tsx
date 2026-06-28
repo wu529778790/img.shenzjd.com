@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, FolderTree, Loader2 } from 'lucide-react'
+import { Search, FolderTree, Loader2, Lock } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/authStore'
@@ -17,17 +17,29 @@ export default function ManagementPage() {
 
   const { images, isLoading, handleDelete, handleBulkDelete, isDeleting } = useImages()
 
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState<string>('')
   const [selectedDirectory, setSelectedDirectory] = useState<string>('')
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login')
-    }
-  }, [isAuthenticated, router])
 
   // 检查配置是否完整
   const isConfigured = configStore.owner && configStore.repo && configStore.branch
+
+  // 如果未登录，显示登录提示
+  if (!isAuthenticated) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="text-center py-12">
+          <Lock className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <h2 className="text-xl font-semibold mb-2">需要登录</h2>
+          <p className="text-gray-500 mb-4">
+            登录后才能管理图片
+          </p>
+          <Button onClick={() => router.push('/login')}>
+            去登录
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   if (!isConfigured) {
     return (

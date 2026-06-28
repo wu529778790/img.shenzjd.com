@@ -1,25 +1,16 @@
 'use client'
 
 import { useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useAuthStore } from '@/stores/authStore'
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const router = useRouter()
-  const { isAuthenticated, token } = useAuthStore()
 
   useEffect(() => {
-    // 如果是登录页，不需要认证
-    if (pathname.startsWith('/login')) {
-      return
-    }
-
-    // 如果没有认证，跳转到登录页
-    if (!isAuthenticated || !token) {
-      router.push('/login')
-    }
-  }, [isAuthenticated, token, pathname, router])
+    // 不再强制重定向，让所有页面都可访问
+    // 认证检查在各个功能页面中自行处理
+  }, [pathname])
 
   return <>{children}</>
 }
