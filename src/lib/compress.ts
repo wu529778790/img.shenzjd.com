@@ -21,15 +21,10 @@ export async function compressImage(
   }
 
   try {
-    console.log(`Compressing ${file.name}...`)
     const compressedFile = await imageCompression(file, defaultOptions)
-
-    const savings = ((file.size - compressedFile.size) / file.size) * 100
-    console.log(`Compressed ${file.name}: ${file.size} → ${compressedFile.size} (${savings.toFixed(1)}% reduction)`)
 
     return compressedFile
   } catch (error) {
-    console.error('Compression failed:', error)
     throw error
   }
 }

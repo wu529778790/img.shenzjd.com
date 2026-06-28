@@ -23,7 +23,6 @@ export async function GET(request: Request) {
       },
     })
   } catch (error) {
-    console.error('Auth user API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
