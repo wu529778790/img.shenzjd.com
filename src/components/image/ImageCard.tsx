@@ -131,15 +131,11 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable }: I
               {formatFileSize(image.size)}
             </p>
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
+              <DropdownMenuTrigger
+                className="h-6 w-6 p-0"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreVertical className="h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => handleCopyLink('markdown')}>

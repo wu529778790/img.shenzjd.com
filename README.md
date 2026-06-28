@@ -130,7 +130,6 @@ GITHUB_CLIENT_SECRET=your_client_secret_here
 
 # 站点配置
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-NEXT_PUBLIC_GITHUB_CLIENT_ID=your_client_id_here
 ```
 
 ### 4. 配置 GitHub OAuth App
@@ -220,7 +219,6 @@ git push origin main
 GITHUB_CLIENT_ID=your_client_id
 GITHUB_CLIENT_SECRET=your_client_secret
 NEXT_PUBLIC_SITE_URL=https://your-project.vercel.app
-NEXT_PUBLIC_GITHUB_CLIENT_ID=your_client_id
 ```
 
 4. **更新 GitHub OAuth**
