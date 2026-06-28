@@ -11,7 +11,7 @@ export interface Config {
   watermarkSize: number
   watermarkPosition: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
   theme: 'light' | 'dark' | 'system'
-  cdn: 'github' | 'jsdelivr' | 'github-pages'
+  cdn: 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages'
   useRaw: boolean
 }
 

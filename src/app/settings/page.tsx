@@ -199,6 +199,12 @@ export default function SettingsPage() {
                       <span>jsDelivr CDN</span>
                     </div>
                   </SelectItem>
+                  <SelectItem value="jsdmirror">
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      <span>jsDMirror CDN（国内推荐）</span>
+                    </div>
+                  </SelectItem>
                   <SelectItem value="github-pages">
                     <div className="flex items-center gap-2">
                       <Link2 className="h-4 w-4" />
@@ -210,6 +216,7 @@ export default function SettingsPage() {
               <p className="text-xs text-gray-500 mt-2">
                 {configStore.cdn === 'github' && '使用 GitHub 原始链接，直接从 GitHub 服务器加载'}
                 {configStore.cdn === 'jsdelivr' && '使用 jsDelivr CDN，全球加速访问'}
+                {configStore.cdn === 'jsdmirror' && '使用 jsDMirror CDN，国内加速访问（推荐国内用户）'}
                 {configStore.cdn === 'github-pages' && '使用 GitHub Pages 托管（需要启用 Pages）'}
               </p>
             </div>

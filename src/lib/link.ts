@@ -17,6 +17,9 @@ export function generateLink(options: LinkOptions): string {
     case 'jsdelivr':
       baseUrl = `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${path}`
       break
+    case 'jsdmirror':
+      baseUrl = `https://cdn.jsdmirror.com/gh/${owner}/${repo}@${branch}/${path}`
+      break
     case 'github-pages':
       baseUrl = `https://${owner}.github.io/${repo}/${path}`
       break
