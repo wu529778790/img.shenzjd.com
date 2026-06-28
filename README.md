@@ -124,13 +124,17 @@ cp .env.example .env.local
 编辑 `.env.local`：
 
 ```env
-# GitHub OAuth
+# GitHub OAuth（只需配置一次）
 GITHUB_CLIENT_ID=your_client_id_here
 GITHUB_CLIENT_SECRET=your_client_secret_here
 
 # 站点配置
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
+
+**说明：**
+- `GITHUB_CLIENT_ID` 会自动暴露给客户端，无需额外配置 `NEXT_PUBLIC_GITHUB_CLIENT_ID`
+- `GITHUB_CLIENT_SECRET` 仅在服务端使用，不会暴露给浏览器
 
 ### 4. 配置 GitHub OAuth App
 

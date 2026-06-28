@@ -17,6 +17,8 @@ export default function LoginPage() {
   useEffect(() => {
     // 检查 OAuth 配置（需要在客户端执行）
     const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID
+    console.log('🔍 Debug - GITHUB_CLIENT_ID from env:', clientId)
+    console.log('🔍 Debug - All NEXT_PUBLIC envs:', Object.keys(process.env).filter(key => key.startsWith('NEXT_PUBLIC_')))
     setHasGitHubOAuth(Boolean(clientId))
 
     // 检查 URL 中是否有 token（OAuth 回调）
