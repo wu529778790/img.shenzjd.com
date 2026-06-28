@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Config } from '@/types/config'
 
-interface ConfigState extends Config {
+export interface ConfigState extends Config {
   updateConfig: (updates: Partial<Config>) => void
   resetConfig: () => void
 }
