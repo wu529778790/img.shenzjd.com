@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { FileImage, MoreVertical, Trash2, Link2 } from 'lucide-react'
+import { FileImage, MoreVertical, Trash2, Link2, Eye } from 'lucide-react'
 import { formatFileSize } from '@/lib/utils'
 import { generateLink } from '@/lib/link'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,8 @@ import { useConfigStore } from '@/stores/configStore'
 import { toast } from 'sonner'
 import { ImagePreview } from './ImagePreview'
 import type { ImageFile } from '@/types/image'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ANIMATION_CONFIG, scaleVariants } from '@/components/animations/PageAnimations'
 
 interface ImageCardProps {
   image: ImageFile
@@ -25,14 +27,16 @@ interface ImageCardProps {
   onSelect?: (id: string, selected: boolean) => void
   selected?: boolean
   selectable?: boolean
+  priority?: boolean
 }
 
-export function ImageCard({ image, onDelete, onSelect, selected, selectable }: ImageCardProps) {
+export function ImageCard({ image, onDelete, onSelect, selected, selectable, priority }: ImageCardProps) {
   const { data: session } = useSession()
   const token = (session as any)?.accessToken || ''
   const configStore = useConfigStore()
 
   const [showPreview, setShowPreview] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
 
   const handleCopyLink = async (format: 'markdown' | 'html' | 'bbcode' | 'url') => {
     const { owner, repo, branch, cdn, useRaw } = configStore
@@ -94,57 +98,123 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable }: I
 
   return (
     <>
-      <div
-        className={`group relative border rounded-lg overflow-hidden bg-white dark:bg-gray-800 hover:shadow-lg transition-shadow ${
-          selected ? 'ring-2 ring-primary' : ''
-        }`}
+      <motion.div
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        variants={scaleVariants}
+        whileHover={{ scale: 1.02, y: -4 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ duration: ANIMATION_CONFIG.duration.fast / 1000 }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`
+          group relative overflow-hidden rounded-xl
+          bg-white dark:bg-gray-800
+          border border-gray-200 dark:border-gray-700
+          shadow-sm hover:shadow-xl
+          transition-all duration-300 ease-out
+          cursor-pointer
+          ${selected ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-900' : ''}
+        `}
         onClick={() => selectable && onSelect?.(image.id, !selected)}
       >
-        {/* 图片预览 */}
-        <div
-          className="aspect-square relative cursor-pointer bg-gray-100 dark:bg-gray-900"
-          onClick={() => setShowPreview(true)}
-        >
+        {/* 图片预览区域 */}
+        <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-900">
           <Image
             src={image.download_url}
             alt={image.name}
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-500 group-hover:scale-110"
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            priority={priority}
+            loading={priority ? 'eager' : 'lazy'}
           />
 
-          {/* 悬停遮罩 */}
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={(e) => {
-                e.stopPropagation()
-                setShowPreview(true)
-              }}
-            >
-              <FileImage className="h-4 w-4" />
-            </Button>
-          </div>
+          {/* 渐变遮罩 */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isHovered ? 1 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"
+          />
+
+          {/* 悬停操作按钮 */}
+          <AnimatePresence>
+            {isHovered && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 flex items-center justify-center gap-3"
+              >
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.05, duration: 0.15 }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowPreview(true)
+                  }}
+                >
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 shadow-lg"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* 选中状态指示器 */}
+          <AnimatePresence>
+            {selected && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                className="absolute top-3 right-3"
+              >
+                <div className="h-6 w-6 rounded-full bg-primary text-white flex items-center justify-center shadow-lg">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* 文件信息 */}
-        <div className="p-3">
-          <p className="text-sm font-medium truncate" title={image.name}>
+        <div className="p-4 space-y-2">
+          <p
+            className="text-sm font-medium truncate cursor-help"
+            title={image.name}
+          >
             {image.name}
           </p>
-          <div className="flex items-center justify-between mt-1">
-            <p className="text-xs text-gray-500">
+          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+            <span className="font-mono">
               {formatFileSize(image.size)}
-            </p>
+            </span>
             <DropdownMenu>
               <DropdownMenuTrigger
-                className="h-6 w-6 p-0"
+                className="h-8 w-8 p-0 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
-                <MoreVertical className="h-4 w-4" />
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex items-center justify-center"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </motion.button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={() => handleCopyLink('markdown')}>
                   <Link2 className="mr-2 h-4 w-4" />
                   复制 Markdown
@@ -164,7 +234,7 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable }: I
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={handleDelete}
-                  className="text-red-600"
+                  className="text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/20 cursor-pointer"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   删除
@@ -173,7 +243,7 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable }: I
             </DropdownMenu>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* 图片预览模态框 */}
       {showPreview && (

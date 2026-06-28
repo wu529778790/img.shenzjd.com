@@ -8,7 +8,11 @@ import { UploadArea } from '@/components/upload/UploadArea'
 import { UploadQueue } from '@/components/upload/UploadQueue'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Image as ImageIcon } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Image as ImageIcon, Sparkles, Zap, UploadCloud } from 'lucide-react'
+import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
+import { motion, AnimatePresence } from 'framer-motion'
+import { cn } from '@/lib/utils'
 
 export default function UploadPage() {
   const router = useRouter()
@@ -23,10 +27,12 @@ export default function UploadPage() {
   // 如果正在加载
   if (status === 'loading') {
     return (
-      <div className="container mx-auto py-8">
-        <Card className="p-8 text-center">
-          <p className="text-gray-500">加载中...</p>
-        </Card>
+      <div className="container mx-auto px-4 py-8">
+        <PageTransition>
+          <CardAnimation className="p-12 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+            <div className="text-gray-500">加载中...</div>
+          </CardAnimation>
+        </PageTransition>
       </div>
     )
   }
@@ -34,64 +40,153 @@ export default function UploadPage() {
   // 如果未登录，显示登录提示
   if (!session) {
     return (
-      <div className="container mx-auto py-8">
-        <Card className="p-8 text-center">
-          <ImageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h2 className="text-xl font-semibold mb-2">需要登录</h2>
-          <p className="text-gray-500 mb-4">
-            登录后才能上传图片和管理图床
-          </p>
-          <Button onClick={() => router.push('/login')}>
-            去登录
-          </Button>
-        </Card>
+      <div className="container mx-auto px-4 py-8">
+        <PageTransition>
+          <CardAnimation className="max-w-md mx-auto p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+              className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center mb-6"
+            >
+              <ImageIcon className="h-10 w-10 text-primary" />
+            </motion.div>
+            <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">
+              需要登录
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              登录后才能上传图片和管理图床
+            </p>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button onClick={() => router.push('/login')} size="lg">
+                去登录
+              </Button>
+            </motion.div>
+          </CardAnimation>
+        </PageTransition>
       </div>
     )
   }
 
   if (!isConfigured) {
     return (
-      <div className="container mx-auto py-8">
-        <Card className="p-8 text-center">
-          <ImageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h2 className="text-xl font-semibold mb-2">请先配置图床</h2>
-          <p className="text-gray-500 mb-4">
-            在开始上传之前，需要先配置您的 GitHub 仓库
-          </p>
-          <Button onClick={() => router.push('/config')}>
-            去配置
-          </Button>
-        </Card>
+      <div className="container mx-auto px-4 py-8">
+        <PageTransition>
+          <CardAnimation className="max-w-md mx-auto p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+              className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center mb-6"
+            >
+              <UploadCloud className="h-10 w-10 text-primary" />
+            </motion.div>
+            <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">
+              请先配置图床
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              在开始上传之前，需要先配置您的 GitHub 仓库
+            </p>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button onClick={() => router.push('/config')} size="lg">
+                去配置
+              </Button>
+            </motion.div>
+          </CardAnimation>
+        </PageTransition>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">上传图片</h1>
-        <p className="text-gray-500 mt-2">
-          拖拽或选择图片上传到 {owner}/{repo}
-        </p>
-      </div>
-
-      <Card className="p-8">
-        <UploadArea onFilesSelected={addFiles} />
-
-        {uploadQueue.length > 0 && (
-          <div className="mt-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">上传队列</h2>
-              <span className="text-sm text-gray-500">
-                {uploadQueue.length} 个文件
-              </span>
-            </div>
-            <UploadQueue
-              queue={uploadQueue}
-            />
+    <div className="container mx-auto px-4 py-8 max-w-5xl">
+      <PageTransition>
+        {/* 页面标题区域 */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <motion.div
+              initial={{ rotate: -10 }}
+              animate={{ rotate: 0 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+            >
+              <UploadCloud className="h-8 w-8 text-primary" />
+            </motion.div>
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+              上传图片
+            </h1>
           </div>
-        )}
-      </Card>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="text-gray-500 dark:text-gray-400"
+          >
+            拖拽或选择图片上传到
+            <span className="font-mono text-sm bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md ml-2">
+              {owner}/{repo}
+            </span>
+          </motion.p>
+        </motion.div>
+
+        {/* 上传区域 */}
+        <CardAnimation
+          delay={0.1}
+          className="p-8 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg"
+        >
+          <UploadArea onFilesSelected={addFiles} />
+
+          {/* 上传队列 */}
+          <AnimatePresence>
+            {uploadQueue.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-8"
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200 dark:border-gray-700"
+                >
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-primary" />
+                    <h2 className="text-xl font-semibold">上传队列</h2>
+                    <Badge variant="secondary" className="ml-1">
+                      {uploadQueue.length}
+                    </Badge>
+                  </div>
+                </motion.div>
+                <UploadQueue
+                  queue={uploadQueue}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </CardAnimation>
+
+        {/* 提示信息 */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mt-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+        >
+          <div className="flex gap-3">
+            <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-800 dark:text-blue-200">
+              <p className="font-medium mb-1">提示</p>
+              <p className="text-blue-700 dark:text-blue-300">
+                支持的格式：PNG、JPG、JPEG、GIF、WEBP。单文件最大 10MB。支持批量上传。
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </PageTransition>
     </div>
   )
 }
