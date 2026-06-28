@@ -64,13 +64,14 @@ const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
 | 文件 | 改动 |
 |------|------|
-| `src/components/image/ImageCard.tsx` | 1) 添加 `showDeleteConfirm` state；2) 替换 `confirm()` 调用为 `setShowDeleteConfirm(true)`；3) 在 return 末尾添加 `<Dialog>` 弹窗 |
+| `src/components/image/ImageCard.tsx` | 1) 添加 `Dialog` 系列导入 + `AlertTriangle`；2) 添加 `showDeleteConfirm` state；3) `handleDelete` 重构为开弹窗（删除逻辑移至 Dialog 确认按钮 `onClick`）；4) 在 return 末尾添加 `<Dialog>` 弹窗 JSX |
 
 ### 不涉及
 
 - 不修改 API 层（`DELETE /api/images/[sha]`）
 - 不修改 `ImageGrid.tsx` 批量删除弹窗
 - 不修改 `Dialog` 组件本身
+- 不修改 `useImages` hook 或 `bulkDeleteMutation`
 
 ## 验收标准
 
