@@ -23,7 +23,7 @@ import { ThemeToggle } from './ThemeToggle'
 import { useRouter } from 'next/navigation'
 
 const navigation = [
-  { name: '上传图片', href: '/upload', icon: Upload },
+  { name: '上传图片', href: '/', icon: Upload },
   { name: '图片管理', href: '/management', icon: Image },
   { name: '设置', href: '/settings', icon: Settings },
 ]
@@ -78,7 +78,7 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/upload" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-2 group">
             <motion.div
               whileHover={{ rotate: 15 }}
               transition={{ duration: 0.2 }}

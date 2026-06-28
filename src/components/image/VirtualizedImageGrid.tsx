@@ -139,8 +139,8 @@ export function VirtualizedImageGrid({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  duration: 0.25,
-                  delay: Math.min((globalIndex % columns) * 0.03, 0.15),
+                  duration: 0.2,
+                  delay: Math.min((globalIndex % columns) * 0.02, 0.1),  // 优化：20ms 延迟，最大 100ms
                 }}
               >
                 <ImageCard
@@ -162,8 +162,8 @@ export function VirtualizedImageGrid({
 
 /**
  * 决定是否使用虚拟列表
- * 当图片数量 > 50 时启用
+ * 当图片数量 > 20 时启用（优化性能）
  */
 export function shouldVirtualize(imagesCount: number): boolean {
-  return imagesCount > 50
+  return imagesCount > 20
 }

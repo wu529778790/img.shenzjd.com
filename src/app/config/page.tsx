@@ -142,7 +142,7 @@ export default function ConfigPage() {
       )
 
       toast.success('图床配置成功！')
-      router.push('/upload')
+      router.push('/')
     } catch (error) {
       console.error('Auto config failed:', error)
       toast.error('配置失败，请重试')
@@ -171,7 +171,7 @@ export default function ConfigPage() {
     )
 
     toast.success('配置已保存')
-    router.push('/upload')
+    router.push('/')
   }
 
   return (

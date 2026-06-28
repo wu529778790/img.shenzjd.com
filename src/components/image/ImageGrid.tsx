@@ -9,7 +9,7 @@ import { BulkDeleteConfirm } from './BulkDeleteConfirm'
 import { VirtualizedImageGrid, shouldVirtualize } from './VirtualizedImageGrid'
 import type { ImageFile } from '@/types/image'
 import { motion } from 'framer-motion'
-import { ANIMATION_CONFIG, createStaggerVariants, AnimatedListItem } from '@/components/animations/PageAnimations'
+import { ANIMATION_CONFIG, AnimatedListItem } from '@/components/animations/PageAnimations'
 
 type ViewMode = 'grid' | 'list'
 
@@ -47,6 +47,21 @@ export function ImageGrid({
   const viewMode = externalViewMode ?? internalViewMode
   const selectionMode = externalSelectionMode ?? internalSelectionMode
   const selectedIds = externalSelectedIds ?? internalSelectedIds
+
+  // 动态计算 stagger 延迟：图片数量 > 30 时使用更快的动画
+  const staggerDelay = images.length > 30 ? 0.005 : 0.01  // 超过 30 张用 5ms，否则 10ms
+  const maxStaggerDelay = 0.15  // 最大延迟 150ms，避免最后一张等待太久
+
+  // 创建动态 stagger 变体
+  const dynamicStaggerVariants = {
+    animate: {
+      transition: {
+        staggerChildren: staggerDelay,
+        // 添加 stagger 最大值限制
+        staggerMaxDelay: maxStaggerDelay,
+      },
+    },
+  }
 
   const handleSelect = (id: string, selected: boolean) => {
     if (onSelect) {
@@ -117,25 +132,44 @@ export function ImageGrid({
             />
           ) : (
             <motion.div
-              variants={createStaggerVariants()}
+              variants={dynamicStaggerVariants}
               initial="initial"
               animate="animate"
               className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4"
             >
-              {images.map((image, index) => (
-                <AnimatedListItem key={image.id}>
-                  <ImageCard
-                    image={image}
-                    images={images}
-                    onImageChange={onImageChange}
-                    onDelete={onDelete}
-                    onSelect={handleSelect}
-                    selected={selectedIds.has(image.id)}
-                    selectable={selectionMode}
-                    priority={index < 5}
-                  />
-                </AnimatedListItem>
-              ))}
+              {images.map((image, index) => {
+                // 优化：超过 30 张图片时，只给前 20 张添加动画
+                const shouldAnimate = images.length <= 30 || index < 20
+
+                return shouldAnimate ? (
+                  <AnimatedListItem key={image.id}>
+                    <ImageCard
+                      image={image}
+                      images={images}
+                      onImageChange={onImageChange}
+                      onDelete={onDelete}
+                      onSelect={handleSelect}
+                      selected={selectedIds.has(image.id)}
+                      selectable={selectionMode}
+                      priority={index < 5}
+                    />
+                  </AnimatedListItem>
+                ) : (
+                  // 静态渲染（无动画）
+                  <div key={image.id}>
+                    <ImageCard
+                      image={image}
+                      images={images}
+                      onImageChange={onImageChange}
+                      onDelete={onDelete}
+                      onSelect={handleSelect}
+                      selected={selectedIds.has(image.id)}
+                      selectable={selectionMode}
+                      priority={index < 5}
+                    />
+                  </div>
+                )
+              })}
             </motion.div>
           )
         ) : (

@@ -236,12 +236,8 @@ export default function ManagementPage() {
             />
           </div>
 
-          {/* 图片网格 */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-          >
+          {/* 图片网格 - 移除 PageTransition 和动画，减少性能开销 */}
+          <div className="transition-opacity duration-200">
             <ImageGrid
               images={filteredImages}
               onDelete={handleDelete}
@@ -259,7 +255,7 @@ export default function ManagementPage() {
                 })
               }}
             />
-          </motion.div>
+          </div>
 
           {/* 空状态 */}
           {!isLoading && filteredImages.length === 0 && (
@@ -289,7 +285,7 @@ export default function ManagementPage() {
                 </p>
                 {!searchQuery && !selectedDirectory && (
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button onClick={() => router.push('/upload')} className="mt-4">
+                    <Button onClick={() => router.push('/')} className="mt-4">
                       上传图片
                     </Button>
                   </motion.div>

@@ -11,7 +11,7 @@ function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const callbackUrl = useMemo(() => searchParams.get('callbackUrl') || '/upload', [])
+  const callbackUrl = useMemo(() => searchParams.get('callbackUrl') || '/', [])
 
   const handleGitHubLogin = () => {
     signIn('github', { callbackUrl })

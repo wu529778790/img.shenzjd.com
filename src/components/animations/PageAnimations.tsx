@@ -11,11 +11,11 @@ export const ANIMATION_CONFIG = {
     normal: 250,
     slow: 400,
   },
-  // 交错延迟 (ms)
+  // 交错延迟 (ms) - 优化性能，减少延迟并设置上限
   stagger: {
-    small: 30,
-    medium: 50,
-    large: 80,
+    small: 10,    // 优化：30 → 10
+    medium: 20,   // 优化：50 → 20
+    large: 40,    // 优化：80 → 40
   },
   // 缩放效果
   scale: {
