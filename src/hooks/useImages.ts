@@ -15,11 +15,15 @@ import type { GitHubFileInfo, ImageFile } from '@/types/image'
 // ImageFile 是业务层类型（含 cdnUrl, uploaded_at 等派生字段）
 // 这个转换函数是两层之间的唯一边界
 function toImageFile(file: GitHubFileInfo, cdnUrl: string): ImageFile {
+  // 尝试从 SHA 解析日期，如果失败则设为 undefined
+  const dateFromSha = new Date(file.sha)
+  const uploadedAt = isNaN(dateFromSha.getTime()) ? undefined : dateFromSha
+
   return {
     ...file,
     id: file.sha,
     type: 'file' as const,
-    uploaded_at: new Date(file.sha),
+    uploaded_at: uploadedAt,
     cdnUrl,
   }
 }
