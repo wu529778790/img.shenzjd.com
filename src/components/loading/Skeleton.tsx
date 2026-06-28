@@ -59,30 +59,7 @@ export function SkeletonListItem() {
   )
 }
 
-// 骨架工具栏组件
-export function SkeletonToolbar() {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
-    >
-      {/* 左侧 */}
-      <div className="flex items-center gap-2">
-        <div className="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
-        <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
-      </div>
-
-      {/* 右侧 */}
-      <div className="flex gap-2">
-        <div className="h-9 w-9 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
-        <div className="h-9 w-9 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
-      </div>
-    </motion.div>
-  )
-}
-
-// 骨架搜索栏组件
+// 骨架搜索栏组件（已合并到 SkeletonToolbar，保留以备后用）
 export function SkeletonSearchBar() {
   return (
     <div className="flex flex-col sm:flex-row gap-3">
