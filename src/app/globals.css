@@ -244,6 +244,81 @@
   .pulse-ring {
     animation: pulse-ring 1.5s infinite;
   }
+
+  /* Skeleton loading */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background-color: rgb(243 244 246);
+    border-radius: 0.375rem;
+  }
+
+  .dark .skeleton {
+    background-color: rgb(31 41 55);
+  }
+
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.4) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .dark .skeleton::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .skeleton-text {
+    height: 1rem;
+    border-radius: 0.25rem;
+  }
+
+  .skeleton-title {
+    height: 1.5rem;
+    width: 60%;
+    border-radius: 0.375rem;
+  }
+
+  .skeleton-avatar {
+    border-radius: 50%;
+  }
+
+  .skeleton-button {
+    height: 2.5rem;
+    width: 6rem;
+    border-radius: 0.5rem;
+  }
+
+  .skeleton-card {
+    height: 12rem;
+    border-radius: 0.75rem;
+  }
 }
 
 /* Reduced motion */

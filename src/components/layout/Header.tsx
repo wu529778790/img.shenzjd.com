@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { Upload, Image, Settings, FolderGit, LogOut, User, Menu, X } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useConfigStore } from '@/stores/configStore'
 import {
@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import { useQueryClient } from '@tanstack/react-query'
 
 const navigation = [
   { name: '上传图片', href: '/upload', icon: Upload },
@@ -51,9 +52,21 @@ export function Header() {
   const user = session?.user
   const configStore = useConfigStore()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const queryClient = useQueryClient()
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' })
+  }
+
+  // 预加载管理页面数据
+  const prefetchManagementPage = () => {
+    const { owner, repo, branch } = configStore
+    if (owner && repo && branch) {
+      queryClient.prefetchQuery({
+        queryKey: ['images', owner, repo, branch],
+        staleTime: 60 * 1000,
+      })
+    }
   }
 
   return (
@@ -93,6 +106,7 @@ export function Header() {
                 >
                   <Link
                     href={item.href}
+                    onMouseEnter={item.href === '/management' ? prefetchManagementPage : undefined}
                     className={cn(
                       'relative flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                       'hover:bg-gray-100 dark:hover:bg-gray-800',

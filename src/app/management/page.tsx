@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Search, FolderTree, Loader2, Lock, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X } from 'lucide-react'
+import { Search, FolderTree, Loader2, Lock, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Image as ImageIcon } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +13,7 @@ import { ImageGrid } from '@/components/image/ImageGrid'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { ManagementSkeleton } from '@/components/loading/Skeleton'
 
 type SortField = 'name' | 'size' | 'path' | 'uploaded_at'
 type SortOrder = 'asc' | 'desc'
@@ -33,20 +34,12 @@ export default function ManagementPage() {
   // 检查配置是否完整
   const isConfigured = configStore.owner && configStore.repo && configStore.branch
 
-  // 如果正在加载
-  if (status === 'loading' || isLoading) {
+  // 如果正在加载，显示骨架屏
+  if (status === 'loading' || (isLoading && images.length === 0)) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <PageTransition>
-          <div className="flex items-center justify-center py-20">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              className="h-8 w-8 text-primary"
-            >
-              <Loader2 className="h-8 w-8" />
-            </motion.div>
-          </div>
+          <ManagementSkeleton />
         </PageTransition>
       </div>
     )

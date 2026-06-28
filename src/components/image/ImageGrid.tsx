@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { formatFileSize } from '@/lib/utils'
 import { ImageCard } from './ImageCard'
+import { VirtualizedImageGrid, shouldVirtualize } from './VirtualizedImageGrid'
 import type { ImageFile } from '@/types/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ANIMATION_CONFIG, createStaggerVariants, AnimatedList, AnimatedListItem } from '@/components/animations/PageAnimations'
@@ -230,25 +231,37 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
           </div>
         </motion.div>
       ) : viewMode === 'grid' ? (
-        <motion.div
-          variants={createStaggerVariants(images.length)}
-          initial="initial"
-          animate="animate"
-          className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4"
-        >
-          {images.map((image, index) => (
-            <AnimatedListItem key={image.id}>
-              <ImageCard
-                image={image}
-                onDelete={onDelete}
-                onSelect={handleSelect}
-                selected={selectedIds.has(image.id)}
-                selectable
-                priority={index < 5} // 前5张图片优先加载，避免LCP警告
-              />
-            </AnimatedListItem>
-          ))}
-        </motion.div>
+        shouldVirtualize(images.length) ? (
+          // 使用虚拟列表（图片数量 > 50）
+          <VirtualizedImageGrid
+            images={images}
+            onDelete={onDelete}
+            onSelect={handleSelect}
+            selectedIds={selectedIds}
+            selectable
+          />
+        ) : (
+          // 普通网格（图片数量 ≤ 50）
+          <motion.div
+            variants={createStaggerVariants(images.length)}
+            initial="initial"
+            animate="animate"
+            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4"
+          >
+            {images.map((image, index) => (
+              <AnimatedListItem key={image.id}>
+                <ImageCard
+                  image={image}
+                  onDelete={onDelete}
+                  onSelect={handleSelect}
+                  selected={selectedIds.has(image.id)}
+                  selectable
+                  priority={index < 5} // 前5张图片优先加载，避免LCP警告
+                />
+              </AnimatedListItem>
+            ))}
+          </motion.div>
+        )
       ) : (
         <motion.div
           initial="initial"
