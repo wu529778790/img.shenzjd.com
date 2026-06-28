@@ -5,12 +5,12 @@
 
 export const IMAGE_GRID_CONFIG = {
   // 初始加载配置
-  INITIAL_LOAD_COUNT: 12,      // 首屏加载图片数量
+  INITIAL_LOAD_COUNT: 8,       // 首屏加载图片数量（减少以提升性能）
   BATCH_SIZE: 8,                // 懒加载批次大小
 
   // 懒加载配置（原虚拟化配置已移除，改用懒加载）
   ESTIMATED_ROW_HEIGHT: 360,    // 预估行高（像素）- 已弃用，保留用于兼容
-  VIRTUALIZATION_THRESHOLD: 30, // 初始加载数量阈值：<=30加载全部，>30初始加载12
+  VIRTUALIZATION_THRESHOLD: 30, // 初始加载数量阈值：<=30加载全部，>30初始加载8
   VIRTUALIZATION_OVERSCAN: 3,   // 预渲染行数 - 已弃用，保留用于兼容
 
   // 响应式断点（与 Tailwind 保持一致）
@@ -21,12 +21,11 @@ export const IMAGE_GRID_CONFIG = {
     xl: 1280,  // xl: 1280px+
   },
 
-  // 响应式列数
+  // 响应式列数（优化：移除 tablet 断点，减少 resize 时重排）
   COLUMNS: {
-    mobile: 2,    // < 640px
-    tablet: 3,    // 640px - 767px
-    desktop: 4,   // 768px - 1023px
-    wide: 5,      // >= 1024px
+    mobile: 2,    // < 768px
+    desktop: 3,    // 768px - 1023px
+    wide: 4,      // >= 1024px
   } as const,
 
   // 图片预览配置

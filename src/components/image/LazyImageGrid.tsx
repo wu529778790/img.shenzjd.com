@@ -95,9 +95,9 @@ export function LazyImageGrid({
 
   return (
     <div className="space-y-4">
-      {/* 图片网格 - 添加 contain 优化重绘性能 */}
+      {/* 图片网格 - 固定列数避免 resize 时重新布局 */}
       <div
-        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-4"
+        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-4"
         style={{
           // 优化网格容器的重绘性能
           contain: 'layout style',
