@@ -98,9 +98,9 @@ export class GitHubAPI {
   }
 
   // 获取单个文件
-  async getFile(path: string) {
+  async getFile(path: string, branch?: string): Promise<any> {
     const response = await this.client.get(`/repos/${this.owner}/${this.repo}/contents/${path}`, {
-      params: { ref: this.branch },
+      params: { ref: branch || this.branch },
     })
     return response.data
   }
@@ -109,7 +109,8 @@ export class GitHubAPI {
   async createOrUpdateFile(
     filePath: string,
     content: string | Blob,
-    message: string
+    message: string,
+    branch: string = this.branch  // 添加分支参数
   ): Promise<{ sha: string; html_url: string }> {
     // 检查文件是否存在
     let sha: string | undefined
@@ -118,13 +119,13 @@ export class GitHubAPI {
       const existing = await this.getFile(filePath)
       sha = existing.sha
       fileExists = true
-      console.log(`[GitHub] File exists, will update: ${filePath}`)
+      console.log(`[GitHub] File exists, will update: ${filePath} on branch ${branch}`)
     } catch {
       // 文件不存在，创建新文件
-      console.log(`[GitHub] File does not exist, will create: ${filePath}`)
+      console.log(`[GitHub] File does not exist, will create: ${filePath} on branch ${branch}`)
     }
 
-    console.log(`[GitHub] ${fileExists ? 'Updating' : 'Creating'} file: ${filePath}`)
+    console.log(`[GitHub] ${fileExists ? 'Updating' : 'Creating'} file: ${filePath} on branch ${branch}`)
 
     // 处理 Blob 内容
     let contentBase64: string
@@ -142,17 +143,15 @@ export class GitHubAPI {
         message,
         content: contentBase64,
         sha,
+        branch,  // ✅ 添加分支参数
       }
     )
 
-    console.log(`[GitHub] Full response data:`, JSON.stringify(response.data, null, 2))
-
-    // 检查响应中是否有错误信息
-    if (response.data.content?.sha) {
-      console.log(`[GitHub] ✅ File created successfully: ${response.data.content.html_url}`)
-    } else {
-      console.error(`[GitHub] ❌ Response missing content:`, response.data)
-    }
+    console.log(`[GitHub] Response:`, {
+      sha: response.data.content.sha,
+      html_url: response.data.content.html_url,
+      size: response.data.content.size,
+    })
 
     return {
       sha: response.data.content.sha,
@@ -200,13 +199,13 @@ export class GitHubAPI {
   }
 
   // 获取文件的最后提交时间
-  async getFileCommitTime(path: string): Promise<Date | null> {
+  async getFileCommitTime(path: string, branch?: string): Promise<Date | null> {
     try {
       const response = await this.client.get(`/repos/${this.owner}/${this.repo}/commits`, {
         params: {
           path: path,
           per_page: 1,
-          sha: this.branch,
+          sha: branch || this.branch,
         },
       })
 
@@ -228,7 +227,7 @@ export class GitHubAPI {
 
     await Promise.allSettled(
       paths.map(async (path) => {
-        const date = await this.getFileCommitTime(path)
+        const date = await this.getFileCommitTime(path, this.branch)
         if (date) {
           results.set(path, date)
         }

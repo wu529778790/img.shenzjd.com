@@ -84,7 +84,7 @@ export function useImages() {
       const api = new GitHubAPI(token, owner, repo, branch)
 
       // 获取文件的 SHA
-      const file = await api.getFile(filePath)
+      const file = await api.getFile(filePath, branch)
       const sha = file.sha
 
       // 删除文件
@@ -118,7 +118,7 @@ export function useImages() {
       // 逐个删除
       const results = await Promise.allSettled(
         filePaths.map(async (filePath) => {
-          const file = await api.getFile(filePath)
+          const file = await api.getFile(filePath, branch)
           await api.deleteFile(filePath, `Delete ${filePath} via ImgX`, file.sha)
           return filePath
         })

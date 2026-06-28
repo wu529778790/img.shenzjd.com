@@ -83,10 +83,12 @@ export function useUpload() {
       // 4. 上传到 GitHub
       try {
         console.log('[Upload] Starting GitHub upload...')
+        console.log('[Upload] Target branch:', config.branch)
         const result = await api.createOrUpdateFile(
           filePath,
           processedFile,
-          `Upload ${fileName} via ImgX`
+          `Upload ${fileName} via ImgX`,
+          config.branch  // ✅ 传递分支参数
         )
 
         console.log('[Upload] GitHub upload result:', result)
@@ -98,7 +100,7 @@ export function useUpload() {
         // 尝试验证文件是否创建成功（不阻塞流程）
         console.log('[Upload] Attempting to verify file...')
         try {
-          await api.getFile(filePath)
+          await api.getFile(filePath, config.branch)
           console.log('[Upload] File verified successfully')
         } catch (verifyErr: any) {
           // 验证失败只记录警告，不阻塞上传流程
@@ -134,6 +136,7 @@ export function useUpload() {
 
         console.log('[Upload] ✅ Upload completed successfully:', fileName)
         console.log('[Upload] File URL:', result.html_url)
+        console.log('[Upload] ⚠️ Note: File may be on different branch than configured')
 
         return { file: imageFile, link }
       } catch (error: any) {
