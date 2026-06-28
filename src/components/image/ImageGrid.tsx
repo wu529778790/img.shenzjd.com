@@ -1,10 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useCallback } from 'react'
 import { Search, Eye } from 'lucide-react'
 import { ImageCard } from './ImageCard'
 import { LazyImageGrid } from './LazyImageGrid'
-import { VirtualizedImageGrid } from './VirtualizedImageGrid'
 import { ErrorBoundary } from '@/components/error/ErrorBoundary'
 import { formatFileSize } from '@/lib/utils'
 import { IMAGE_GRID_CONFIG } from '@/lib/constants'
@@ -37,31 +36,16 @@ export function ImageGrid({
   onSelect,
   onImageChange,
 }: ImageGridProps) {
-  // 内部状态（用于独立使用时的回退）
-  const [internalViewMode, setInternalViewMode] = useState<ViewMode>('grid')
-  const [internalSelectionMode, setInternalSelectionMode] = useState(false)
-  const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(new Set())
-
   // 使用外部状态或内部状态
-  const viewMode = externalViewMode ?? internalViewMode
-  const selectionMode = externalSelectionMode ?? internalSelectionMode
-  const selectedIds = externalSelectedIds ?? internalSelectedIds
+  const viewMode = externalViewMode ?? 'grid'
+  const selectionMode = externalSelectionMode ?? false
+  const selectedIds = externalSelectedIds ?? new Set<string>()
 
-  // 判断是否应该使用虚拟滚动
-  const shouldUseVirtualization = images.length > IMAGE_GRID_CONFIG.VIRTUALIZATION_THRESHOLD
-
-  const handleSelect = (id: string, selected: boolean) => {
+  const handleSelect = useCallback((id: string, selected: boolean) => {
     if (onSelect) {
       onSelect(id, selected)
-    } else {
-      setInternalSelectedIds((prev) => {
-        const newSet = new Set(prev)
-        if (selected) newSet.add(id)
-        else newSet.delete(id)
-        return newSet
-      })
     }
-  }
+  }, [onSelect])
 
   const allSelected = images.length > 0 && selectedIds.size === images.length
 
@@ -93,28 +77,17 @@ export function ImageGrid({
         ) : viewMode === 'grid' ? (
           // 网格视图 - 使用错误边界包裹
           <ErrorBoundary>
-            <div>
-              {shouldUseVirtualization ? (
-                <VirtualizedImageGrid
-                  images={images}
-                  onDelete={onDelete}
-                  onSelect={handleSelect}
-                  selectedIds={selectedIds}
-                  selectable={selectionMode}
-                  onImageChange={onImageChange}
-                />
-              ) : (
-                <LazyImageGrid
-                  images={images}
-                  onDelete={onDelete}
-                  onSelect={handleSelect}
-                  selectedIds={selectedIds}
-                  selectable={selectionMode}
-                  onImageChange={onImageChange}
-                  initialLoadCount={images.length <= IMAGE_GRID_CONFIG.VIRTUALIZATION_THRESHOLD ? images.length : IMAGE_GRID_CONFIG.INITIAL_LOAD_COUNT}
-                  batchSize={IMAGE_GRID_CONFIG.BATCH_SIZE}
-                />
-              )}
+            <div className="min-h-0">
+              <LazyImageGrid
+                images={images}
+                onDelete={onDelete}
+                onSelect={handleSelect}
+                selectedIds={selectedIds}
+                selectable={selectionMode}
+                onImageChange={onImageChange}
+                initialLoadCount={images.length <= IMAGE_GRID_CONFIG.VIRTUALIZATION_THRESHOLD ? images.length : IMAGE_GRID_CONFIG.INITIAL_LOAD_COUNT}
+                batchSize={IMAGE_GRID_CONFIG.BATCH_SIZE}
+              />
             </div>
           </ErrorBoundary>
         ) : (

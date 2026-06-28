@@ -8,11 +8,10 @@ export const IMAGE_GRID_CONFIG = {
   INITIAL_LOAD_COUNT: 12,      // 首屏加载图片数量
   BATCH_SIZE: 8,                // 懒加载批次大小
 
-  // 虚拟化配置
-  ESTIMATED_ROW_HEIGHT: 320,    // 预估行高（像素）
-  HEADER_HEIGHT: 280,           // 头部工具栏高度（像素）
-  VIRTUALIZATION_THRESHOLD: 30, // 启用虚拟滚动的图片数量阈值
-  VIRTUALIZATION_OVERSCAN: 3,   // 预渲染行数
+  // 懒加载配置（原虚拟化配置已移除，改用懒加载）
+  ESTIMATED_ROW_HEIGHT: 360,    // 预估行高（像素）- 已弃用，保留用于兼容
+  VIRTUALIZATION_THRESHOLD: 30, // 初始加载数量阈值：<=30加载全部，>30初始加载12
+  VIRTUALIZATION_OVERSCAN: 3,   // 预渲染行数 - 已弃用，保留用于兼容
 
   // 响应式断点（与 Tailwind 保持一致）
   BREAKPOINTS: {

@@ -170,6 +170,14 @@
   ::selection {
     @apply bg-primary/20 text-primary;
   }
+
+  /* 确保至少 44px 的触摸目标 - 仅原生交互元素 */
+  button, a, input, select, textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* 自定义可点击元素在组件内单独定义 */
 }
 
 /* Custom animations and utilities */
@@ -208,8 +216,17 @@
     @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-md;
   }
 
-  /* Animate shimmer */
-  @keyframes shimmer {
+  /* Animations */
+  @keyframes shimmer-skeleton {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  @keyframes shimmer-wide {
     0% {
       background-position: -1000px 0;
     }
@@ -218,18 +235,6 @@
     }
   }
 
-  .animate-shimmer {
-    animation: shimmer 3s infinite linear;
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(255, 255, 255, 0.1) 50%,
-      transparent 100%
-    );
-    background-size: 1000px 100%;
-  }
-
-  /* Pulse ring */
   @keyframes pulse-ring {
     0% {
       transform: scale(0.8);
@@ -241,12 +246,7 @@
     }
   }
 
-  .pulse-ring {
-    animation: pulse-ring 1.5s infinite;
-  }
-
-  /* Skeleton loading */
-  @keyframes shimmer {
+  @keyframes shimmer-bg {
     0% {
       background-position: -200% 0;
     }
@@ -255,6 +255,22 @@
     }
   }
 
+  .animate-shimmer {
+    animation: shimmer-wide 3s infinite linear;
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%
+    );
+    background-size: 1000px 100%;
+  }
+
+  .pulse-ring {
+    animation: pulse-ring 1.5s infinite;
+  }
+
+  /* Skeleton loading */
   .skeleton {
     position: relative;
     overflow: hidden;
@@ -280,7 +296,7 @@
       transparent 100%
     );
     background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
+    animation: shimmer-skeleton 1.5s infinite;
   }
 
   .dark .skeleton::after {
@@ -291,7 +307,7 @@
       transparent 100%
     );
     background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
+    animation: shimmer-skeleton 1.5s infinite;
   }
 
   .skeleton-text {
@@ -319,55 +335,29 @@
     height: 12rem;
     border-radius: 0.75rem;
   }
-}
 
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  .shimmer-bg {
+    background: linear-gradient(
+      90deg,
+      rgb(243 244 246 / 0.5) 0%,
+      rgb(229 231 235) 50%,
+      rgb(243 244 246 / 0.5) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer-bg 2s infinite linear;
   }
-}
 
-/* Print styles */
-@media print {
-  .no-print {
-    display: none !important;
+  .dark .shimmer-bg {
+    background: linear-gradient(
+      90deg,
+      rgb(55 65 81 / 0.5) 0%,
+      rgb(75 85 99) 50%,
+      rgb(55 65 81 / 0.5) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer-bg 2s infinite linear;
   }
-}
-/* Skeleton shimmer animation */
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
 
-.shimmer-bg {
-  background: linear-gradient(
-    90deg,
-    rgb(243 244 246 / 0.5) 0%,
-    rgb(229 231 235) 50%,
-    rgb(243 244 246 / 0.5) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite linear;
-}
-
-.dark .shimmer-bg {
-  background: linear-gradient(
-    90deg,
-    rgb(55 65 81 / 0.5) 0%,
-    rgb(75 85 99) 50%,
-    rgb(55 65 81 / 0.5) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite linear;
 }
 
 /* ========================================
@@ -431,6 +421,10 @@
   transition: all 150ms ease-out;
 }
 
+.transition-soft-medium {
+  transition: all 250ms ease-out;
+}
+
 .transition-soft-slow {
   transition: all 300ms ease-out;
 }
@@ -441,16 +435,6 @@
     @apply ring-4 ring-ring ring-offset-4;
   }
 }
-
-/* 确保至少 44px 的触摸目标 - 仅原生交互元素 */
-@layer base {
-  button, a, input, select, textarea {
-    min-height: 44px;
-    min-width: 44px;
-  }
-}
-
-/* 自定义可点击元素在组件内单独定义 */
 
 /* 打印样式增强 */
 @media print {
