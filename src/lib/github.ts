@@ -110,7 +110,8 @@ export class GitHubAPI {
     filePath: string,
     content: string | Blob,
     message: string,
-    branch: string = this.branch  // 添加分支参数
+    branch: string = this.branch,
+    onProgress?: (progress: number) => void
   ): Promise<{ sha: string; html_url: string }> {
     // 检查文件是否存在
     let sha: string | undefined
@@ -127,15 +128,29 @@ export class GitHubAPI {
 
     console.log(`[GitHub] ${fileExists ? 'Updating' : 'Creating'} file: ${filePath} on branch ${branch}`)
 
+    // 报告 10% 进度（开始处理文件）
+    console.log('[GitHub Progress] Reporting 10%')
+    onProgress?.(10)
+
     // 处理 Blob 内容
     let contentBase64: string
     if (content instanceof Blob) {
+      onProgress?.(30) // 报告 30% 进度（开始 Base64 编码）
+      console.log('[GitHub Progress] Reporting 30%')
       contentBase64 = await this.blobToBase64(content)
+      onProgress?.(50) // 报告 50% 进度（Base64 编码完成）
+      console.log('[GitHub Progress] Reporting 50%')
     } else {
       contentBase64 = Buffer.from(content).toString('base64')
+      onProgress?.(50)
+      console.log('[GitHub Progress] Reporting 50% (string content)')
     }
 
     console.log(`[GitHub] Content size: ${contentBase64.length} bytes (base64)`)
+
+    // 报告 60% 进度（开始上传到 GitHub）
+    console.log('[GitHub Progress] Reporting 60%')
+    onProgress?.(60)
 
     const response = await this.client.put(
       `/repos/${this.owner}/${this.repo}/contents/${filePath}`,
@@ -147,11 +162,19 @@ export class GitHubAPI {
       }
     )
 
+    // 报告 90% 进度（上传请求已完成）
+    console.log('[GitHub Progress] Reporting 90%')
+    onProgress?.(90)
+
     console.log(`[GitHub] Response:`, {
       sha: response.data.content.sha,
       html_url: response.data.content.html_url,
       size: response.data.content.size,
     })
+
+    // 报告 100% 进度
+    console.log('[GitHub Progress] Reporting 100%')
+    onProgress?.(100)
 
     return {
       sha: response.data.content.sha,

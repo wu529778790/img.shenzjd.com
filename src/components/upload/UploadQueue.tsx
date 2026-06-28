@@ -42,20 +42,25 @@ export function UploadQueue({ queue, onRemove, onRetry }: UploadQueueProps) {
             <p className="text-sm font-medium truncate">{task.file.name}</p>
             <p className="text-xs text-gray-500">
               {(task.file.size / 1024).toFixed(1)} KB
-              {task.status === 'uploading' && ` • ${task.progress}%`}
+              {task.status === 'pending' && ' • 等待中'}
+              {task.status === 'uploading' && ` • 上传中 ${task.progress}%`}
               {task.status === 'error' && task.error && ` • ${task.error}`}
             </p>
           </div>
 
           {/* 进度条 */}
           {task.status === 'uploading' && (
-            <div className="flex-1 max-w-xs">
-              <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="flex-1 max-w-xs space-y-1">
+              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                 <div
-                  className="bg-primary h-2 rounded-full transition-all"
+                  className="bg-primary h-2 rounded-full transition-all duration-300 ease-out"
                   style={{ width: `${task.progress}%` }}
                 />
               </div>
+              {task.progress < 20 && <p className="text-xs text-gray-500">准备中...</p>}
+              {task.progress >= 20 && task.progress < 50 && <p className="text-xs text-blue-600">正在处理图片</p>}
+              {task.progress >= 50 && task.progress < 90 && <p className="text-xs text-blue-600">正在上传到 GitHub</p>}
+              {task.progress >= 90 && <p className="text-xs text-green-600">即将完成</p>}
             </div>
           )}
 

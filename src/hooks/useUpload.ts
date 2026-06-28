@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { compressImage } from '@/lib/compress'
 import { addWatermark } from '@/lib/watermark'
@@ -19,32 +19,47 @@ export function useUpload() {
   const config = useConfigStore()
   const queryClient = useQueryClient()
   const { addLog: addOperationLog } = useOperationLogStore()
-  const { addTasks, updateTask, removeTask: removeTaskStore, clearQueue, retryTask: retryTaskStore, retryFailed: retryFailedStore } = useUploadStore()
+  const { updateTask, removeTask: removeTaskStore, clearQueue, retryTask: retryTaskFn, retryFailed: retryFailedFn } = useUploadStore()
 
-  const uploadMutation = useMutation({
-    mutationFn: async (file: File): Promise<{ file: ImageFile; link: string }> => {
-      if (!token) {
-        throw new Error('Not authenticated')
-      }
-
-      const api = new GitHubAPI(token, config.owner, config.repo, config.branch)
-
-      console.log('[Upload] Starting upload for:', file.name, {
-        owner: config.owner,
-        repo: config.repo,
-        branch: config.branch,
-        directory: config.directory,
+  // 上传单个文件的函数
+  const uploadSingleFile = useCallback(async (
+    file: File,
+    taskId: string
+  ): Promise<void> => {
+    if (!token) {
+      updateTask(taskId, {
+        status: 'error',
+        progress: 0,
+        error: 'Not authenticated'
       })
+      return
+    }
 
+    const api = new GitHubAPI(token, config.owner, config.repo, config.branch)
+
+    console.log('[Upload] Starting upload for:', file.name, {
+      owner: config.owner,
+      repo: config.repo,
+      branch: config.branch,
+      directory: config.directory,
+    })
+
+    try {
       // 1. 压缩图片
       let processedFile = file
       if (config.compressionEnabled) {
         try {
+          console.log('[Progress] Setting progress to 10% (compression start)')
+          updateTask(taskId, { progress: 10 }) // 压缩开始
+          await new Promise(resolve => setTimeout(resolve, 300)) // 延迟显示
           processedFile = await compressImage(file, {
             maxSizeMB: 1,
             maxWidthOrHeight: 1920,
             initialQuality: config.compressionQuality / 100,
           })
+          console.log('[Progress] Setting progress to 20% (compression done)')
+          updateTask(taskId, { progress: 20 }) // 压缩完成
+          await new Promise(resolve => setTimeout(resolve, 300)) // 延迟显示
           console.log('[Upload] Compression completed:', file.name)
         } catch (error) {
           console.error('Compression failed:', error)
@@ -55,6 +70,9 @@ export function useUpload() {
       // 2. 添加水印
       if (config.watermarkEnabled && config.watermarkText) {
         try {
+          console.log('[Progress] Setting progress to 30% (watermark start)')
+          updateTask(taskId, { progress: 30 }) // 水印开始
+          await new Promise(resolve => setTimeout(resolve, 300)) // 延迟显示
           const watermarkedBlob = await addWatermark(processedFile, {
             text: config.watermarkText,
             color: config.watermarkColor,
@@ -64,6 +82,9 @@ export function useUpload() {
           processedFile = new File([watermarkedBlob], file.name, {
             type: 'image/jpeg',
           })
+          console.log('[Progress] Setting progress to 40% (watermark done)')
+          updateTask(taskId, { progress: 40 }) // 水印完成
+          await new Promise(resolve => setTimeout(resolve, 300)) // 延迟显示
           console.log('[Upload] Watermark added:', file.name)
         } catch (error) {
           console.error('Watermark failed:', error)
@@ -79,78 +100,115 @@ export function useUpload() {
       const filePath = config.directory ? `${config.directory}/${fileName}` : fileName
 
       console.log('[Upload] File path:', filePath)
+      console.log('[Progress] Setting progress to 50% (ready to upload)')
+      updateTask(taskId, { progress: 50 }) // 准备上传
+      await new Promise(resolve => setTimeout(resolve, 300)) // 延迟显示
 
       // 4. 上传到 GitHub
+      console.log('[Upload] Starting GitHub upload...')
+      console.log('[Upload] Target branch:', config.branch)
+      const result = await api.createOrUpdateFile(
+        filePath,
+        processedFile,
+        `Upload ${fileName} via ImgX`,
+        config.branch,
+        (progress) => {
+          // 实时更新上传进度 (50% -> 90%)
+          const totalProgress = 50 + Math.round(progress * 0.4)
+          console.log('[Progress] GitHub callback progress:', progress, '-> total:', totalProgress, 'for task:', taskId)
+          updateTask(taskId, { progress: totalProgress })
+          console.log('[Progress] updateTask called, checking state...')
+          const state = useUploadStore.getState()
+          const task = state.queue.find(t => t.id === taskId)
+          console.log('[Progress] Current task state:', task?.status, task?.progress)
+        }
+      )
+
+      console.log('[Upload] GitHub upload result:', result)
+      console.log('[Progress] Setting progress to 90% (GitHub upload done)')
+      updateTask(taskId, { progress: 90 }) // GitHub 上传完成
+
+      // GitHub API 可能有延迟，等待一下让文件同步
+      console.log('[Upload] Waiting 1 second for GitHub to sync...')
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // 尝试验证文件是否创建成功（不阻塞流程）
+      console.log('[Upload] Attempting to verify file...')
       try {
-        console.log('[Upload] Starting GitHub upload...')
-        console.log('[Upload] Target branch:', config.branch)
-        const result = await api.createOrUpdateFile(
-          filePath,
-          processedFile,
-          `Upload ${fileName} via ImgX`,
-          config.branch  // ✅ 传递分支参数
-        )
-
-        console.log('[Upload] GitHub upload result:', result)
-
-        // GitHub API 可能有延迟，等待一下让文件同步
-        console.log('[Upload] Waiting 1 second for GitHub to sync...')
-        await new Promise(resolve => setTimeout(resolve, 1000))
-
-        // 尝试验证文件是否创建成功（不阻塞流程）
-        console.log('[Upload] Attempting to verify file...')
-        try {
-          await api.getFile(filePath, config.branch)
-          console.log('[Upload] File verified successfully')
-        } catch (verifyErr: any) {
-          // 验证失败只记录警告，不阻塞上传流程
-          console.warn('[Upload] Verification skipped (GitHub API delay):', verifyErr?.message || verifyErr)
-        }
-
-        const imageFile: ImageFile = {
-          id: result.sha,
-          name: fileName,
-          path: filePath,
-          sha: result.sha,
-          size: processedFile.size,
-          url: `https://github.com/${config.owner}/${config.repo}/blob/${config.branch}/${filePath}`,
-          html_url: result.html_url,
-          download_url: `https://raw.githubusercontent.com/${config.owner}/${config.repo}/${config.branch}/${filePath}`,
-          type: 'file',
-          uploaded_at: new Date(),
-        }
-
-        // 5. 生成链接
-        const linkOptions: LinkOptions = {
-          format: 'markdown',
-          cdn: config.cdn || 'github',
-          owner: config.owner,
-          repo: config.repo,
-          branch: config.branch,
-          path: filePath,
-          fileName: fileName,
-          useRaw: config.useRaw ?? true,
-        }
-
-        const link = generateLink(linkOptions)
-
-        console.log('[Upload] ✅ Upload completed successfully:', fileName)
-        console.log('[Upload] File URL:', result.html_url)
-        console.log('[Upload] ⚠️ Note: File may be on different branch than configured')
-
-        return { file: imageFile, link }
-      } catch (error: any) {
-        console.error('[Upload] ❌ GitHub API error:', error)
-        console.error('[Upload] Error details:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
-        })
-        throw new Error(`上传失败: ${error.message}`)
+        await api.getFile(filePath, config.branch)
+        console.log('[Upload] File verified successfully')
+      } catch (verifyErr: any) {
+        // 验证失败只记录警告，不阻塞上传流程
+        console.warn('[Upload] Verification skipped (GitHub API delay):', verifyErr?.message || verifyErr)
       }
-    },
-    // onSuccess and onError removed — dead code; per-call-site overrides below
-  })
+
+      const imageFile: ImageFile = {
+        id: result.sha,
+        name: fileName,
+        path: filePath,
+        sha: result.sha,
+        size: processedFile.size,
+        url: `https://github.com/${config.owner}/${config.repo}/blob/${config.branch}/${filePath}`,
+        html_url: result.html_url,
+        download_url: `https://raw.githubusercontent.com/${config.owner}/${config.repo}/${config.branch}/${filePath}`,
+        type: 'file',
+        uploaded_at: new Date(),
+      }
+
+      // 5. 生成链接
+      const linkOptions: LinkOptions = {
+        format: 'markdown',
+        cdn: config.cdn || 'github',
+        owner: config.owner,
+        repo: config.repo,
+        branch: config.branch,
+        path: filePath,
+        fileName: fileName,
+        useRaw: config.useRaw ?? true,
+      }
+
+      const link = generateLink(linkOptions)
+
+      console.log('[Upload] ✅ Upload completed successfully:', fileName)
+      console.log('[Upload] File URL:', result.html_url)
+      console.log('[Upload] ⚠️ Note: File may be on different branch than configured')
+
+      // 上传成功
+      console.log('[Progress] Setting progress to 100% (upload complete)')
+      updateTask(taskId, {
+        status: 'success',
+        progress: 100,
+      })
+      addOperationLog({
+        type: 'upload',
+        action: '上传成功',
+        status: 'success',
+        detail: file.name,
+      })
+
+      // 刷新图片列表
+      queryClient.invalidateQueries({ queryKey: ['images', config.owner, config.repo, config.branch] })
+    } catch (error: any) {
+      console.error('[Upload] ❌ GitHub API error:', error)
+      console.error('[Upload] Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      })
+
+      updateTask(taskId, {
+        status: 'error',
+        progress: 0,
+        error: error.message,
+      })
+      addOperationLog({
+        type: 'upload',
+        action: '上传失败',
+        status: 'error',
+        detail: error.message,
+      })
+    }
+  }, [token, config, updateTask, queryClient, addOperationLog])
 
   // 添加文件到上传队列
   const addFiles = useCallback(
@@ -175,41 +233,11 @@ export function useUpload() {
       newTasks.forEach(({ id: taskId, file }) => {
         // 更新任务状态为上传中
         updateTask(taskId, { status: 'uploading', progress: 0 })
-
-        uploadMutation.mutate(file, {
-          onSuccess: (_data, variables: File) => {
-            updateTask(taskId, {
-              status: 'success',
-              progress: 100,
-            })
-            addOperationLog({
-              type: 'upload',
-              action: '上传成功',
-              status: 'success',
-              detail: variables?.name,
-            })
-
-            // 刷新图片列表
-            queryClient.invalidateQueries({ queryKey: ['images', config.owner, config.repo, config.branch] })
-          },
-          onError: (error: Error) => {
-            console.error('Upload failed:', error)
-            updateTask(taskId, {
-              status: 'error',
-              progress: 0,
-              error: error.message,
-            })
-            addOperationLog({
-              type: 'upload',
-              action: '上传失败',
-              status: 'error',
-              detail: error.message,
-            })
-          },
-        })
+        // 开始上传单个文件
+        uploadSingleFile(file, taskId)
       })
     },
-    [updateTask, uploadMutation, queryClient, config]
+    [uploadSingleFile]
   )
 
   // 获取失败任务的文件列表
@@ -235,24 +263,24 @@ export function useUpload() {
     const file = getFailedTaskFile(taskId)
     if (file) {
       // 重置任务状态
-      retryTaskStore(taskId)
+      retryTaskFn(taskId)
       // 重新上传
       addFiles([file])
     }
-  }, [getFailedTaskFile, retryTaskStore, addFiles])
+  }, [getFailedTaskFile, retryTaskFn, addFiles])
 
   // 重试所有失败任务
   const retryAllFailed = useCallback(() => {
     const failedFiles = getFailedTaskFiles()
     if (failedFiles.length > 0) {
       // 重置所有失败任务
-      const failedIds = retryFailedStore()
+      const failedIds = retryFailedFn()
       // 重新上传所有失败的文件
       addFiles(failedFiles)
       return failedIds.length
     }
     return 0
-  }, [getFailedTaskFiles, retryFailedStore, addFiles])
+  }, [getFailedTaskFiles, retryFailedFn, addFiles])
 
   // 移除单个任务
   const removeTask = useCallback((taskId: string) => {
@@ -270,6 +298,5 @@ export function useUpload() {
     retryTask,
     retryAllFailed,
     uploadQueue: useUploadStore((state) => state.queue),
-    isUploading: uploadMutation.isPending,
   }
 }
