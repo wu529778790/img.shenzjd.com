@@ -56,7 +56,7 @@ export function VirtualizedImageGrid({
         } else if (width < 1536) {
           setColumns(5) // wide
         } else {
-          setColumns(6) // ultra-wide
+          setColumns(5) // ultra-wide
         }
       }
     })

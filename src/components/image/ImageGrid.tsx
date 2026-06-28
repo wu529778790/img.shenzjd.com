@@ -246,7 +246,7 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
             variants={createStaggerVariants(images.length)}
             initial="initial"
             animate="animate"
-            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4"
+            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-4"
           >
             {images.map((image, index) => (
               <AnimatedListItem key={image.id}>
