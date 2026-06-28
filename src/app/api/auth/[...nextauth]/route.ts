@@ -27,6 +27,7 @@ export const authOptions = {
         token.accessToken = account.access_token
         // 从 GitHub profile 中获取 username（login 字段）
         token.githubUsername = profile?.login || null
+        console.log('JWT callback - githubUsername set:', token.githubUsername)
       }
       return token
     },
@@ -34,6 +35,7 @@ export const authOptions = {
       session.accessToken = token.accessToken
       // 将 GitHub username 添加到 session
       session.user.githubUsername = token.githubUsername
+      console.log('Session callback - githubUsername:', token.githubUsername)
       return session
     },
   },

@@ -37,20 +37,25 @@ export default function ConfigPage() {
       try {
         const session = await getSession()
         if (session?.user) {
+          console.log('Raw session user:', {
+            name: session.user.name,
+            email: session.user.email,
+            image: session.user.image,
+            // 检查所有可能的字段
+            allFields: Object.keys(session.user),
+            // 尝试获取 githubUsername
+            githubUsername: (session.user as any).githubUsername,
+            // 尝试从 name 字段提取（如果是 username）
+            nameIsUsername: session.user.name && !session.user.name.includes('@')
+          })
+
           // 优先使用 GitHub username (login)，如果没有则使用 name 或 email
           const username = (session.user as any).githubUsername || session.user.name || session.user.email
           // 提取 @ 前的部分作为 username（如果是 email）
           const cleanUsername = username.includes('@') ? username.split('@')[0] : username
           setCurrentUser(cleanUsername)
 
-          // 调试日志
-          console.log('Session user info:', {
-            name: session.user.name,
-            email: session.user.email,
-            githubUsername: (session.user as any).githubUsername,
-            image: session.user.image,
-            finalUsername: cleanUsername
-          })
+          console.log('Final username:', cleanUsername)
         }
       } catch (error) {
         console.error('Failed to fetch user:', error)
