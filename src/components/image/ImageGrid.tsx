@@ -117,15 +117,78 @@ export function ImageGrid({
             batchSize={12}
           />
         ) : (
-          <ImageGridListView
-            images={images}
-            selectedIds={selectedIds}
-            onSelect={handleSelect}
-            selectionMode={selectionMode}
-          />
-        )}
-      </div>
-    </>
+          // 普通网格（图片数量 ≤ 50）
+          <motion.div
+            variants={createStaggerVariants(images.length)}
+            initial="initial"
+            animate="animate"
+            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-4"
+          >
+            {images.map((image, index) => (
+              <AnimatedListItem key={image.id}>
+                <ImageCard
+                  image={image}
+                  onDelete={onDelete}
+                  onSelect={handleSelect}
+                  selected={selectedIds.has(image.id)}
+                  selectable
+                  priority={index < 5} // 前5张图片优先加载，避免LCP警告
+                />
+              </AnimatedListItem>
+            ))}
+          </motion.div>
+        )
+      ) : (
+        <motion.div
+          initial="initial"
+          animate="animate"
+          variants={createStaggerVariants(images.length, 20)}
+          className="space-y-2"
+        >
+          {images.map((image) => (
+            <AnimatedListItem key={image.id}>
+              <motion.div
+                layout
+                whileHover={{ x: 4 }}
+                className={`
+                  flex items-center gap-4 p-4 rounded-xl border-2
+                  bg-white dark:bg-gray-800
+                  border-gray-200 dark:border-gray-700
+                  hover:border-primary/30 dark:hover:border-primary/30
+                  hover:bg-primary/5 dark:hover:bg-primary/10
+                  transition-all duration-200 cursor-pointer
+                  group
+                  ${selectedIds.has(image.id) ? 'border-primary bg-primary/5 dark:bg-primary/10' : ''}
+                `}
+                onClick={() => handleSelect(image.id, !selectedIds.has(image.id))}
+              >
+                <motion.input
+                  whileTap={{ scale: 0.9 }}
+                  type="checkbox"
+                  checked={selectedIds.has(image.id)}
+                  onChange={() => handleSelect(image.id, !selectedIds.has(image.id))}
+                  className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate group-hover:text-primary transition-colors">
+                    {image.name}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {formatFileSize(image.size)}
+                  </p>
+                </div>
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Eye className="h-5 w-5 text-primary" />
+                </motion.div>
+              </motion.div>
+            </AnimatedListItem>
+          ))}
+        </motion.div>
+      )}
   )
 }
 
