@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo } from 'react'
+import { useMemo, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
@@ -43,5 +43,15 @@ function LoginContent() {
 }
 
 export default function LoginPage() {
-  return <LoginContent />
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Card className="w-full max-w-md p-8">
+          <div className="text-center text-gray-500">加载中...</div>
+        </Card>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
+  )
 }
