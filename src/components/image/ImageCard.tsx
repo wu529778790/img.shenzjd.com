@@ -23,6 +23,9 @@ import type { ImageFile } from '@/types/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ANIMATION_CONFIG, scaleVariants } from '@/components/animations/PageAnimations'
 
+// CDN 图片跳过 Next.js 内部优化（@ 符号导致 URL 验证失败）
+const cdnLoader = ({ src }: { src: string }) => src
+
 interface ImageCardProps {
   image: ImageFile
   onDelete?: (id: string) => void
@@ -117,6 +120,7 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             priority={priority}
             loading={priority ? 'eager' : 'lazy'}
+            loader={image.cdnUrl ? cdnLoader : undefined}
           />
 
           {/* 选中状态指示器 */}

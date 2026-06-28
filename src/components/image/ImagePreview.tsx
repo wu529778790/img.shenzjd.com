@@ -13,6 +13,9 @@ import { cn } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
 import { motion, AnimatePresence } from 'framer-motion'
 
+// CDN 图片跳过 Next.js 内部优化
+const cdnLoader = ({ src }: { src: string }) => src
+
 interface ImagePreviewProps {
   image: ImageFile
   images?: ImageFile[]
@@ -328,6 +331,7 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
               )}
               priority
               quality={85}
+              loader={image.cdnUrl ? cdnLoader : undefined}
               onLoad={() => setImageLoaded(true)}
               onError={() => {
                 console.error('Failed to load image:', image.cdnUrl || image.download_url)
