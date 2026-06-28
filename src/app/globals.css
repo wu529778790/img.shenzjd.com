@@ -338,3 +338,34 @@
     display: none !important;
   }
 }
+/* Skeleton shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer-bg {
+  background: linear-gradient(
+    90deg,
+    rgb(243 244 246 / 0.5) 0%,
+    rgb(229 231 235) 50%,
+    rgb(243 244 246 / 0.5) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+.dark .shimmer-bg {
+  background: linear-gradient(
+    90deg,
+    rgb(55 65 81 / 0.5) 0%,
+    rgb(75 85 99) 50%,
+    rgb(55 65 81 / 0.5) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+}

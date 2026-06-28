@@ -2,29 +2,26 @@
 
 import { motion } from 'framer-motion'
 
-// 骨架屏动画
-const shimmer = {
-  initial: { backgroundPosition: '-200% 0' },
-  animate: { backgroundPosition: '200% 0' },
-  transition: { duration: 1.5, repeat: Infinity, ease: 'linear' },
-}
-
 // 骨架卡片组件
 export function SkeletonCard() {
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="group relative overflow-hidden rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
     >
-      {/* 图片占位 */}
+      {/* 图片占位 - 使用 shimmer 效果 */}
       <div className="aspect-square relative overflow-hidden bg-gray-100 dark:bg-gray-900">
         <motion.div
-          variants={shimmer}
-          initial="initial"
-          animate="animate"
-          className="absolute inset-0 bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800"
+          initial={{ opacity: 0.5 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.5, repeat: Infinity, repeatType: 'reverse' }}
+          className="absolute inset-0 shimmer-bg"
         />
+
+        {/* 悬停时的渐变遮罩 */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
 
       {/* 文字占位 */}
@@ -45,8 +42,9 @@ export function SkeletonCard() {
 export function SkeletonListItem() {
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
       className="flex items-center gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
     >
       {/* 复选框 */}
@@ -137,32 +135,84 @@ export function SkeletonPageHeader() {
   )
 }
 
+// 骨架统计信息组件
+export function SkeletonStats() {
+  return (
+    <div className="flex items-center gap-4">
+      <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
+      <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded-full shimmer-bg" />
+    </div>
+  )
+}
+
+// 骨架工具栏 - 统计+搜索
+export function SkeletonToolbar() {
+  return (
+    <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+      {/* 第一行：统计 + 搜索 */}
+      <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+        {/* 左侧：统计信息 */}
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+          <SkeletonStats />
+          <div className="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700" />
+          <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
+        </div>
+
+        {/* 右侧：搜索框 */}
+        <div className="relative w-full lg:w-72">
+          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-xl shimmer-bg" />
+        </div>
+      </div>
+
+      {/* 第二行：排序 + 目录过滤 */}
+      <div className="flex flex-col sm:flex-row gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+        {/* 排序按钮 */}
+        <div className="flex items-center gap-2">
+          <div className="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
+          <div className="flex gap-1.5">
+            <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
+            <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
+            <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
+          </div>
+        </div>
+
+        {/* 目录过滤 */}
+        <div className="flex items-center gap-2">
+          <div className="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
+          <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
+          <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
+          <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // 主骨架屏 - 完整页面加载
 export function ManagementSkeleton() {
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* 页面标题骨架 */}
-      <SkeletonPageHeader />
-
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* 侧边栏骨架 */}
-        <SkeletonSidebar />
-
-        {/* 主内容区 */}
-        <div className="flex-1 space-y-4">
-          {/* 搜索栏骨架 */}
-          <SkeletonSearchBar />
-
-          {/* 工具栏骨架 */}
+    <div className="min-h-[calc(100vh-4rem)]">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        {/* 顶部工具栏骨架 */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
           <SkeletonToolbar />
+        </motion.div>
 
-          {/* 图片网格骨架 - 显示 10 个 */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
-          </div>
-        </div>
+        {/* 图片网格骨架 - 显示 12 个 */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4"
+        >
+          {Array.from({ length: 12 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </motion.div>
       </div>
     </div>
   )
