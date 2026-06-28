@@ -22,14 +22,30 @@ const defaultConfig: Config = {
   theme: 'system',
   cdn: 'github',
   useRaw: true,
+  configPath: '.imgx-config/config.json',
+  autoSync: true,
 }
 
 export const useConfigStore = create<ConfigState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...defaultConfig,
       updateConfig: (updates, onUpdate) => {
-        set((state) => ({ ...state, ...updates }))
+        set((state) => {
+          const newState = { ...state, ...updates }
+          // 如果启用了自动同步，触发配置同步
+          if (updates.configPath !== undefined || updates.autoSync !== false) {
+            // 延迟同步，避免阻塞 UI
+            setTimeout(() => {
+              const autoSync = get().autoSync
+              if (autoSync !== false && typeof window !== 'undefined') {
+                // 触发自定义事件，让组件可以监听并同步
+                window.dispatchEvent(new CustomEvent('config-updated', { detail: updates }))
+              }
+            }, 0)
+          }
+          return newState
+        })
         if (onUpdate) onUpdate()
       },
       resetConfig: () => {

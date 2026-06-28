@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
-import { Settings, Trash2, Lock, Link2, Globe, Image, ShieldAlert, User, Info, FileText } from 'lucide-react'
+import { Settings, Trash2, Lock, Link2, Globe, Image, ShieldAlert, User, Info, FileText, Code, RefreshCw, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
@@ -14,6 +14,7 @@ import { useConfigStore, type ConfigState } from '@/stores/configStore'
 import { useOperationLogStore } from '@/stores/operationLogStore'
 import { OperationLogPanel } from '@/components/management/OperationLogPanel'
 import { useQueryClient } from '@tanstack/react-query'
+import { useSaveConfigToGitHub, useLoadConfigFromGitHub } from '@/hooks/useConfigSync'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -115,6 +116,122 @@ function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
             </motion.label>
           </motion.div>
+        </div>
+      </div>
+    </CardAnimation>
+  )
+}
+
+function ConfigSyncSection({ configStore }: { configStore: ConfigState }) {
+  const saveMutation = useSaveConfigToGitHub()
+  const [configPath, setConfigPath] = useState(configStore.configPath || '.imgx-config/config.json')
+
+  const handleSyncToGitHub = async () => {
+    try {
+      const result = await saveMutation.mutateAsync()
+      if (result.success) {
+        toast.success(result.message)
+      } else {
+        toast.error(result.message)
+      }
+    } catch (error) {
+      toast.error('同步失败')
+    }
+  }
+
+  const handleConfigPathChange = (value: string) => {
+    setConfigPath(value)
+    configStore.updateConfig({ configPath: value })
+  }
+
+  return (
+    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
+        <RefreshCw className="h-5 w-5 text-primary" />
+        <h2 className="text-xl font-semibold">配置同步</h2>
+      </div>
+
+      <div className="space-y-6">
+        {/* 配置路径 */}
+        <motion.div
+          whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
+          className="flex items-center justify-between p-4 rounded-xl -mx-2 transition-colors"
+        >
+          <div className="flex-1">
+            <p className="font-medium">配置路径</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              配置将保存到 GitHub 仓库的此路径下
+            </p>
+          </div>
+          <div className="w-64">
+            <input
+              type="text"
+              value={configPath}
+              onChange={(e) => handleConfigPathChange(e.target.value)}
+              className="w-full px-3 py-2 text-sm font-mono rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              placeholder=".imgx-config/config.json"
+            />
+          </div>
+        </motion.div>
+
+        {/* 自动同步开关 */}
+        <motion.div
+          whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
+          className="flex items-center justify-between p-4 rounded-xl -mx-2 transition-colors"
+        >
+          <div className="flex-1">
+            <p className="font-medium">自动同步</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              配置变更时自动同步到 GitHub
+            </p>
+          </div>
+          <motion.label
+            whileTap={{ scale: 0.95 }}
+            className="relative inline-flex items-center cursor-pointer"
+          >
+            <input
+              type="checkbox"
+              checked={configStore.autoSync ?? true}
+              onChange={(e) => configStore.updateConfig({ autoSync: e.target.checked })}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+          </motion.label>
+        </motion.div>
+
+        {/* 上次同步时间 */}
+        {configStore.lastSyncAt && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-start gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50"
+          >
+            <Check className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-medium text-green-600 dark:text-green-400">已同步</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                上次同步: {new Date(configStore.lastSyncAt).toLocaleString('zh-CN')}
+              </p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* 手动同步按钮 */}
+        <div className="pt-4 border-t border-gray-100 dark:border-gray-700/50">
+          <Button
+            onClick={handleSyncToGitHub}
+            disabled={saveMutation.isPending || !configStore.owner || !configStore.repo}
+            className="w-full"
+            variant="default"
+          >
+            <RefreshCw className={cn('h-4 w-4 mr-2', saveMutation.isPending && 'animate-spin')} />
+            {saveMutation.isPending ? '同步中...' : '立即同步配置到 GitHub'}
+          </Button>
+          {(!configStore.owner || !configStore.repo) && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center">
+              请先在"网络"中配置 GitHub 仓库
+            </p>
+          )}
         </div>
       </div>
     </CardAnimation>
@@ -337,6 +454,22 @@ function AboutSection() {
         <motion.div
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.18 }}
+          className="flex items-start gap-3"
+        >
+          <span className="text-gray-500 dark:text-gray-400 min-w-16">仓库</span>
+          <a
+            href="https://github.com/wu529778790/img.shenzjd.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            GitHub
+          </a>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
           className="flex items-start gap-3"
         >
@@ -364,6 +497,7 @@ export default function SettingsPage() {
   const sections = [
     { id: 'image',      label: '图片处理', icon: Image },
     { id: 'network',    label: '网络',     icon: Globe },
+    { id: 'config-sync', label: '配置同步', icon: RefreshCw },
     { id: 'operation',  label: '操作日志', icon: FileText },
     { id: 'danger',     label: '危险操作', icon: ShieldAlert },
     { id: 'account',    label: '账户',     icon: User },
@@ -547,13 +681,16 @@ export default function SettingsPage() {
                   <NetworkSection configStore={configStore} onCdnChange={handleCdnChange} />
                 )}
                 {activeSection === 2 && (
-                  <OperationLogPanel />
+                  <ConfigSyncSection configStore={configStore} />
                 )}
                 {activeSection === 3 && (
+                  <OperationLogPanel />
+                )}
+                {activeSection === 4 && (
                   <DangerSection onClearConfig={handleClearConfig} onClearAuth={handleClearAuth} />
                 )}
-                {activeSection === 4 && <AccountSection session={session} />}
-                {activeSection === 5 && <AboutSection />}
+                {activeSection === 5 && <AccountSection session={session} />}
+                {activeSection === 6 && <AboutSection />}
               </motion.div>
             </AnimatePresence>
           </main>
