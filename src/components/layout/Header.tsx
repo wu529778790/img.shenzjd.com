@@ -156,14 +156,16 @@ export function Header() {
                   </span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{user.name || user.email}</span>
-                      {user.email && (
-                        <span className="text-xs text-gray-500">{user.email}</span>
-                      )}
-                    </div>
-                  </DropdownMenuLabel>
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{user.name || user.email}</span>
+                        {user.email && (
+                          <span className="text-xs text-gray-500">{user.email}</span>
+                        )}
+                      </div>
+                    </DropdownMenuLabel>
+                  </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}
