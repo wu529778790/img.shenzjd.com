@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
+import { useOperationLogStore } from '@/stores/operationLogStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
 import type { ImageFile } from '@/types/image'
@@ -14,6 +15,7 @@ export function useImages() {
   const token = (session as any)?.accessToken || ''
   const configStore = useConfigStore()
   const queryClient = useQueryClient()
+  const { addLog: addOperationLog } = useOperationLogStore()
   const [allImages, setAllImages] = useState<ImageFile[]>([])
 
   const { owner, repo, branch, cdn, useRaw } = configStore
@@ -80,8 +82,14 @@ export function useImages() {
 
       return filePath
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables: string) => {
       toast.success('删除成功')
+      addOperationLog({
+        type: 'delete',
+        action: '删除文件',
+        status: 'success',
+        detail: variables,
+      })
       // 刷新图片列表
       queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
     },
@@ -117,6 +125,12 @@ export function useImages() {
       } else {
         toast.success(`删除完成：${data.successful} 成功，${data.failed} 失败`)
       }
+      addOperationLog({
+        type: 'delete',
+        action: data.failed === 0 ? '批量删除成功' : '批量删除（部分失败）',
+        status: data.failed === 0 ? 'success' : 'error',
+        detail: `${data.successful} 成功，${data.failed} 失败`,
+      })
       // 刷新图片列表
       queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
     },
