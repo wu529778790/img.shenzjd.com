@@ -42,8 +42,8 @@ export function BulkDeleteConfirm({ open, onOpenChange, images, onConfirm }: Bul
         {images.length <= 10 && (
           <div className="mt-3 max-h-40 overflow-y-auto rounded-lg bg-gray-50 dark:bg-gray-900 p-3">
             <div className="space-y-1">
-              {images.map((image) => (
-                <div key={image.id} className="flex items-center gap-2 text-sm">
+              {images.map((image, index) => (
+                <div key={`${image.id}-${index}`} className="flex items-center gap-2 text-sm">
                   <span className="truncate font-mono text-gray-600 dark:text-gray-400">{image.name}</span>
                   <span className="text-gray-400 text-xs">{formatFileSize(image.size)}</span>
                 </div>

@@ -10,20 +10,6 @@ import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
 import type { GitHubFileInfo, ImageFile } from '@/types/image'
 
-// ── Conversion: GitHub API layer → Business layer ──────────────────────────
-// GitHubFileInfo 是 API 层的原始类型（来自 GitHub REST API）
-// ImageFile 是业务层类型（含 cdnUrl, uploaded_at 等派生字段）
-// 这个转换函数是两层之间的唯一边界
-function toImageFile(file: GitHubFileInfo, cdnUrl: string, commitTime?: Date): ImageFile {
-  return {
-    ...file,
-    id: file.sha,
-    type: 'file' as const,
-    uploaded_at: commitTime, // 使用 GitHub Commits API 获取的最后提交时间
-    cdnUrl,
-  }
-}
-
 export function useImages() {
   const { data: session } = useSession()
   const token = session?.accessToken || ''
@@ -41,22 +27,17 @@ export function useImages() {
 
       const api = new GitHubAPI(token, owner, repo, branch)
 
-      // 递归获取所有文件（包括子文件夹）
-      const allFiles: GitHubFileInfo[] = await api.listAllFiles('')
+      // 使用 Git Trees API 一次性获取所有文件（仅需 1 次请求）
+      const allFiles = await api.listAllFilesWithTree()
 
       // 过滤出图片文件
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
-      const imageFiles = allFiles
-        .filter((file) => {
-          const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'))
-          return imageExtensions.includes(ext)
-        })
+      const imageFiles = allFiles.filter((file) => {
+        const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'))
+        return imageExtensions.includes(ext)
+      })
 
-      // 批量获取所有文件的最后提交时间
-      const filePaths = imageFiles.map((file) => file.path)
-      const commitTimes = await api.getFilesCommitTime(filePaths)
-
-      // 转换为业务层对象，包含提交时间
+      // 转换为业务层对象（不获取提交时间，使用文件名/大小/路径排序）
       return imageFiles.map((file) => {
         const cdnUrl = generateLink({
           format: 'url',
@@ -69,7 +50,13 @@ export function useImages() {
           useRaw: useRaw ?? true,
         })
 
-        return toImageFile(file, cdnUrl, commitTimes.get(file.path) || undefined)
+        return {
+          ...file,
+          id: file.sha,
+          type: 'file' as const,
+          uploaded_at: undefined, // 不使用提交时间
+          cdnUrl,
+        }
       })
     },
     enabled: !!token && !!owner && !!repo,

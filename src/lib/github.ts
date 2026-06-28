@@ -65,7 +65,42 @@ export class GitHubAPI {
     return response.data
   }
 
-  // 递归列出所有文件
+  // 使用 Git Trees API 一次性获取整个仓库的文件树
+  // 替代递归调用 listContents，大幅减少 API 请求数
+  async listAllFilesWithTree(): Promise<GitHubFileInfo[]> {
+    try {
+      // 使用 Git Trees API，recursive=1 递归获取所有文件
+      const response = await this.client.get(`/repos/${this.owner}/${this.repo}/git/trees/${this.branch}`, {
+        params: {
+          recursive: 1,
+        },
+      })
+
+      const tree = response.data.tree || []
+
+      // 只保留文件（blob），过滤掉目录（tree）和子模块（commit）
+      const files: GitHubFileInfo[] = tree
+        .filter((item: any) => item.type === 'blob')
+        .map((item: any) => ({
+          name: item.path.split('/').pop() || item.path,
+          path: item.path,
+          sha: item.sha,
+          size: item.size,
+          type: 'file' as const,
+          download_url: `https://raw.githubusercontent.com/${this.owner}/${this.repo}/${this.branch}/${item.path}`,
+          html_url: `https://github.com/${this.owner}/${this.repo}/blob/${this.branch}/${item.path}`,
+        }))
+
+      return files
+    } catch (error) {
+      console.error('Failed to list files with tree API:', error)
+      // 如果失败，回退到递归方式
+      console.warn('Falling back to recursive listContents')
+      return this.listAllFiles('')
+    }
+  }
+
+  // 递归列出所有文件（旧方法，保留作为回退）
   async listAllFiles(path: string = '', allFiles: Map<string, GitHubFileInfo> = new Map()): Promise<GitHubFileInfo[]> {
     try {
       const files = await this.listContents(path)
@@ -234,7 +269,7 @@ export class GitHubAPI {
     return response.data
   }
 
-  // 获取文件的最后提交时间
+  // 获取文件的最后提交时间（已废弃，不再使用）
   async getFileCommitTime(path: string, branch?: string): Promise<Date | null> {
     try {
       const response = await this.client.get(`/repos/${this.owner}/${this.repo}/commits`, {
@@ -261,49 +296,6 @@ export class GitHubAPI {
       console.error(`[GitHub] Failed to get commit time for ${path}:`, error.message)
       return null
     }
-  }
-
-  // 批量获取文件的最后提交时间（带并发限制）
-  async getFilesCommitTime(paths: string[], concurrency: number = 5): Promise<Map<string, Date>> {
-    const results = new Map<string, Date>()
-    const errors: Array<{ path: string; error: any }> = []
-
-    // 分批处理，限制并发数
-    for (let i = 0; i < paths.length; i += concurrency) {
-      const batch = paths.slice(i, i + concurrency)
-
-      await Promise.allSettled(
-        batch.map(async (path) => {
-          try {
-            const date = await this.getFileCommitTime(path, this.branch)
-            if (date) {
-              results.set(path, date)
-            }
-          } catch (error: any) {
-            // 如果是 403 错误，记录并继续
-            if (error.response?.status === 403) {
-              errors.push({ path, error })
-              console.warn(`[GitHub] Rate limited for ${path}, skipping`)
-            } else {
-              console.error(`[GitHub] Failed to get commit time for ${path}:`, error)
-            }
-          }
-        })
-      )
-
-      // 如果遇到 403 错误，停止后续请求以避免被封禁
-      if (errors.length > 0) {
-        console.warn(`[GitHub] Stopping commit time fetch due to rate limiting`)
-        break
-      }
-
-      // 批次之间添加延迟，避免触发速率限制
-      if (i + concurrency < paths.length) {
-        await new Promise(resolve => setTimeout(resolve, 500))
-      }
-    }
-
-    return results
   }
 
   private async blobToBase64(blob: Blob): Promise<string> {

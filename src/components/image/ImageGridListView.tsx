@@ -21,8 +21,8 @@ export function ImageGridListView({ images, selectedIds, onSelect, selectionMode
       variants={createStaggerVariants(20)}
       className="space-y-2"
     >
-      {images.map((image) => (
-        <AnimatedListItem key={image.id}>
+      {images.map((image, index) => (
+        <AnimatedListItem key={`${image.id}-${image.path}-${index}`}>
           <motion.div
             layout
             whileHover={{ x: 4 }}

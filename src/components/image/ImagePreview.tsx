@@ -224,14 +224,6 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
                       </span>
                     </>
                   )}
-                  {image.uploaded_at && (
-                    <>
-                      <span>·</span>
-                      <span>
-                        {new Date(image.uploaded_at).toLocaleDateString('zh-CN')}
-                      </span>
-                    </>
-                  )}
                 </div>
               </div>
             </div>

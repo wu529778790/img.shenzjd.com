@@ -13,7 +13,7 @@ import { PageTransition, CardAnimation } from '@/components/animations/PageAnima
 import { motion } from 'framer-motion'
 import { ManagementSkeleton } from '@/components/loading/Skeleton'
 
-type SortField = 'name' | 'size' | 'path' | 'uploaded_at'
+type SortField = 'name' | 'size' | 'path'
 type SortOrder = 'asc' | 'desc'
 type ViewMode = 'grid' | 'list'
 
@@ -26,8 +26,8 @@ export default function ManagementPage() {
 
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [selectedDirectory, setSelectedDirectory] = useState<string>('')
-  const [sortField, setSortField] = useState<SortField>('uploaded_at')
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
+  const [sortField, setSortField] = useState<SortField>('name')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -57,9 +57,8 @@ export default function ManagementPage() {
         case 'path':
           comparison = a.path.localeCompare(b.path)
           break
-        case 'uploaded_at':
         default:
-          comparison = (a.uploaded_at?.getTime() || 0) - (b.uploaded_at?.getTime() || 0)
+          comparison = a.name.localeCompare(b.name)
           break
       }
 
