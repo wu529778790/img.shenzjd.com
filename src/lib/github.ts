@@ -190,22 +190,35 @@ export class GitHubAPI {
     return response.data
   }
 
-  // 批量删除文件
-  async deleteFiles(filePaths: string[]) {
-    const results = await Promise.allSettled(
-      filePaths.map(async (filePath) => {
-        try {
-          const file = await this.getFile(filePath)
-          return this.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, file.sha)
-        } catch (error) {
-          console.error(`Failed to delete ${filePath}:`, error)
-          throw error
-        }
-      })
-    )
+  // 批量删除文件（带并发限制）
+  async deleteFiles(filePaths: string[], concurrency: number = 5): Promise<{ successful: number; failed: number }> {
+    let successful = 0
+    let failed = 0
 
-    const successful = results.filter((r) => r.status === 'fulfilled').length
-    const failed = results.filter((r) => r.status === 'rejected').length
+    // 分批处理，限制并发数
+    for (let i = 0; i < filePaths.length; i += concurrency) {
+      const batch = filePaths.slice(i, i + concurrency)
+
+      const results = await Promise.allSettled(
+        batch.map(async (filePath) => {
+          try {
+            const file = await this.getFile(filePath)
+            return this.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, file.sha)
+          } catch (error) {
+            console.error(`Failed to delete ${filePath}:`, error)
+            throw error
+          }
+        })
+      )
+
+      successful += results.filter((r) => r.status === 'fulfilled').length
+      failed += results.filter((r) => r.status === 'rejected').length
+
+      // 批次之间添加延迟
+      if (i + concurrency < filePaths.length) {
+        await new Promise(resolve => setTimeout(resolve, 300))
+      }
+    }
 
     return { successful, failed }
   }
