@@ -164,7 +164,7 @@ export default function ManagementPage() {
   // 如果正在加载，显示骨架屏
   if (status === 'loading' || (isLoading && images.length === 0)) {
     return (
-      <div className="min-h-[calc(100vh-4rem)]">
+      <div className="min-h-[60vh]">
         <ManagementSkeleton />
       </div>
     )
@@ -173,7 +173,7 @@ export default function ManagementPage() {
   // 如果未登录，显示登录提示
   if (!session) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12">
+      <div className="min-h-[60vh] flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full mx-4 p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
           <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center mb-6">
             <Lock className="h-10 w-10 text-gray-400" />
@@ -194,7 +194,7 @@ export default function ManagementPage() {
 
   if (!isConfigured) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12">
+      <div className="min-h-[60vh] flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full mx-4 p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
           <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center mb-6">
             <FolderTree className="h-10 w-10 text-gray-400" />
@@ -214,7 +214,7 @@ export default function ManagementPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)]">
+    <div className="min-h-0">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* 统一工具栏（单行） */}
         <div className="mb-4">
