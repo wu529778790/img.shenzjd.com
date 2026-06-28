@@ -590,33 +590,6 @@ export default function SettingsPage() {
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <PageTransition>
         {/* 页面标题 */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <motion.div
-              initial={{ rotate: -10 }}
-              animate={{ rotate: 0 }}
-              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            >
-              <Settings className="h-8 w-8 text-primary" />
-            </motion.div>
-            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
-              设置
-            </h1>
-          </div>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="text-gray-500 dark:text-gray-400"
-          >
-            管理您的偏好设置
-          </motion.p>
-        </motion.div>
-
         <div className="flex gap-6">
           {/* Desktop sidebar */}
           <aside className="hidden md:block w-56 flex-shrink-0">
