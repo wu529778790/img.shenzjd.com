@@ -88,7 +88,7 @@ export function useImages() {
       const sha = file.sha
 
       // 删除文件
-      await api.deleteFile(filePath, `Delete ${filePath} via ImgX`, sha)
+      await api.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, sha)
 
       return filePath
     },
@@ -119,7 +119,7 @@ export function useImages() {
       const results = await Promise.allSettled(
         filePaths.map(async (filePath) => {
           const file = await api.getFile(filePath, branch)
-          await api.deleteFile(filePath, `Delete ${filePath} via ImgX`, file.sha)
+          await api.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, file.sha)
           return filePath
         })
       )

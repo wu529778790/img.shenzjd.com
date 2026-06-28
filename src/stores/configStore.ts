@@ -22,6 +22,8 @@ const defaultConfig: Config = {
   theme: 'system',
   cdn: 'github',
   useRaw: true,
+  copyFormat: 'markdown',
+  autoCopyAfterUpload: true,
   configPath: '.imgx-config/config.json',
   autoSync: true,
 }

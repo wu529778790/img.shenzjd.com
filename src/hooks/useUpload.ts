@@ -110,7 +110,7 @@ export function useUpload() {
       const result = await api.createOrUpdateFile(
         filePath,
         processedFile,
-        `Upload ${fileName} via ImgX`,
+        `[skip ci] https://img.shenzjd.com/`,
         config.branch,
         (progress) => {
           // 实时更新上传进度 (50% -> 90%)
@@ -155,20 +155,6 @@ export function useUpload() {
         uploaded_at: new Date(),
       }
 
-      // 5. 生成链接
-      const linkOptions: LinkOptions = {
-        format: 'markdown',
-        cdn: config.cdn || 'github',
-        owner: config.owner,
-        repo: config.repo,
-        branch: config.branch,
-        path: filePath,
-        fileName: fileName,
-        useRaw: config.useRaw ?? true,
-      }
-
-      const link = generateLink(linkOptions)
-
       console.log('[Upload] ✅ Upload completed successfully:', fileName)
       console.log('[Upload] File URL:', result.html_url)
       console.log('[Upload] ⚠️ Note: File may be on different branch than configured')
@@ -185,6 +171,34 @@ export function useUpload() {
         status: 'success',
         detail: file.name,
       })
+
+      // 生成链接并自动复制到剪贴板
+      const linkOptions: LinkOptions = {
+        format: config.copyFormat || 'markdown',
+        cdn: config.cdn || 'github',
+        owner: config.owner,
+        repo: config.repo,
+        branch: config.branch,
+        path: filePath,
+        fileName: fileName,
+        useRaw: config.useRaw ?? true,
+      }
+
+      const link = generateLink(linkOptions)
+
+      // 如果启用了自动复制，复制链接到剪贴板
+      if (config.autoCopyAfterUpload) {
+        try {
+          await navigator.clipboard.writeText(link)
+          toast.success('链接已复制到剪贴板', {
+            duration: 3000,
+          })
+          console.log('[Upload] Link copied to clipboard:', link)
+        } catch (err) {
+          console.error('[Upload] Failed to copy link:', err)
+          toast.error('复制链接失败，请手动复制')
+        }
+      }
 
       // 刷新图片列表
       queryClient.invalidateQueries({ queryKey: ['images', config.owner, config.repo, config.branch] })

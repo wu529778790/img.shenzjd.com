@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
-import { Settings, Trash2, Lock, Link2, Globe, Image, ShieldAlert, User, Info, FileText, Code, RefreshCw, Check } from 'lucide-react'
+import { Settings, Trash2, Lock, Link2, Globe, Image, ShieldAlert, User, Info, FileText, Code, RefreshCw, Check, Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
@@ -115,6 +115,81 @@ function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
             </motion.label>
+          </motion.div>
+        </div>
+
+        {/* 复制链接设置 */}
+        <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700/50">
+          <div className="flex items-center gap-2">
+            <Link2 className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wide">复制链接</h3>
+          </div>
+
+          {/* 自动复制开关 */}
+          <motion.div
+            whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
+            className="flex items-center justify-between p-4 rounded-xl -mx-2 transition-colors"
+          >
+            <div className="flex-1">
+              <p className="font-medium">上传后自动复制</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                上传成功后自动复制链接到剪贴板
+              </p>
+            </div>
+            <motion.label
+              whileTap={{ scale: 0.95 }}
+              className="relative inline-flex items-center cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={configStore.autoCopyAfterUpload}
+                onChange={(e) => configStore.updateConfig({ autoCopyAfterUpload: e.target.checked })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+            </motion.label>
+          </motion.div>
+
+          {/* 复制格式 */}
+          <motion.div
+            whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
+            className="flex items-center justify-between p-4 rounded-xl -mx-2 transition-colors"
+          >
+            <div className="flex-1">
+              <p className="font-medium">复制格式</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                选择复制到剪贴板的链接格式
+              </p>
+            </div>
+            <Select
+              value={configStore.copyFormat}
+              onValueChange={(value) => configStore.updateConfig({ copyFormat: value as 'markdown' | 'html' | 'bbcode' | 'url' })}
+            >
+              <SelectTrigger className="w-[180px] h-10 rounded-xl">
+                <SelectValue placeholder="选择格式" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="markdown">Markdown</SelectItem>
+                <SelectItem value="url">纯链接</SelectItem>
+                <SelectItem value="html">HTML</SelectItem>
+                <SelectItem value="bbcode">BBCode</SelectItem>
+              </SelectContent>
+            </Select>
+          </motion.div>
+
+          {/* 格式预览 */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800"
+          >
+            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">预览：</p>
+            <code className="text-xs font-mono text-primary break-all">
+              {configStore.copyFormat === 'markdown' && '![image.png](https://example.com/image.png)'}
+              {configStore.copyFormat === 'url' && 'https://example.com/image.png'}
+              {configStore.copyFormat === 'html' && '<img src="https://example.com/image.png" alt="image.png" />'}
+              {configStore.copyFormat === 'bbcode' && '[img]https://example.com/image.png[/img]'}
+            </code>
           </motion.div>
         </div>
       </div>
