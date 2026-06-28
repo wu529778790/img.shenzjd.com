@@ -206,13 +206,13 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
                 className="h-8 w-8 p-0 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
-                <motion.button
+                <motion.div
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   className="flex items-center justify-center"
                 >
                   <MoreVertical className="h-4 w-4" />
-                </motion.button>
+                </motion.div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={() => handleCopyLink('markdown')}>
