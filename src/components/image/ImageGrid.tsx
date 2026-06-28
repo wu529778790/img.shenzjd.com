@@ -168,6 +168,8 @@ export function ImageGrid({
           ))}
         </motion.div>
       )}
+      </div>
+    </>
   )
 }
 
