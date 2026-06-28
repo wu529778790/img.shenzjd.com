@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { useConfigStore } from '@/stores/configStore'
 import { useImages } from '@/hooks/useImages'
 import { ImageGrid } from '@/components/image/ImageGrid'
+import { ImageStats } from '@/components/image/ImageStats'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -340,6 +341,9 @@ export default function ManagementPage() {
                 </motion.div>
               </div>
             </motion.div>
+
+            {/* 图片统计 */}
+            <ImageStats images={images} />
 
             {/* 图片列表 */}
             <ImageGrid
