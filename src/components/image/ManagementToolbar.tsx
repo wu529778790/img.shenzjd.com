@@ -35,7 +35,7 @@ import { cn } from '@/lib/utils'
 import { formatFileSize } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
 
-type SortField = 'name' | 'size' | 'path' | 'uploaded_at'
+type SortField = 'name' | 'size' | 'path'
 type SortOrder = 'asc' | 'desc'
 type ViewMode = 'grid' | 'list'
 
@@ -73,7 +73,7 @@ interface ManagementToolbarProps {
 const SORT_OPTIONS: { field: SortField; label: string }[] = [
   { field: 'name', label: '名称' },
   { field: 'size', label: '大小' },
-  { field: 'uploaded_at', label: '日期' },
+  { field: 'path', label: '路径' },
 ]
 
 export function ManagementToolbar({
