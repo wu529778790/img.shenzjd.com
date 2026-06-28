@@ -52,7 +52,7 @@ export function ImageCardDeleteConfirm({
       if (!response.ok) throw new Error('Delete failed')
       toast.success('删除成功')
       onOpenChange(false)
-      onDeleted(image.id)
+      onDeleted(image.path)
     } catch {
       toast.error('删除失败')
     } finally {

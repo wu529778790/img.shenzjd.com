@@ -15,11 +15,11 @@ export async function DELETE(
     }
 
     const token = session.accessToken as string
-    const { sha } = await params
+    const { sha: pathSha } = await params
     const body = await request.json()
     const { owner, repo, filePath } = body
 
-    console.log('Delete request:', { owner, repo, filePath, sha: sha.slice(0, 8) + '...' })
+    console.log('Delete request:', { owner, repo, filePath, pathSha: pathSha.slice(0, 8) + '...' })
 
     if (!owner || !repo || !filePath) {
       return NextResponse.json(
@@ -28,8 +28,31 @@ export async function DELETE(
       )
     }
 
+    // 先获取文件当前信息以获取正确的 SHA（处理 SHA 过期问题）
+    let currentSha = pathSha
+    try {
+      const fileResponse = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(filePath)}`,
+        {
+          headers: {
+            Authorization: `token ${token}`,
+            Accept: 'application/vnd.github.v3+json',
+          },
+        }
+      )
+      if (fileResponse.ok) {
+        const fileData = await fileResponse.json()
+        currentSha = fileData.sha
+        console.log('Fetched current file SHA:', currentSha.slice(0, 8) + '...')
+      } else {
+        console.warn('Could not fetch file for SHA refresh, using provided SHA')
+      }
+    } catch (e) {
+      console.warn('Error fetching file SHA, using provided SHA:', e)
+    }
+
     // 删除文件
-    const response = await fetch(
+    const deleteResponse = await fetch(
       `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(filePath)}`,
       {
         method: 'DELETE',
@@ -40,19 +63,19 @@ export async function DELETE(
         },
         body: JSON.stringify({
           message: `Delete ${filePath} via ImgX`,
-          sha,
+          sha: currentSha,
         }),
       }
     )
 
-    if (!response.ok) {
-      const errorText = await response.text()
+    if (!deleteResponse.ok) {
+      const errorText = await deleteResponse.text()
       console.error('GitHub API delete error:', {
-        status: response.status,
-        statusText: response.statusText,
+        status: deleteResponse.status,
+        statusText: deleteResponse.statusText,
         body: errorText.slice(0, 500),
       })
-      throw new Error(`GitHub API error: ${response.status}`)
+      throw new Error(`GitHub API error: ${deleteResponse.status}`)
     }
 
     return NextResponse.json({ success: true })
