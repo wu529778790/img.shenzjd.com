@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios'
 import type { GitHubFileInfo } from '@/types/image'
+import { debugLog, debugWarn, debugError } from './debug'
 
 export interface GitHubRepo {
   id: number
@@ -93,9 +94,9 @@ export class GitHubAPI {
 
       return files
     } catch (error) {
-      console.error('Failed to list files with tree API:', error)
+      debugError('Failed to list files with tree API:', error)
       // 如果失败，回退到递归方式
-      console.warn('Falling back to recursive listContents')
+      debugWarn('Falling back to recursive listContents')
       return this.listAllFiles('')
     }
   }
@@ -119,7 +120,7 @@ export class GitHubAPI {
 
       return Array.from(allFiles.values())
     } catch (error) {
-      console.error(`Failed to list files in ${path}:`, error)
+      debugError(`Failed to list files in ${path}:`, error)
       return Array.from(allFiles.values())
     }
   }
@@ -155,36 +156,36 @@ export class GitHubAPI {
       const existing = await this.getFile(filePath)
       sha = existing.sha
       fileExists = true
-      console.log(`[GitHub] File exists, will update: ${filePath} on branch ${branch}`)
+      debugLog(`[GitHub] File exists, will update: ${filePath} on branch ${branch}`)
     } catch {
       // 文件不存在，创建新文件
-      console.log(`[GitHub] File does not exist, will create: ${filePath} on branch ${branch}`)
+      debugLog(`[GitHub] File does not exist, will create: ${filePath} on branch ${branch}`)
     }
 
-    console.log(`[GitHub] ${fileExists ? 'Updating' : 'Creating'} file: ${filePath} on branch ${branch}`)
+    debugLog(`[GitHub] ${fileExists ? 'Updating' : 'Creating'} file: ${filePath} on branch ${branch}`)
 
     // 报告 10% 进度（开始处理文件）
-    console.log('[GitHub Progress] Reporting 10%')
+    debugLog('[GitHub Progress] Reporting 10%')
     onProgress?.(10)
 
     // 处理 Blob 内容
     let contentBase64: string
     if (content instanceof Blob) {
       onProgress?.(30) // 报告 30% 进度（开始 Base64 编码）
-      console.log('[GitHub Progress] Reporting 30%')
+      debugLog('[GitHub Progress] Reporting 30%')
       contentBase64 = await this.blobToBase64(content)
       onProgress?.(50) // 报告 50% 进度（Base64 编码完成）
-      console.log('[GitHub Progress] Reporting 50%')
+      debugLog('[GitHub Progress] Reporting 50%')
     } else {
       contentBase64 = Buffer.from(content).toString('base64')
       onProgress?.(50)
-      console.log('[GitHub Progress] Reporting 50% (string content)')
+      debugLog('[GitHub Progress] Reporting 50% (string content)')
     }
 
-    console.log(`[GitHub] Content size: ${contentBase64.length} bytes (base64)`)
+    debugLog(`[GitHub] Content size: ${contentBase64.length} bytes (base64)`)
 
     // 报告 60% 进度（开始上传到 GitHub）
-    console.log('[GitHub Progress] Reporting 60%')
+    debugLog('[GitHub Progress] Reporting 60%')
     onProgress?.(60)
 
     const response = await this.client.put(
@@ -198,17 +199,17 @@ export class GitHubAPI {
     )
 
     // 报告 90% 进度（上传请求已完成）
-    console.log('[GitHub Progress] Reporting 90%')
+    debugLog('[GitHub Progress] Reporting 90%')
     onProgress?.(90)
 
-    console.log(`[GitHub] Response:`, {
+    debugLog(`[GitHub] Response:`, {
       sha: response.data.content.sha,
       html_url: response.data.content.html_url,
       size: response.data.content.size,
     })
 
     // 报告 100% 进度
-    console.log('[GitHub Progress] Reporting 100%')
+    debugLog('[GitHub Progress] Reporting 100%')
     onProgress?.(100)
 
     return {
@@ -240,7 +241,7 @@ export class GitHubAPI {
             const file = await this.getFile(filePath)
             return this.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, file.sha)
           } catch (error) {
-            console.error(`Failed to delete ${filePath}:`, error)
+            debugError(`Failed to delete ${filePath}:`, error)
             throw error
           }
         })
@@ -289,11 +290,11 @@ export class GitHubAPI {
     } catch (error: any) {
       // 如果是速率限制错误，直接抛出以便上层处理
       if (error.response?.status === 403) {
-        console.warn(`[GitHub] Rate limited when fetching commit time for ${path}`)
+        debugWarn(`[GitHub] Rate limited when fetching commit time for ${path}`)
         throw error
       }
       // 其他错误只记录日志，返回 null
-      console.error(`[GitHub] Failed to get commit time for ${path}:`, error.message)
+      debugError(`[GitHub] Failed to get commit time for ${path}:`, error.message)
       return null
     }
   }

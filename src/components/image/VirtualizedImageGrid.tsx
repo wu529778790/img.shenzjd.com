@@ -23,6 +23,35 @@ interface VirtualizedImageGridProps {
  * 使用 @tanstack/react-virtual 实现高性能虚拟滚动
  * 只渲染可见区域的图片，支持大量图片（1000+）流畅滚动
  */
+
+// 提取公共的 ImageCard 渲染逻辑
+function renderImageCard(
+  image: ImageFile,
+  props: {
+    onDelete?: (id: string) => void
+    onSelect?: (id: string, selected: boolean) => void
+    selectedIds: Set<string>
+    selectable: boolean
+    onPreview?: (image: ImageFile) => void
+    priority?: boolean
+  }
+) {
+  const { onDelete, onSelect, selectedIds, selectable, onPreview, priority = false } = props
+  return (
+    <div key={image.id}>
+      <ImageCard
+        image={image}
+        onDelete={onDelete}
+        onSelect={onSelect}
+        selected={selectedIds.has(image.id)}
+        selectable={selectable}
+        priority={priority}
+        onPreview={onPreview}
+      />
+    </div>
+  )
+}
+
 export function VirtualizedImageGrid({
   images,
   onDelete,
@@ -91,23 +120,18 @@ export function VirtualizedImageGrid({
   }, [selectable, selectedIds, onSelect, onPreview])
 
   // 当图片数量较少时，直接渲染所有图片
-  if (images.length <= 30) {
+  if (images.length <= IMAGE_GRID_CONFIG.VIRTUALIZATION_THRESHOLD) {
     return (
       <>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-4">
-          {images.map((image, index) => (
-            <div key={image.id}>
-              <ImageCard
-                image={image}
-                onDelete={onDelete}
-                onSelect={onSelect}
-                selected={selectedIds.has(image.id)}
-                selectable={selectable}
-                priority={index < 12}
-                onPreview={handleImageClick}
-              />
-            </div>
-          ))}
+          {images.map((image, index) => renderImageCard(image, {
+            onDelete,
+            onSelect,
+            selectedIds,
+            selectable,
+            onPreview: handleImageClick,
+            priority: index < IMAGE_GRID_CONFIG.INITIAL_LOAD_COUNT,
+          }))}
         </div>
 
         {/* 图片预览模态框 */}
@@ -161,19 +185,14 @@ export function VirtualizedImageGrid({
                 }}
                 className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-4"
               >
-                {rowImages.map((image) => (
-                  <div key={image.id}>
-                    <ImageCard
-                      image={image}
-                      onDelete={onDelete}
-                      onSelect={onSelect}
-                      selected={selectedIds.has(image.id)}
-                      selectable={selectable}
-                      priority={false}
-                      onPreview={handleImageClick}
-                    />
-                  </div>
-                ))}
+                {rowImages.map((image) => renderImageCard(image, {
+                  onDelete,
+                  onSelect,
+                  selectedIds,
+                  selectable,
+                  onPreview: handleImageClick,
+                  priority: false,
+                }))}
               </div>
             )
           })}
