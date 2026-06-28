@@ -5,7 +5,6 @@ import Image from 'next/image'
 import { MoreVertical, Trash2, Link2 } from 'lucide-react'
 import { formatFileSize } from '@/lib/utils'
 import { generateLink } from '@/lib/link'
-import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,13 +17,12 @@ import { useConfigStore } from '@/stores/configStore'
 import { useOperationLogStore } from '@/stores/operationLogStore'
 import { toast } from 'sonner'
 import { ImageCardDeleteConfirm } from './ImageCardDeleteConfirm'
-import { ImagePreview } from './ImagePreview'
 import type { ImageFile } from '@/types/image'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { ANIMATION_CONFIG, scaleVariants } from '@/components/animations/PageAnimations'
 
-// CDN 图片跳过 Next.js 内部优化（@ 符号导致 URL 验证失败）
-const cdnLoader = ({ src }: { src: string; width?: number; quality?: number }) => src
+// 极小尺寸的 1×1 透明像素，用作 unoptimized 图片的 blur placeholder（< 100B）
+const TINY_BLUR_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=='
 
 interface ImageCardProps {
   image: ImageFile
@@ -33,19 +31,16 @@ interface ImageCardProps {
   selected?: boolean
   selectable?: boolean
   priority?: boolean
-  images?: ImageFile[]
-  onImageChange?: (image: ImageFile) => void
+  onPreview?: (image: ImageFile) => void
 }
 
-export function ImageCard({ image, onDelete, onSelect, selected, selectable, priority, images, onImageChange }: ImageCardProps) {
+export function ImageCard({ image, onDelete, onSelect, selected, selectable, priority, onPreview }: ImageCardProps) {
   const { data: session } = useSession()
   const token = session?.accessToken || ''
   const configStore = useConfigStore()
   const { addLog: addOperationLog } = useOperationLogStore()
 
-  const [showPreview, setShowPreview] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
 
   const handleCopyLink = async (format: 'markdown' | 'html' | 'bbcode' | 'url') => {
     const { owner, repo, branch, cdn, useRaw } = configStore
@@ -91,8 +86,6 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
         whileHover={{ scale: 1.02, y: -4 }}
         whileTap={{ scale: 0.98 }}
         transition={{ duration: ANIMATION_CONFIG.duration.fast / 1000 }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         className={`
           group relative overflow-hidden rounded-xl
           bg-white dark:bg-gray-800
@@ -106,7 +99,7 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
           if (selectable) {
             onSelect?.(image.id, !selected)
           } else {
-            setShowPreview(true)
+            onPreview?.(image)
           }
         }}
       >
@@ -120,26 +113,25 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             priority={priority}
             loading={priority ? 'eager' : 'lazy'}
-            loader={image.cdnUrl ? cdnLoader : undefined}
+            unoptimized={!!image.cdnUrl}
+            placeholder="blur"
+            blurDataURL={TINY_BLUR_B64}
           />
 
-          {/* 选中状态指示器 */}
-          <AnimatePresence>
-            {selected && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                className="absolute top-3 right-3"
-              >
-                <div className="h-6 w-6 rounded-full bg-primary text-white flex items-center justify-center shadow-lg">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* 选中状态指示器 — layout="position" + CSS transition 替代 AnimatePresence */}
+          <div
+            className="absolute top-3 right-3 transition-all duration-200"
+            style={{
+              transform: selected ? 'scale(1)' : 'scale(0)',
+              opacity: selected ? 1 : 0,
+            }}
+          >
+            <div className="h-6 w-6 rounded-full bg-primary text-white flex items-center justify-center shadow-lg">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
         </div>
 
         {/* 文件信息 */}
@@ -159,13 +151,9 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
                 className="h-8 w-8 p-0 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center justify-center"
-                >
+                <div className="flex items-center justify-center">
                   <MoreVertical className="h-4 w-4" />
-                </motion.div>
+                </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={() => handleCopyLink('markdown')}>
@@ -209,15 +197,6 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
         onDeleted={onDelete ?? (() => {})}
       />
 
-      {/* 图片预览模态框 */}
-      {showPreview && (
-        <ImagePreview
-          image={image}
-          images={images}
-          onImageChange={onImageChange}
-          onClose={() => setShowPreview(false)}
-        />
-      )}
     </>
   )
 }

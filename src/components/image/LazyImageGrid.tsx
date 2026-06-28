@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import Image from 'next/image'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import type { ImageFile } from '@/types/image'
 import { ImageCard } from './ImageCard'
+import { ImagePreview } from './ImagePreview'
 
 interface LazyImageGridProps {
   images: ImageFile[]
@@ -30,8 +30,15 @@ export function LazyImageGrid({
   initialLoadCount = 12,  // 首屏只渲染 12 张
   batchSize = 12,  // 每次滚动再加载 12 张
 }: LazyImageGridProps) {
-  const [visibleCount, setVisibleCount] = useState(initialLoadCount)
+  // 将计算逻辑提到 useMemo，避免每次 render 重复计算
+  const resolvedInitialLoadCount = useMemo(
+    () => (initialLoadCount ?? (images.length <= 30 ? images.length : 24)),
+    [initialLoadCount, images.length]
+  )
+
+  const [visibleCount, setVisibleCount] = useState(resolvedInitialLoadCount)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [previewImage, setPreviewImage] = useState<ImageFile | null>(null)
   const loadMoreRef = useRef<HTMLDivElement>(null)
 
   // 当前可见的图片
@@ -84,13 +91,12 @@ export function LazyImageGrid({
           <div key={`${image.id}-${index}`}>
             <ImageCard
               image={image}
-              images={images}
-              onImageChange={onImageChange}
               onDelete={onDelete}
               onSelect={onSelect}
               selected={selectedIds.has(image.id)}
               selectable={selectable}
-              priority={index < initialLoadCount} // 只优先加载首屏图片
+              priority={index < resolvedInitialLoadCount}
+              onPreview={setPreviewImage}
             />
           </div>
         ))}
@@ -112,10 +118,20 @@ export function LazyImageGrid({
       )}
 
       {/* 加载完成提示 */}
-      {!hasMore && images.length > initialLoadCount && (
+      {!hasMore && images.length > resolvedInitialLoadCount && (
         <div className="text-center py-4 text-sm text-gray-500 dark:text-gray-400">
           已显示全部 {images.length} 张图片
         </div>
+      )}
+
+      {/* 图片预览模态框 */}
+      {previewImage && (
+        <ImagePreview
+          image={previewImage}
+          images={images}
+          onImageChange={onImageChange}
+          onClose={() => setPreviewImage(null)}
+        />
       )}
     </div>
   )

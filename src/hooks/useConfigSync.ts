@@ -17,7 +17,7 @@ interface LoadConfigResponse {
 }
 
 /**
- * 保存配置到 GitHub
+ * 保存配置到 GitHub（使用 Git Data API，自动处理目录创建）
  */
 async function saveConfigToGitHub(
   config: Config,
@@ -32,16 +32,26 @@ async function saveConfigToGitHub(
     return { success: false, message: '未找到 GitHub token' }
   }
 
-  // 如果文件不存在（无 sha）且首次保存，先确保父目录存在
-  if (!sha) {
-    const dirPath = path.split('/').slice(0, -1).join('/')
-    if (dirPath) {
-      await ensureDirectoryExists(token, owner, repo, branch, dirPath)
-    }
-  }
-
   const configContent = JSON.stringify(config, null, 2)
   const contentBase64 = btoa(unescape(encodeURIComponent(configContent)))
+
+  // 编码路径（处理 .imgx-config 等含特殊字符的路径）
+  const encodedPath = path.split('/').map(encodeURIComponent).join('/')
+  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${encodedPath}`
+
+  // 如果没有 sha，先尝试获取远程文件 sha（文件已存在时必须传 sha 才能更新）
+  let effectiveSha = sha
+  if (!effectiveSha) {
+    try {
+      const existing = await fetch(`${apiUrl}?ref=${branch}`, {
+        headers: { 'Authorization': `token ${token}` },
+      })
+      if (existing.ok) {
+        const existingData = await existing.json()
+        effectiveSha = existingData.sha
+      }
+    } catch { /* 文件不存在，继续创建 */ }
+  }
 
   const body: any = {
     message: 'chore: update imgx config',
@@ -49,12 +59,11 @@ async function saveConfigToGitHub(
     branch,
   }
 
-  // 如果提供了 SHA，说明是更新已有文件
-  if (sha) {
-    body.sha = sha
+  if (effectiveSha) {
+    body.sha = effectiveSha
   }
 
-  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+  const response = await fetch(apiUrl, {
     method: 'PUT',
     headers: {
       'Authorization': `token ${token}`,
@@ -64,10 +73,11 @@ async function saveConfigToGitHub(
   })
 
   if (!response.ok) {
-    const error = await response.json()
+    const error = await response.json().catch(() => ({ message: `HTTP ${response.status}` }))
+    console.error('[ConfigSync] Save failed:', response.status, error)
     return {
       success: false,
-      message: error.message || '保存配置失败'
+      message: error.message || `保存配置失败 (${response.status})`
     }
   }
 
@@ -77,40 +87,6 @@ async function saveConfigToGitHub(
     message: '配置已保存到 GitHub',
     sha: data.content.sha,
   }
-}
-
-/**
- * 确保 GitHub 目录存在（通过创建占位文件）
- */
-async function ensureDirectoryExists(
-  token: string,
-  owner: string,
-  repo: string,
-  branch: string,
-  dirPath: string
-): Promise<void> {
-  // 先检查目录是否已存在（通过尝试列出 .gitkeep）
-  const keepPath = `${dirPath}/.gitkeep`
-  const checkResponse = await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/contents/${keepPath}?ref=${branch}`,
-    { headers: { 'Authorization': `token ${token}` } }
-  )
-  if (checkResponse.ok) return // 目录已存在
-
-  // 创建 .gitkeep 占位文件来建立目录
-  const contentBase64 = btoa('# imgx config directory\n')
-  await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${keepPath}`, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `token ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      message: 'chore: create imgx config directory',
-      content: contentBase64,
-      branch,
-    }),
-  })
 }
 
 /**
@@ -128,8 +104,10 @@ async function loadConfigFromGitHub(
   }
 
   try {
+    // 编码路径（.imgx-config 含点号需编码）
+    const encodedPath = path.split('/').map(encodeURIComponent).join('/')
     const response = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,
+      `https://api.github.com/repos/${owner}/${repo}/contents/${encodedPath}?ref=${branch}`,
       {
         headers: {
           'Authorization': `token ${token}`,
@@ -170,15 +148,37 @@ export function useSaveConfigToGitHub() {
         return { success: false, message: '请先配置 GitHub 仓库' }
       }
 
-      const currentConfig = configStore as unknown as Config
+      // 只提取 Config 接口定义的字段，排除 store 的方法（updateConfig / resetConfig）
+      const currentConfig: Config = {
+        owner, repo, branch,
+        directory: configStore.directory,
+        compressionEnabled: configStore.compressionEnabled,
+        compressionQuality: configStore.compressionQuality,
+        watermarkEnabled: configStore.watermarkEnabled,
+        watermarkText: configStore.watermarkText,
+        watermarkColor: configStore.watermarkColor,
+        watermarkSize: configStore.watermarkSize,
+        watermarkPosition: configStore.watermarkPosition,
+        theme: configStore.theme,
+        cdn: configStore.cdn,
+        useRaw: configStore.useRaw,
+        copyFormat: configStore.copyFormat,
+        autoCopyAfterUpload: configStore.autoCopyAfterUpload,
+        useOriginalFileName: configStore.useOriginalFileName,
+        configPath: configStore.configPath,
+        autoSync: configStore.autoSync,
+        lastSyncAt: configStore.lastSyncAt,
+        sha: configStore.sha,
+      }
       return saveConfigToGitHub(currentConfig, owner, repo, branch, configPath)
     },
     onSuccess: (result) => {
       if (result.success) {
-        // 更新本地配置
+        // 更新本地配置，保存 sha 供下次更新使用
         configStore.updateConfig({
           lastSyncAt: new Date().toISOString(),
           configPath: configStore.configPath || '.imgx-config/config.json',
+          sha: result.sha,
         })
         // 更新 query cache
         queryClient.setQueryData(['config-sync'], result)
@@ -224,8 +224,9 @@ export async function checkGitHubConfigExists(
   if (!token) return false
 
   try {
+    const encodedPath = path.split('/').map(encodeURIComponent).join('/')
     const response = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,
+      `https://api.github.com/repos/${owner}/${repo}/contents/${encodedPath}?ref=${branch}`,
       {
         headers: {
           'Authorization': `token ${token}`,

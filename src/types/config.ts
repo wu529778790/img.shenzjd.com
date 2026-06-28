@@ -23,4 +23,5 @@ export interface Config {
   configPath?: string          // GitHub 上的配置路径，如 '.imgx-config/config.json'
   autoSync?: boolean           // 是否自动同步配置到 GitHub
   lastSyncAt?: string          // 上次同步时间
+  sha?: string                // config.json 的 GitHub SHA，用于更新时幂等
 }
