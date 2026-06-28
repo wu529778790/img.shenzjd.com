@@ -65,11 +65,9 @@ export default function ManagementPage() {
             <p className="text-gray-500 dark:text-gray-400 mb-6">
               登录后才能管理图片
             </p>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button onClick={() => router.push('/login')} size="lg">
-                去登录
-              </Button>
-            </motion.div>
+            <p className="text-sm text-gray-400">
+              请先登录以继续
+            </p>
           </CardAnimation>
         </PageTransition>
       </div>
