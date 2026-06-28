@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/providers/SessionProvider";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { Header } from "@/components/layout/Header";
 import { SyncGitHubTokenToLocalStorage } from "@/hooks/useSyncGitHubToken";
+import { SkipLink } from "@/components/layout/SkipLink";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -37,8 +38,9 @@ export default function RootLayout({
           <AuthProvider>
             <SyncGitHubTokenToLocalStorage />
             <div className="relative flex min-h-screen flex-col">
+              <SkipLink />
               <Header />
-              <main className="flex-1">
+              <main id="main-content" className="flex-1" tabIndex={-1}>
                 {children}
               </main>
               <footer className="border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">

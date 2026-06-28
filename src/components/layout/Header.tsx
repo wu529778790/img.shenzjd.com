@@ -140,6 +140,8 @@ export function Header() {
               className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-menu"
             >
               {mobileMenuOpen ? (
                 <X className="h-5 w-5" />
@@ -207,6 +209,7 @@ export function Header() {
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.nav
+              id="mobile-menu"
               initial="closed"
               animate="open"
               exit="closed"

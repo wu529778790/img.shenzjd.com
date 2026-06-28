@@ -85,6 +85,7 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
           shadow-sm hover:shadow-md
           transition-all duration-200 ease-out
           cursor-pointer
+          focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900
           ${selected ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-900' : ''}
         `}
         onClick={() => {
@@ -94,6 +95,20 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
             onPreview?.(image)
           }
         }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (selectable) {
+              onSelect?.(image.id, !selected)
+            } else {
+              onPreview?.(image)
+            }
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`${selected ? '取消选择' : '选择'}图片: ${image.name}`}
+        aria-pressed={selectable ? selected : undefined}
       >
         {/* 图片预览区域 */}
         <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-900">
@@ -142,6 +157,7 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
               <DropdownMenuTrigger
                 className="h-8 w-8 p-0 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 onClick={(e) => e.stopPropagation()}
+                aria-label={`${image.name} 操作菜单`}
               >
                 <div className="flex items-center justify-center">
                   <MoreVertical className="h-4 w-4" />

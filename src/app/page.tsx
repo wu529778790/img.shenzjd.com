@@ -209,11 +209,12 @@ export default function HomePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mt-6 px-4 py-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+          className="mt-6 px-4 py-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 shadow-soft-sm"
+          role="note"
         >
-          <div className="flex items-center gap-2 text-sm text-blue-800 dark:text-blue-200">
-            <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
-            <span className="text-blue-700 dark:text-blue-300">
+          <div className="flex items-center gap-2 text-sm text-blue-900 dark:text-blue-100">
+            <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+            <span className="text-blue-800 dark:text-blue-200 font-medium">
               支持 PNG、JPG、JPEG、GIF、WEBP 格式，单文件最大 10MB，支持批量上传
             </span>
           </div>

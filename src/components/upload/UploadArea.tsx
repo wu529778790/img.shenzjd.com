@@ -46,12 +46,21 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
       {...getRootProps()}
       onClick={handleClick}
       className={cn(
-        'border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors',
+        'border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-200',
         isDragActive || isDragging
-          ? 'border-primary bg-primary/5'
-          : 'border-gray-300 hover:border-primary',
+          ? 'border-primary bg-primary/5 shadow-soft-lg'
+          : 'border-gray-300 dark:border-gray-600 hover:border-primary hover:shadow-soft-md',
         disabled && 'opacity-50 cursor-not-allowed'
       )}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
+      aria-label="上传图片区域，拖拽图片到此处或点击选择文件"
     >
       <input {...getInputProps()} disabled={disabled} />
 
