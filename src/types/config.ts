@@ -11,6 +11,8 @@ export interface Config {
   watermarkSize: number
   watermarkPosition: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
   theme: 'light' | 'dark' | 'system'
+  cdn: 'github' | 'jsdelivr' | 'github-pages'
+  useRaw: boolean
 }
 
 export type CompressionQuality = 0 | 25 | 50 | 75 | 100

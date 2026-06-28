@@ -20,6 +20,8 @@ const defaultConfig: Config = {
   watermarkSize: 24,
   watermarkPosition: 'bottom-right',
   theme: 'system',
+  cdn: 'github',
+  useRaw: true,
 }
 
 export const useConfigStore = create<ConfigState>()(

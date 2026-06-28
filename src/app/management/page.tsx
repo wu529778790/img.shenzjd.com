@@ -3,12 +3,15 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Search, FolderTree, Loader2, Lock } from 'lucide-react'
+import { Search, FolderTree, Loader2, Lock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useConfigStore } from '@/stores/configStore'
 import { useImages } from '@/hooks/useImages'
 import { ImageGrid } from '@/components/image/ImageGrid'
+
+type SortField = 'name' | 'size' | 'path' | 'uploaded_at'
+type SortOrder = 'asc' | 'desc'
 
 export default function ManagementPage() {
   const router = useRouter()
@@ -19,6 +22,8 @@ export default function ManagementPage() {
 
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [selectedDirectory, setSelectedDirectory] = useState<string>('')
+  const [sortField, setSortField] = useState<SortField>('uploaded_at')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
 
   // 检查配置是否完整
   const isConfigured = configStore.owner && configStore.repo && configStore.branch
@@ -64,11 +69,46 @@ export default function ManagementPage() {
   }
 
   // 过滤图片
-  const filteredImages = images.filter((image) => {
+  let filteredImages = images.filter((image) => {
     const matchesSearch = image.name.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesDirectory = !selectedDirectory || image.path.startsWith(selectedDirectory)
     return matchesSearch && matchesDirectory
   })
+
+  // 排序图片
+  filteredImages.sort((a, b) => {
+    let comparison = 0
+
+    switch (sortField) {
+      case 'name':
+        comparison = a.name.localeCompare(b.name)
+        break
+      case 'size':
+        comparison = a.size - b.size
+        break
+      case 'path':
+        comparison = a.path.localeCompare(b.path)
+        break
+      case 'uploaded_at':
+      default:
+        comparison = (a.uploaded_at?.getTime() || 0) - (b.uploaded_at?.getTime() || 0)
+        break
+    }
+
+    return sortOrder === 'asc' ? comparison : -comparison
+  })
+
+  // 切换排序
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // 切换排序顺序
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      // 新字段，默认降序（最新的在前）
+      setSortField(field)
+      setSortOrder('desc')
+    }
+  }
 
   // 提取目录树
   const directories = Array.from(
@@ -131,9 +171,9 @@ export default function ManagementPage() {
 
         {/* 主内容区 */}
         <div className="flex-1">
-          {/* 搜索栏 */}
-          <div className="mb-6">
-            <div className="relative">
+          {/* 搜索栏和排序 */}
+          <div className="mb-6 flex gap-4">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 type="text"
@@ -142,6 +182,38 @@ export default function ManagementPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSort('name')}
+              >
+                名称
+                {sortField === 'name' && (
+                  sortOrder === 'asc' ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSort('size')}
+              >
+                大小
+                {sortField === 'size' && (
+                  sortOrder === 'asc' ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSort('uploaded_at')}
+              >
+                日期
+                {sortField === 'uploaded_at' && (
+                  sortOrder === 'asc' ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />
+                )}
+              </Button>
             </div>
           </div>
 

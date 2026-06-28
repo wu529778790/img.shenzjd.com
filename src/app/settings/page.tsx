@@ -3,11 +3,12 @@
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
-import { Settings, Moon, Sun, Monitor, Trash2, Lock } from 'lucide-react'
+import { Settings, Moon, Sun, Monitor, Trash2, Lock, Link2, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { useConfigStore } from '@/stores/configStore'
 import { useThemeStore } from '@/hooks/useTheme'
@@ -67,6 +68,13 @@ export default function SettingsPage() {
     await signOut({ redirect: false })
     toast.success('已退出登录')
     router.push('/login')
+  }
+
+  const handleCdnChange = (value: string | null) => {
+    if (value) {
+      configStore.updateConfig({ cdn: value as 'github' | 'jsdelivr' | 'github-pages' })
+      toast.success('CDN 已更新')
+    }
   }
 
   return (
@@ -164,6 +172,65 @@ export default function SettingsPage() {
                 className="rounded"
               />
             </div>
+
+            {/* CDN 设置 */}
+            <div>
+              <Label htmlFor="cdn">CDN 服务</Label>
+              <p className="text-sm text-gray-500 mb-2">
+                选择用于加速图片访问的 CDN 服务
+              </p>
+              <Select
+                value={configStore.cdn}
+                onValueChange={handleCdnChange}
+              >
+                <SelectTrigger id="cdn" className="w-full">
+                  <SelectValue placeholder="选择 CDN" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="github">
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      <span>GitHub 原始链接</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="jsdelivr">
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      <span>jsDelivr CDN</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="github-pages">
+                    <div className="flex items-center gap-2">
+                      <Link2 className="h-4 w-4" />
+                      <span>GitHub Pages</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-2">
+                {configStore.cdn === 'github' && '使用 GitHub 原始链接，直接从 GitHub 服务器加载'}
+                {configStore.cdn === 'jsdelivr' && '使用 jsDelivr CDN，全球加速访问'}
+                {configStore.cdn === 'github-pages' && '使用 GitHub Pages 托管（需要启用 Pages）'}
+              </p>
+            </div>
+
+            {/* 使用 raw 链接 */}
+            {configStore.cdn === 'github' && (
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">使用 Raw 链接</p>
+                  <p className="text-sm text-gray-500">
+                    使用 raw.githubusercontent.com 而非 github.com
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={configStore.useRaw}
+                  onChange={(e) => configStore.updateConfig({ useRaw: e.target.checked })}
+                  className="rounded"
+                />
+              </div>
+            )}
           </div>
         </Card>
 
