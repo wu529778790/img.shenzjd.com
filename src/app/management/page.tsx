@@ -159,28 +159,6 @@ export default function ManagementPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <PageTransition>
-        {/* 页面标题 */}
-        <div className="mb-8">
-          <motion.h1
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent"
-          >
-            图片管理
-          </motion.h1>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="flex items-center gap-2 mt-2 text-gray-500 dark:text-gray-400"
-          >
-            <span>管理您的图片</span>
-            <Badge variant="secondary">
-              {images.length} 张
-            </Badge>
-          </motion.div>
-        </div>
-
         <div className="flex flex-col lg:flex-row gap-6">
           {/* 侧边栏 - 目录树 */}
           <AnimatePresence>

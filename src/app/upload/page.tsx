@@ -113,37 +113,6 @@ export default function UploadPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <PageTransition>
-        {/* 页面标题区域 */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <motion.div
-              initial={{ rotate: -10 }}
-              animate={{ rotate: 0 }}
-              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            >
-              <UploadCloud className="h-8 w-8 text-primary" />
-            </motion.div>
-            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
-              上传图片
-            </h1>
-          </div>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="text-gray-500 dark:text-gray-400"
-          >
-            拖拽或选择图片上传到
-            <span className="font-mono text-sm bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md ml-2">
-              {owner}/{repo}
-            </span>
-          </motion.p>
-        </motion.div>
-
         {/* 上传区域 */}
         <CardAnimation
           delay={0.1}
@@ -162,7 +131,11 @@ export default function UploadPage() {
               <div className="flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <FolderOpen className="h-4 w-4" />
-                  <span>上传到文件夹:</span>
+                  <span>上传图片到</span>
+                  <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
+                    {owner}/{repo}
+                  </span>
+                  <span>，选择文件夹:</span>
                 </div>
                 <Select
                   value={selectedFolder}

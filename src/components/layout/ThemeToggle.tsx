@@ -24,18 +24,16 @@ export function ThemeToggle() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="focus:outline-none">
-        <button
-          className={cn(
-            'p-2 rounded-lg transition-colors',
-            'hover:bg-gray-100 dark:hover:bg-gray-800',
-            'text-gray-600 dark:text-gray-400',
-            'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-900'
-          )}
-          aria-label="切换主题"
-        >
-          <CurrentIcon className="h-5 w-5" />
-        </button>
+      <DropdownMenuTrigger
+        className={cn(
+          'p-2 rounded-lg transition-colors',
+          'hover:bg-gray-100 dark:hover:bg-gray-800',
+          'text-gray-600 dark:text-gray-400',
+          'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-900'
+        )}
+        aria-label="切换主题"
+      >
+        <CurrentIcon className="h-5 w-5" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-36">
         {themeOptions.map((option) => {
