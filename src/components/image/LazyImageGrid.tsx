@@ -42,11 +42,15 @@ export function LazyImageGrid({
   const [previewImage, setPreviewImage] = useState<ImageFile | null>(null)
   const loadMoreRef = useRef<HTMLDivElement>(null)
 
-  // 当前可见的图片
-  const visibleImages = images.slice(0, visibleCount)
+  // 当前可见的图片 - 使用 useMemo 缓存切片结果
+  const visibleImages = useMemo(
+    () => images.slice(0, visibleCount),
+    [images, visibleCount]
+  )
+
   const hasMore = visibleCount < images.length
 
-  // 加载更多图片（防抖 + 延迟）
+  // 加载更多图片（防抖 + 延迟）- 使用 useCallback
   const loadMore = useCallback(() => {
     if (isLoadingMore || !hasMore) return
 
@@ -59,6 +63,11 @@ export function LazyImageGrid({
       }, 50) // 50ms 延迟让主线程有机会渲染
     })
   }, [isLoadingMore, hasMore, batchSize, images.length])
+
+  // 设置预览图 - 使用 useCallback
+  const handleSetPreviewImage = useCallback((image: ImageFile | null) => {
+    setPreviewImage(image)
+  }, [])
 
   // Intersection Observer 监听滚动到底部
   useEffect(() => {
@@ -86,8 +95,14 @@ export function LazyImageGrid({
 
   return (
     <div className="space-y-4">
-      {/* 图片网格 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-4">
+      {/* 图片网格 - 添加 contain 优化重绘性能 */}
+      <div
+        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-4"
+        style={{
+          // 优化网格容器的重绘性能
+          contain: 'layout style',
+        }}
+      >
         {visibleImages.map((image, index) => (
           <div key={image.id}>
             <ImageCard
@@ -97,7 +112,7 @@ export function LazyImageGrid({
               selected={selectedIds.has(image.id)}
               selectable={selectable}
               priority={index < resolvedInitialLoadCount}
-              onPreview={setPreviewImage}
+              onPreview={handleSetPreviewImage}
             />
           </div>
         ))}

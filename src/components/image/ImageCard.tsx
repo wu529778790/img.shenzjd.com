@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, memo } from 'react'
+import { useState, memo, useCallback, useMemo } from 'react'
 import Image from 'next/image'
 import { MoreVertical, Trash2, Link2 } from 'lucide-react'
 import { formatFileSize } from '@/lib/utils'
@@ -40,7 +40,8 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const handleCopyLink = async (format: 'markdown' | 'html' | 'bbcode' | 'url') => {
+  // 使用 useCallback 优化函数稳定性
+  const handleCopyLink = useCallback(async (format: 'markdown' | 'html' | 'bbcode' | 'url') => {
     const { owner, repo, branch, cdn, useRaw } = configStore
 
     const link = generateLink({
@@ -72,7 +73,27 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
     } catch {
       toast.error('复制失败')
     }
-  }
+  }, [configStore, image.path, image.name, addOperationLog])
+
+  // 使用 useCallback 优化事件处理函数
+  const handleClick = useCallback(() => {
+    if (selectable) {
+      onSelect?.(image.id, !selected)
+    } else {
+      onPreview?.(image)
+    }
+  }, [selectable, selected, image.id, onSelect, onPreview])
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      if (selectable) {
+        onSelect?.(image.id, !selected)
+      } else {
+        onPreview?.(image)
+      }
+    }
+  }, [selectable, selected, image.id, onSelect, onPreview])
 
   return (
     <>
@@ -91,23 +112,14 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
           aria-checked:ring-offset-2 dark:aria-checked:ring-offset-gray-900
           ${selected ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-900' : ''}
         "
-        onClick={() => {
-          if (selectable) {
-            onSelect?.(image.id, !selected)
-          } else {
-            onPreview?.(image)
-          }
+        style={{
+          // 优化重绘性能
+          contain: 'layout style',
+          // 提示浏览器优化过渡动画
+          willChange: 'box-shadow, border-color',
         }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            if (selectable) {
-              onSelect?.(image.id, !selected)
-            } else {
-              onPreview?.(image)
-            }
-          }
-        }}
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
         role="button"
         tabIndex={0}
         aria-label={`${selected ? '取消选择' : '选择'}图片: ${image.name}`}
@@ -126,6 +138,10 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
             placeholder="blur"
             blurDataURL={IMAGE_PLACEHOLDER_B64}
             className="object-cover transition-transform duration-300 group-hover:scale-105"
+            style={{
+              // 优化重绘性能
+              contain: 'layout style paint',
+            }}
           />
 
           {/* 选中状态指示器 */}
