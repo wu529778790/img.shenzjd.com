@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useSession } from 'next-auth/react'
@@ -63,6 +63,10 @@ export function useImages() {
     staleTime: 60 * 1000, // 1 分钟
   })
 
+  // 用 ref 跟踪 images 变化，供 handleBulkDelete 使用
+  const imagesRef = useRef(images)
+  imagesRef.current = images
+
   // 删除图片
   const deleteMutation = useMutation({
     mutationFn: async (filePath: string) => {
@@ -105,6 +109,7 @@ export function useImages() {
       // 逐个删除
       const results = await Promise.allSettled(
         filePaths.map(async (filePath) => {
+          // 先获取当前文件信息以获取正确的 SHA
           const file = await api.getFile(filePath, branch)
           await api.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, file.sha)
           return filePath
@@ -136,12 +141,19 @@ export function useImages() {
     },
   })
 
-  const handleDelete = useCallback((id: string) => {
-    deleteMutation.mutate(id)
+  const handleDelete = useCallback((filePathOrId: string) => {
+    // 如果收到的是 SHA id，先查找对应的文件路径
+    const filePath = imagesRef.current.find((img) => img.id === filePathOrId || img.sha === filePathOrId)?.path || filePathOrId
+    deleteMutation.mutate(filePath)
   }, [deleteMutation])
 
   const handleBulkDelete = useCallback((ids: string[]) => {
-    bulkDeleteMutation.mutate(ids)
+    // 将 SHA id 转换为文件路径（selectedIds 中存的是 image.id=sha）
+    const filePaths = ids.map((id) => {
+      const image = imagesRef.current.find((img) => img.id === id || img.sha === id)
+      return image?.path || id
+    })
+    bulkDeleteMutation.mutate(filePaths)
   }, [bulkDeleteMutation])
 
   return {
