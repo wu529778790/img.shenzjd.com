@@ -27,7 +27,7 @@ export default function ManagementPage() {
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [selectedDirectory, setSelectedDirectory] = useState<string>('')
   const [sortField, setSortField] = useState<SortField>('name')
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
