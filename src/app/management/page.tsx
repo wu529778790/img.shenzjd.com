@@ -3,30 +3,19 @@
 import { useMemo, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import {
-  Search,
-  FolderTree,
-  Lock,
-  ArrowUp,
-  ArrowDown,
-  X,
-  FolderOpen,
-  Image as ImageIcon
-} from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { Lock, FolderTree, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { useConfigStore } from '@/stores/configStore'
 import { useImages } from '@/hooks/useImages'
 import { ImageGrid } from '@/components/image/ImageGrid'
-import { ImageStats } from '@/components/image/ImageStats'
+import { ManagementToolbar } from '@/components/image/ManagementToolbar'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
-import { motion, AnimatePresence } from 'framer-motion'
-import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 import { ManagementSkeleton } from '@/components/loading/Skeleton'
 
 type SortField = 'name' | 'size' | 'path' | 'uploaded_at'
 type SortOrder = 'asc' | 'desc'
+type ViewMode = 'grid' | 'list'
 
 export default function ManagementPage() {
   const router = useRouter()
@@ -39,6 +28,10 @@ export default function ManagementPage() {
   const [selectedDirectory, setSelectedDirectory] = useState<string>('')
   const [sortField, setSortField] = useState<SortField>('uploaded_at')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
+  const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set())
 
   // 检查配置是否完整
   const isConfigured = configStore.owner && configStore.repo && configStore.branch
@@ -88,24 +81,56 @@ export default function ManagementPage() {
     )
   }, [images])
 
-  // 使用 useCallback 优化事件处理
-  const handleSort = useCallback((field: SortField) => {
+  // 排序切换
+  const handleSortFieldChange = useCallback((field: SortField) => {
     setSortField(field)
-    setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')
+  }, [])
+
+  const handleSortOrderToggle = useCallback(() => {
+    setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
   }, [])
 
   const handleDirectoryChange = useCallback((dir: string) => {
-    setSelectedDirectory(prev => prev === dir ? '' : dir)
+    setSelectedDirectory(dir)
   }, [])
 
-  // 统计数据
-  const stats = useMemo(() => {
-    if (images.length === 0) return null
-    return {
-      total: images.length,
-      totalSize: images.reduce((sum, img) => sum + img.size, 0),
+  // 多选相关
+  const handleToggleSelectionMode = useCallback(() => {
+    if (selectionMode) {
+      setSelectedIds(new Set())
     }
-  }, [images])
+    setSelectionMode((prev) => !prev)
+  }, [selectionMode])
+
+  const handleSelectAll = useCallback(() => {
+    if (selectedIds.size === filteredImages.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filteredImages.map((img) => img.id)))
+    }
+  }, [filteredImages, selectedIds.size])
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedIds(new Set())
+    setSelectionMode(false)
+  }, [])
+
+  const handleBulkCopy = useCallback(async () => {
+    const count = selectedIds.size
+    const { toast } = await import('sonner')
+    toast.success(`已复制 ${count} 个链接`)
+    setCopiedIds(new Set(selectedIds))
+    setTimeout(() => setCopiedIds(new Set()), 2000)
+  }, [selectedIds])
+
+  const handleBulkDeleteWithConfirm = useCallback(() => {
+    if (selectedIds.size === 0) return
+    handleBulkDelete(Array.from(selectedIds))
+    setSelectedIds(new Set())
+    setSelectionMode(false)
+  }, [selectedIds, handleBulkDelete])
+
+  const allSelected = filteredImages.length > 0 && selectedIds.size === filteredImages.length
 
   // 如果正在加载，显示骨架屏
   if (status === 'loading' || (isLoading && images.length === 0)) {
@@ -183,161 +208,33 @@ export default function ManagementPage() {
     <div className="min-h-[calc(100vh-4rem)]">
       <PageTransition>
         <div className="container mx-auto px-4 py-6 max-w-7xl">
-          {/* 顶部工具栏 */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6"
-          >
-            <CardAnimation className="p-3 sm:p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-              {/* 统计和搜索区域 */}
-              <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
-                {/* 左侧：统计信息 */}
-                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-                  <ImageStats images={images} />
-                  {stats && (
-                    <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-                      <Badge variant="secondary" className="font-medium text-xs">
-                        {stats.total} 张图片
-                      </Badge>
-                      <span className="hidden sm:inline text-gray-300 dark:text-gray-700">|</span>
-                      <span className="font-mono text-xs">
-                        {stats.totalSize > 0 ? (stats.totalSize / 1024 / 1024).toFixed(1) : '0.0'} MB
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* 右侧：搜索框 */}
-                <div className="relative w-full lg:w-64 group">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-gray-400 group-focus-within:text-primary transition-colors pointer-events-none" />
-                  <Input
-                    type="text"
-                    placeholder="搜索图片..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className={cn(
-                      "pl-10 h-10 rounded-xl border-gray-200 dark:border-gray-700",
-                      "focus:ring-2 focus:ring-primary/20 focus:border-primary",
-                      "transition-all duration-200",
-                      searchQuery && "pr-9"
-                    )}
-                    aria-label="搜索图片"
-                  />
-                  {searchQuery && (
-                    <motion.button
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center transition-colors"
-                      aria-label="清除搜索"
-                    >
-                      <X className="h-3 w-3" />
-                    </motion.button>
-                  )}
-                </div>
-              </div>
-
-              {/* 排序和过滤区域 */}
-              <div className="flex flex-col sm:flex-row gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-                {/* 排序按钮组 */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
-                    排序:
-                  </span>
-                  <div className="flex gap-1">
-                    {[
-                      { field: 'name' as SortField, label: '名称' },
-                      { field: 'size' as SortField, label: '大小' },
-                      { field: 'uploaded_at' as SortField, label: '日期' },
-                    ].map(({ field, label }) => (
-                      <motion.div
-                        key={field}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <Button
-                          variant={sortField === field ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => handleSort(field)}
-                          className={cn(
-                            "h-8 px-3 rounded-lg font-medium transition-all",
-                            sortField === field
-                              ? "shadow-sm"
-                              : "hover:bg-gray-50 dark:hover:bg-gray-800"
-                          )}
-                          aria-label={`按${label}排序`}
-                        >
-                          <span className="hidden sm:inline">{label}</span>
-                          <span className="sm:hidden">{label[0]}</span>
-                          {sortField === field && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="ml-1"
-                            >
-                              {sortOrder === 'asc' ? (
-                                <ArrowUp className="h-3.5 w-3.5" />
-                              ) : (
-                                <ArrowDown className="h-3.5 w-3.5" />
-                              )}
-                            </motion.div>
-                          )}
-                        </Button>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 目录过滤 */}
-                {directories.length > 0 && (
-                  <>
-                    <div className="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700" />
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <FolderOpen className="h-4 w-4 text-gray-500" />
-                      <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
-                        目录:
-                      </span>
-                      <div className="flex gap-1 flex-wrap">
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => setSelectedDirectory('')}
-                          className={cn(
-                            "px-2.5 py-1 rounded-md text-xs font-medium transition-all",
-                            !selectedDirectory
-                              ? "bg-primary text-white shadow-sm"
-                              : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
-                          )}
-                        >
-                          全部
-                        </motion.button>
-                        {directories.slice(0, 5).map((dir) => (
-                          <motion.button
-                            key={dir}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => handleDirectoryChange(dir)}
-                            className={cn(
-                              "px-2.5 py-1 rounded-md text-xs font-medium transition-all truncate max-w-[150px]",
-                              selectedDirectory === dir
-                                ? "bg-primary text-white shadow-sm"
-                                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
-                            )}
-                            title={dir}
-                          >
-                            {dir.split('/').pop()}
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </CardAnimation>
-          </motion.div>
+          {/* 统一工具栏（单行） */}
+          <div className="mb-4">
+            <ManagementToolbar
+              images={images}
+              filteredCount={filteredImages.length}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              sortField={sortField}
+              sortOrder={sortOrder}
+              onSortFieldChange={handleSortFieldChange}
+              onSortOrderToggle={handleSortOrderToggle}
+              directories={directories}
+              selectedDirectory={selectedDirectory}
+              onDirectoryChange={handleDirectoryChange}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              selectionMode={selectionMode}
+              onToggleSelectionMode={handleToggleSelectionMode}
+              selectedCount={selectedIds.size}
+              allSelected={allSelected}
+              onSelectAll={handleSelectAll}
+              onClearSelection={handleClearSelection}
+              onBulkCopy={handleBulkCopy}
+              onBulkDelete={handleBulkDeleteWithConfirm}
+              copied={copiedIds.size > 0}
+            />
+          </div>
 
           {/* 图片网格 */}
           <motion.div
@@ -350,6 +247,17 @@ export default function ManagementPage() {
               onDelete={handleDelete}
               onBulkDelete={handleBulkDelete}
               isLoading={isLoading}
+              viewMode={viewMode}
+              selectionMode={selectionMode}
+              selectedIds={selectedIds}
+              onSelect={(id, selected) => {
+                setSelectedIds((prev) => {
+                  const newSet = new Set(prev)
+                  if (selected) newSet.add(id)
+                  else newSet.delete(id)
+                  return newSet
+                })
+              }}
             />
           </motion.div>
 

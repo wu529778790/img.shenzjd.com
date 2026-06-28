@@ -8,6 +8,8 @@ export interface ImageFile {
   html_url: string
   download_url: string
   cdnUrl?: string // CDN 加速链接，根据配置生成
+  width?: number
+  height?: number
   type: 'file' | 'dir'
   created_at?: string
   uploaded_at?: Date
@@ -47,7 +49,7 @@ export interface LinkOptions {
 
 export interface OperationLog {
   id: string
-  type: 'upload' | 'delete' | 'copy' | 'settings'
+  type: 'upload' | 'delete' | 'copy' | 'settings' | 'download' | 'view'
   action: string
   status: 'success' | 'error' | 'pending'
   timestamp: Date

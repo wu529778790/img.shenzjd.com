@@ -1,84 +1,64 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, AlertTriangle } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { toast } from 'sonner'
-import { formatFileSize } from '@/lib/utils'
 import { ImageCard } from './ImageCard'
-import { ImageGridToolbar } from './ImageGridToolbar'
 import { ImageGridListView } from './ImageGridListView'
 import { BulkDeleteConfirm } from './BulkDeleteConfirm'
 import { VirtualizedImageGrid, shouldVirtualize } from './VirtualizedImageGrid'
 import type { ImageFile } from '@/types/image'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { ANIMATION_CONFIG, createStaggerVariants, AnimatedListItem } from '@/components/animations/PageAnimations'
+
+type ViewMode = 'grid' | 'list'
 
 interface ImageGridProps {
   images: ImageFile[]
   onDelete?: (id: string) => void
   onBulkDelete?: (ids: string[]) => void
   isLoading?: boolean
+  // 从外部接收的视图和选择状态
+  viewMode?: ViewMode
+  selectionMode?: boolean
+  selectedIds?: Set<string>
+  onSelect?: (id: string, selected: boolean) => void
+  onImageChange?: (image: ImageFile) => void
 }
 
-type ViewMode = 'grid' | 'list'
-
-export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }: ImageGridProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>('grid')
-  const [selectionMode, setSelectionMode] = useState(false)
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set())
+export function ImageGrid({
+  images,
+  onDelete,
+  onBulkDelete,
+  isLoading = false,
+  viewMode: externalViewMode,
+  selectionMode: externalSelectionMode,
+  selectedIds: externalSelectedIds,
+  onSelect,
+  onImageChange,
+}: ImageGridProps) {
+  // 内部状态（用于独立使用时的回退）
+  const [internalViewMode, setInternalViewMode] = useState<ViewMode>('grid')
+  const [internalSelectionMode, setInternalSelectionMode] = useState(false)
+  const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(new Set())
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const handleBulkCopy = async () => {
-    const count = selectedIds.size
-    toast.success(`已复制 ${count} 个链接`)
-    setCopiedIds(new Set(selectedIds))
-    setTimeout(() => setCopiedIds(new Set()), 2000)
-  }
+  // 使用外部状态或内部状态
+  const viewMode = externalViewMode ?? internalViewMode
+  const selectionMode = externalSelectionMode ?? internalSelectionMode
+  const selectedIds = externalSelectedIds ?? internalSelectedIds
 
   const handleSelect = (id: string, selected: boolean) => {
-    setSelectedIds((prev) => {
-      const newSet = new Set(prev)
-      if (selected) {
-        newSet.add(id)
-      } else {
-        newSet.delete(id)
-      }
-      return newSet
-    })
-  }
-
-  const handleSelectAll = () => {
-    if (selectedIds.size === images.length) {
-      setSelectedIds(new Set())
+    if (onSelect) {
+      onSelect(id, selected)
     } else {
-      setSelectedIds(new Set(images.map((img) => img.id)))
+      setInternalSelectedIds((prev) => {
+        const newSet = new Set(prev)
+        if (selected) newSet.add(id)
+        else newSet.delete(id)
+        return newSet
+      })
     }
-  }
-
-  const handleClearSelection = () => {
-    setSelectedIds(new Set())
-    setSelectionMode(false)
-  }
-
-  const handleToggleSelectionMode = () => {
-    if (selectionMode) {
-      // 退出多选模式时清除选择
-      setSelectedIds(new Set())
-    }
-    setSelectionMode(!selectionMode)
-  }
-
-  const handleBulkDelete = () => {
-    if (!onBulkDelete || selectedIds.size === 0) return
-    setShowDeleteConfirm(true)
-  }
-
-  const confirmBulkDelete = () => {
-    if (!onBulkDelete) return
-    onBulkDelete(Array.from(selectedIds))
-    setSelectedIds(new Set())
-    setShowDeleteConfirm(false)
   }
 
   const allSelected = images.length > 0 && selectedIds.size === images.length
@@ -86,24 +66,6 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
   return (
     <>
       <div className="space-y-4">
-        {/* 工具栏 */}
-        {images.length > 0 && (
-          <ImageGridToolbar
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            selectedCount={selectedIds.size}
-            totalCount={images.length}
-            allSelected={allSelected}
-            onSelectAll={handleSelectAll}
-            onClearSelection={handleClearSelection}
-            onBulkCopy={handleBulkCopy}
-            onBulkDelete={handleBulkDelete}
-            copied={copiedIds.size > 0}
-            selectionMode={selectionMode}
-            onToggleSelectionMode={handleToggleSelectionMode}
-          />
-        )}
-
         {/* 图片网格/列表 */}
         {isLoading ? (
           <motion.div
@@ -164,6 +126,8 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
                 <AnimatedListItem key={image.id}>
                   <ImageCard
                     image={image}
+                    images={images}
+                    onImageChange={onImageChange}
                     onDelete={onDelete}
                     onSelect={handleSelect}
                     selected={selectedIds.has(image.id)}
@@ -183,14 +147,6 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
           />
         )}
       </div>
-
-      {/* 批量删除确认弹窗 */}
-      <BulkDeleteConfirm
-        open={showDeleteConfirm}
-        onOpenChange={setShowDeleteConfirm}
-        images={images.filter((img) => selectedIds.has(img.id))}
-        onConfirm={confirmBulkDelete}
-      />
     </>
   )
 }

@@ -1,23 +1,26 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import Image from 'next/image'
-import { X, Download, Copy, Check, ExternalLink, Info } from 'lucide-react'
+import { X, Download, Copy, Check, ExternalLink, Info, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { generateLink } from '@/lib/link'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { useOperationLogStore } from '@/stores/operationLogStore'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface ImagePreviewProps {
   image: ImageFile
+  images?: ImageFile[]
   onClose: () => void
+  onImageChange?: (image: ImageFile) => void
 }
 
-export function ImagePreview({ image, onClose }: ImagePreviewProps) {
+export function ImagePreview({ image, images, onClose, onImageChange }: ImagePreviewProps) {
   const { data: session } = useSession()
   const token = session?.accessToken || ''
   const configStore = useConfigStore()
@@ -26,6 +29,49 @@ export function ImagePreview({ image, onClose }: ImagePreviewProps) {
   const modalRef = useRef<HTMLDivElement>(null)
   const [imageLoaded, setImageLoaded] = useState(false)
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null)
+
+  // 计算当前图片索引
+  const currentIndex = images?.findIndex(img => img.id === image.id) ?? -1
+  const hasPrevious = currentIndex > 0
+  const hasNext = currentIndex < (images?.length ?? 0) - 1
+
+  // 切换到指定索引的图片
+  const navigateToImage = useCallback((index: number) => {
+    if (images?.[index] && index !== currentIndex) {
+      setImageLoaded(false)
+      onImageChange?.(images[index])
+    }
+  }, [images, currentIndex, onImageChange])
+
+  // 上一张
+  const goToPrevious = useCallback(() => {
+    if (hasPrevious) {
+      navigateToImage(currentIndex - 1)
+    }
+  }, [hasPrevious, currentIndex, navigateToImage])
+
+  // 下一张
+  const goToNext = useCallback(() => {
+    if (hasNext) {
+      navigateToImage(currentIndex + 1)
+    }
+  }, [hasNext, currentIndex, navigateToImage])
+
+  // 键盘导航
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        goToPrevious()
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        goToNext()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [goToPrevious, goToNext])
 
   // ESC 键关闭 + Focus Trap
   useEffect(() => {
@@ -155,7 +201,7 @@ export function ImagePreview({ image, onClose }: ImagePreviewProps) {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-          className="relative w-full max-w-6xl max-h-[90vh] flex flex-col bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden"
+          className="relative w-full max-w-6xl h-[90vh] flex flex-col bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden"
           onClick={(e) => e.stopPropagation()}
           tabIndex={-1}
         >
@@ -230,10 +276,10 @@ export function ImagePreview({ image, onClose }: ImagePreviewProps) {
           </div>
 
           {/* 图片区域 */}
-          <div className="flex-1 relative min-h-0 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-center overflow-hidden">
+          <div className="flex-1 relative min-h-[300px] bg-gray-50 dark:bg-gray-800/50 flex items-center justify-center overflow-hidden">
             {/* 加载占位符 */}
             {!imageLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 animate-pulse">
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 animate-pulse z-10">
                 <div className="text-gray-400 dark:text-gray-600">
                   <svg className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -245,6 +291,38 @@ export function ImagePreview({ image, onClose }: ImagePreviewProps) {
                   </svg>
                 </div>
               </div>
+            )}
+
+            {/* 上一张按钮 */}
+            {hasPrevious && (
+              <motion.button
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                whileHover={{ scale: 1.1, x: -2 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={goToPrevious}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 hover:shadow-xl transition-all"
+                aria-label="上一张"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </motion.button>
+            )}
+
+            {/* 下一张按钮 */}
+            {hasNext && (
+              <motion.button
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                whileHover={{ scale: 1.1, x: 2 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={goToNext}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 hover:shadow-xl transition-all"
+                aria-label="下一张"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </motion.button>
             )}
 
             {/* 实际图片 */}
@@ -259,6 +337,10 @@ export function ImagePreview({ image, onClose }: ImagePreviewProps) {
               priority
               quality={85}
               onLoad={() => setImageLoaded(true)}
+              onError={() => {
+                console.error('Failed to load image:', image.cdnUrl || image.download_url)
+                setImageLoaded(true) // 即使失败也隐藏加载状态
+              }}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
             />
           </div>

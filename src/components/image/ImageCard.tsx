@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { MoreVertical, Trash2, Link2, Eye } from 'lucide-react'
+import { MoreVertical, Trash2, Link2 } from 'lucide-react'
 import { formatFileSize } from '@/lib/utils'
 import { generateLink } from '@/lib/link'
 import { Button } from '@/components/ui/button'
@@ -30,9 +30,11 @@ interface ImageCardProps {
   selected?: boolean
   selectable?: boolean
   priority?: boolean
+  images?: ImageFile[]
+  onImageChange?: (image: ImageFile) => void
 }
 
-export function ImageCard({ image, onDelete, onSelect, selected, selectable, priority }: ImageCardProps) {
+export function ImageCard({ image, onDelete, onSelect, selected, selectable, priority, images, onImageChange }: ImageCardProps) {
   const { data: session } = useSession()
   const token = session?.accessToken || ''
   const configStore = useConfigStore()
@@ -116,45 +118,6 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
             priority={priority}
             loading={priority ? 'eager' : 'lazy'}
           />
-
-          {/* 渐变遮罩 */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
-            transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"
-          />
-
-          {/* 悬停操作按钮 */}
-          <AnimatePresence>
-            {isHovered && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.2 }}
-                className="absolute inset-0 flex items-center justify-center gap-3"
-              >
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.05, duration: 0.15 }}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowPreview(true)
-                  }}
-                >
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 shadow-lg"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {/* 选中状态指示器 */}
           <AnimatePresence>
@@ -246,6 +209,8 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
       {showPreview && (
         <ImagePreview
           image={image}
+          images={images}
+          onImageChange={onImageChange}
           onClose={() => setShowPreview(false)}
         />
       )}

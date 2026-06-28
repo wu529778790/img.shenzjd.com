@@ -2,36 +2,33 @@
 
 import { motion } from 'framer-motion'
 
-// 骨架卡片组件
+// 骨架卡片组件 - 匹配新的 ImageCard 设计
 export function SkeletonCard() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="group relative overflow-hidden rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+      className="group relative overflow-hidden rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm"
     >
       {/* 图片占位 - 使用 shimmer 效果 */}
-      <div className="aspect-square relative overflow-hidden bg-gray-100 dark:bg-gray-900">
+      <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-900">
         <motion.div
           initial={{ opacity: 0.5 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1.5, repeat: Infinity, repeatType: 'reverse' }}
           className="absolute inset-0 shimmer-bg"
         />
-
-        {/* 悬停时的渐变遮罩 */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
 
-      {/* 文字占位 */}
+      {/* 文件信息 */}
       <div className="p-4 space-y-2">
         {/* 文件名 */}
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
-        {/* 文件大小 */}
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg w-3/4" />
+        {/* 文件大小和操作 */}
         <div className="flex items-center justify-between">
           <div className="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
-          <div className="h-3 w-4 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
+          <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
         </div>
       </div>
     </motion.div>
@@ -59,107 +56,53 @@ export function SkeletonListItem() {
   )
 }
 
-// 骨架搜索栏组件（已合并到 SkeletonToolbar，保留以备后用）
-export function SkeletonSearchBar() {
-  return (
-    <div className="flex flex-col sm:flex-row gap-3">
-      {/* 搜索框 */}
-      <div className="flex-1 h-11 bg-gray-200 dark:bg-gray-700 rounded-xl shimmer-bg" />
-
-      {/* 排序按钮 */}
-      <div className="flex gap-2">
-        <div className="h-11 w-20 bg-gray-200 dark:bg-gray-700 rounded-xl shimmer-bg" />
-        <div className="h-11 w-20 bg-gray-200 dark:bg-gray-700 rounded-xl shimmer-bg" />
-        <div className="h-11 w-20 bg-gray-200 dark:bg-gray-700 rounded-xl shimmer-bg" />
-      </div>
-    </div>
-  )
-}
-
-// 骨架侧边栏组件
-export function SkeletonSidebar() {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="w-64 flex-shrink-0 sticky top-20"
-    >
-      <div className="p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-        {/* 标题 */}
-        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
-          <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
-          <div className="h-5 w-12 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
-        </div>
-
-        {/* 目录列表 */}
-        <div className="space-y-1">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-9 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
-          ))}
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-// 骨架页面标题组件
-export function SkeletonPageHeader() {
-  return (
-    <div className="mb-8">
-      <div className="h-10 w-48 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg mb-2" />
-      <div className="h-5 w-64 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
-    </div>
-  )
-}
-
-// 骨架统计信息组件
-export function SkeletonStats() {
-  return (
-    <div className="flex items-center gap-4">
-      <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
-      <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded-full shimmer-bg" />
-    </div>
-  )
-}
-
-// 骨架工具栏 - 统计+搜索
+// 骨架工具栏组件 - 匹配新的 ManagementToolbar 布局
 export function SkeletonToolbar() {
   return (
-    <div className="p-3 sm:p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-      {/* 第一行：统计 + 搜索 */}
-      <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
-        {/* 左侧：统计信息 */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-          <SkeletonStats />
-          <div className="hidden sm:block w-px h-5 bg-gray-200 dark:bg-gray-700" />
-          <div className="h-3.5 w-28 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
-        </div>
-
-        {/* 右侧：搜索框 */}
-        <div className="relative w-full lg:w-64">
-          <div className="h-9 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
-        </div>
+    <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+      {/* 左侧：统计信息 */}
+      <div className="flex items-center gap-1.5 text-xs px-1 shrink-0">
+        <div className="h-3.5 w-3.5 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
+        <div className="h-3.5 w-6 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
+        <div className="h-3 w-px bg-gray-300 dark:bg-gray-600" />
+        <div className="h-3.5 w-3.5 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
+        <div className="h-3.5 w-12 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
       </div>
 
-      {/* 第二行：排序 + 目录过滤 */}
-      <div className="flex flex-col sm:flex-row gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-        {/* 排序按钮 */}
-        <div className="flex items-center gap-2">
-          <div className="h-3.5 w-10 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
-          <div className="flex gap-1">
-            <div className="h-7 w-14 bg-gray-200 dark:bg-gray-700 rounded-md shimmer-bg" />
-            <div className="h-7 w-14 bg-gray-200 dark:bg-gray-700 rounded-md shimmer-bg" />
-            <div className="h-7 w-14 bg-gray-200 dark:bg-gray-700 rounded-md shimmer-bg" />
-          </div>
-        </div>
+      {/* 分隔线 */}
+      <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 shrink-0" />
 
-        {/* 目录过滤 */}
-        <div className="flex items-center gap-2">
-          <div className="h-3.5 w-10 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
-          <div className="h-7 w-16 bg-gray-200 dark:bg-gray-700 rounded-md shimmer-bg" />
-          <div className="h-7 w-20 bg-gray-200 dark:bg-gray-700 rounded-md shimmer-bg" />
-          <div className="h-7 w-16 bg-gray-200 dark:bg-gray-700 rounded-md shimmer-bg" />
-        </div>
+      {/* 搜索框 */}
+      <div className="relative group shrink-0">
+        <div className="h-8 w-40 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
+      </div>
+
+      {/* 排序下拉 */}
+      <div className="h-8 w-28 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
+
+      {/* 目录筛选 */}
+      <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
+
+      {/* 弹性空间 */}
+      <div className="flex-1 min-w-0" />
+
+      {/* 批量操作（多选模式） */}
+      <div className="hidden sm:flex items-center gap-1.5 overflow-hidden shrink-0">
+        <div className="h-7 w-12 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
+        <div className="h-7 w-8 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
+        <div className="h-7 w-8 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
+      </div>
+
+      {/* 多选按钮 */}
+      <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
+
+      {/* 分隔线 */}
+      <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 shrink-0 hidden sm:block" />
+
+      {/* 视图切换 */}
+      <div className="flex items-center rounded-lg border border-gray-200 dark:border-gray-700 p-0.5 bg-gray-50 dark:bg-gray-900 shrink-0">
+        <div className="h-7 w-7 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
+        <div className="h-7 w-7 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
       </div>
     </div>
   )
@@ -174,7 +117,7 @@ export function ManagementSkeleton() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
+          className="mb-4"
         >
           <SkeletonToolbar />
         </motion.div>

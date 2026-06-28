@@ -111,7 +111,7 @@ export function VirtualizedImageGrid({
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className="h-full overflow-auto scrollbar-thin"
+      className="h-full scrollbar-thin"
       style={{
         height: containerHeight > 0 ? containerHeight : 'auto',
       }}
