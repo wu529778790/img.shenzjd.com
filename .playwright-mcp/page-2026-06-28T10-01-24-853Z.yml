@@ -1,0 +1,32 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - link "ImgX" [ref=e6] [cursor=pointer]:
+          - /url: /upload
+          - img [ref=e8]
+          - generic [ref=e11]: ImgX
+        - navigation [ref=e12]:
+          - link "上传图片" [ref=e14] [cursor=pointer]:
+            - /url: /upload
+            - img [ref=e15]
+            - text: 上传图片
+          - link "图片管理" [ref=e20] [cursor=pointer]:
+            - /url: /management
+            - img [ref=e21]
+            - text: 图片管理
+          - link "设置" [ref=e26] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e27]
+            - text: 设置
+    - main [ref=e30]:
+      - generic [ref=e33]:
+        - heading "需要登录" [level=2] [ref=e34]
+        - paragraph [ref=e35]: 登录后才能上传图片和管理图床
+        - button "去登录" [ref=e37]
+    - contentinfo [ref=e38]:
+      - paragraph [ref=e41]: © 2025 ImgX. 基于 GitHub 的现代化图床服务
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e47] [cursor=pointer]:
+    - img [ref=e48]
+  - alert [ref=e51]
