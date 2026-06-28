@@ -238,24 +238,57 @@ export class GitHubAPI {
       }
 
       return null
-    } catch (error) {
-      console.error(`Failed to get commit time for ${path}:`, error)
+    } catch (error: any) {
+      // 如果是速率限制错误，直接抛出以便上层处理
+      if (error.response?.status === 403) {
+        console.warn(`[GitHub] Rate limited when fetching commit time for ${path}`)
+        throw error
+      }
+      // 其他错误只记录日志，返回 null
+      console.error(`[GitHub] Failed to get commit time for ${path}:`, error.message)
       return null
     }
   }
 
-  // 批量获取文件的最后提交时间
-  async getFilesCommitTime(paths: string[]): Promise<Map<string, Date>> {
+  // 批量获取文件的最后提交时间（带并发限制）
+  async getFilesCommitTime(paths: string[], concurrency: number = 5): Promise<Map<string, Date>> {
     const results = new Map<string, Date>()
+    const errors: Array<{ path: string; error: any }> = []
 
-    await Promise.allSettled(
-      paths.map(async (path) => {
-        const date = await this.getFileCommitTime(path, this.branch)
-        if (date) {
-          results.set(path, date)
-        }
-      })
-    )
+    // 分批处理，限制并发数
+    for (let i = 0; i < paths.length; i += concurrency) {
+      const batch = paths.slice(i, i + concurrency)
+
+      await Promise.allSettled(
+        batch.map(async (path) => {
+          try {
+            const date = await this.getFileCommitTime(path, this.branch)
+            if (date) {
+              results.set(path, date)
+            }
+          } catch (error: any) {
+            // 如果是 403 错误，记录并继续
+            if (error.response?.status === 403) {
+              errors.push({ path, error })
+              console.warn(`[GitHub] Rate limited for ${path}, skipping`)
+            } else {
+              console.error(`[GitHub] Failed to get commit time for ${path}:`, error)
+            }
+          }
+        })
+      )
+
+      // 如果遇到 403 错误，停止后续请求以避免被封禁
+      if (errors.length > 0) {
+        console.warn(`[GitHub] Stopping commit time fetch due to rate limiting`)
+        break
+      }
+
+      // 批次之间添加延迟，避免触发速率限制
+      if (i + concurrency < paths.length) {
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
+    }
 
     return results
   }
