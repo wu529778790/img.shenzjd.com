@@ -1,11 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { GitHubAPI } from '@/lib/github'
+import { generateLink } from '@/lib/link'
 import type { ImageFile } from '@/types/image'
 
 export function useImages() {
@@ -15,7 +16,7 @@ export function useImages() {
   const queryClient = useQueryClient()
   const [allImages, setAllImages] = useState<ImageFile[]>([])
 
-  const { owner, repo, branch } = configStore
+  const { owner, repo, branch, cdn, useRaw } = configStore
 
   // 获取图片列表
   const { data: images = [], isLoading, error } = useQuery({
@@ -35,12 +36,27 @@ export function useImages() {
           const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'))
           return imageExtensions.includes(ext)
         })
-        .map((file) => ({
-          ...file,
-          id: file.sha,
-          type: 'file' as const,
-          uploaded_at: new Date(file.sha), // 使用 SHA 创建日期（GitHub API 不返回文件创建时间）
-        }))
+        .map((file) => {
+          // 根据 CDN 配置生成正确的 URL
+          const cdnUrl = generateLink({
+            format: 'url',
+            cdn: cdn || 'github',
+            owner,
+            repo,
+            branch,
+            path: file.path,
+            fileName: file.name,
+            useRaw: useRaw ?? true,
+          })
+
+          return {
+            ...file,
+            id: file.sha,
+            type: 'file' as const,
+            uploaded_at: new Date(file.sha), // 使用 SHA 创建日期（GitHub API 不返回文件创建时间）
+            cdnUrl, // 添加 CDN URL
+          }
+        })
 
       return imageFiles
     },

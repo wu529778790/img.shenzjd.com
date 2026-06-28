@@ -122,7 +122,7 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
         {/* 图片预览区域 */}
         <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-900">
           <Image
-            src={image.download_url}
+            src={image.cdnUrl || image.download_url}
             alt={image.name}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-110"

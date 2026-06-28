@@ -7,6 +7,7 @@ export interface ImageFile {
   url: string
   html_url: string
   download_url: string
+  cdnUrl?: string // CDN 加速链接，根据配置生成
   type: 'file' | 'dir'
   created_at?: string
   uploaded_at?: Date
