@@ -47,7 +47,7 @@ export function ImageCardDeleteConfirm({
           Authorization: `token ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ owner, repo }),
+        body: JSON.stringify({ owner, repo, filePath: image.path }),
       })
       if (!response.ok) throw new Error('Delete failed')
       toast.success('删除成功')
