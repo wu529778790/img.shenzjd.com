@@ -31,3 +31,54 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+export async function POST(request: NextRequest) {
+  const authHeader = request.headers.get('Authorization')
+
+  if (!authHeader || !authHeader.startsWith('token ')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const token = authHeader.substring(6)
+
+  try {
+    const body = await request.json()
+    const { name, description, private: isPrivate } = body
+
+    if (!name) {
+      return NextResponse.json(
+        { error: 'Repository name is required' },
+        { status: 400 }
+      )
+    }
+
+    const response = await fetch('https://api.github.com/user/repos', {
+      method: 'POST',
+      headers: {
+        Authorization: `token ${token}`,
+        Accept: 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name,
+        description: description || 'ImgX image host',
+        private: isPrivate || false,
+        auto_init: true,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Failed to create repo')
+    }
+
+    const repo = await response.json()
+    return NextResponse.json(repo)
+  } catch (error) {
+    console.error('Create repo error:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to create repo' },
+      { status: 500 }
+    )
+  }
+}
