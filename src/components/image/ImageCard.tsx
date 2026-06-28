@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { FileImage, MoreVertical, Trash2, Link2, Eye } from 'lucide-react'
+import { FileImage, MoreVertical, Trash2, Link2, Eye, AlertTriangle } from 'lucide-react'
 import { formatFileSize } from '@/lib/utils'
 import { generateLink } from '@/lib/link'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { toast } from 'sonner'
@@ -36,6 +44,7 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
   const configStore = useConfigStore()
 
   const [showPreview, setShowPreview] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
 
   const handleCopyLink = async (format: 'markdown' | 'html' | 'bbcode' | 'url') => {
@@ -68,32 +77,7 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
 
   const handleDelete = async () => {
     if (!token || !onDelete) return
-
-    if (!confirm(`确定要删除 ${image.name} 吗？`)) return
-
-    try {
-      const response = await fetch(`/api/images/${image.sha}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `token ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          owner: configStore.owner,
-          repo: configStore.repo,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Delete failed')
-      }
-
-      toast.success('删除成功')
-      onDelete(image.id)
-    } catch (error) {
-      toast.error('删除失败')
-      console.error('Delete error:', error)
-    }
+    setShowDeleteConfirm(true)
   }
 
   return (
@@ -244,6 +228,68 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
           </div>
         </div>
       </motion.div>
+
+      {/* 单张删除确认弹窗 */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg">确认删除</DialogTitle>
+                <DialogDescription className="mt-1">
+                  此操作无法撤销，删除后链接将失效
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {/* 文件信息预览 */}
+          <div className="mt-3 max-h-40 overflow-y-auto rounded-lg bg-gray-50 dark:bg-gray-900 p-3">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="truncate font-mono text-gray-600 dark:text-gray-400">{image.name}</span>
+              <span className="text-gray-400 text-xs">{formatFileSize(image.size)}</span>
+            </div>
+          </div>
+
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
+              取消
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                setShowDeleteConfirm(false)
+                if (!token || !onDelete) return
+                try {
+                  const response = await fetch(`/api/images/${image.sha}`, {
+                    method: 'DELETE',
+                    headers: {
+                      Authorization: `token ${token}`,
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      owner: configStore.owner,
+                      repo: configStore.repo,
+                    }),
+                  })
+                  if (!response.ok) throw new Error('Delete failed')
+                  toast.success('删除成功')
+                  onDelete(image.id)
+                } catch (error) {
+                  toast.error('删除失败')
+                  console.error('Delete error:', error)
+                }
+              }}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              确认删除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 图片预览模态框 */}
       {showPreview && (
