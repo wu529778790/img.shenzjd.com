@@ -146,46 +146,44 @@ export default function UploadPage() {
         </motion.div>
 
         {/* 文件夹选择 */}
-        {foldersList.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="mb-6"
-          >
-            <CardAnimation className="p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <FolderOpen className="h-4 w-4" />
-                  <span>上传到文件夹:</span>
-                </div>
-                <Select
-                  value={selectedFolder}
-                  onValueChange={handleFolderChange}
-                >
-                  <SelectTrigger className="w-[240px]">
-                    <SelectValue placeholder="选择文件夹" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">
-                      <span className="text-gray-500">根目录</span>
-                    </SelectItem>
-                    {foldersList.map((folder) => (
-                      <SelectItem key={folder.path} value={folder.path}>
-                        <span className="font-mono text-sm">{folder.name}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedFolder && (
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    当前: <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs">{selectedFolder}</code>
-                  </span>
-                )}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mb-6"
+        >
+          <CardAnimation className="p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <FolderOpen className="h-4 w-4" />
+                <span>上传到文件夹:</span>
               </div>
-            </CardAnimation>
-          </motion.div>
-        )}
+              <Select
+                value={selectedFolder}
+                onValueChange={handleFolderChange}
+              >
+                <SelectTrigger className="w-[240px]">
+                  <SelectValue placeholder="选择文件夹" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">
+                    <span className="text-gray-500">根目录</span>
+                  </SelectItem>
+                  {foldersList.map((folder) => (
+                    <SelectItem key={folder.path} value={folder.path}>
+                      <span className="font-mono text-sm">{folder.name}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedFolder && (
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  当前: <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs">{selectedFolder}</code>
+                </span>
+              )}
+            </div>
+          </CardAnimation>
+        </motion.div>
 
         {/* 上传区域 */}
         <CardAnimation
