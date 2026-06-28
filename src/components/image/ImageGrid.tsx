@@ -8,7 +8,7 @@ import { LazyImageGrid } from './LazyImageGrid'
 import { formatFileSize } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
 import { motion } from 'framer-motion'
-import { createStaggerVariants, AnimatedListItem } from '@/components/animations/PageAnimations'
+import { ANIMATION_CONFIG, createStaggerVariants, AnimatedListItem } from '@/components/animations/PageAnimations'
 
 type ViewMode = 'grid' | 'list'
 
@@ -121,7 +121,7 @@ export function ImageGrid({
           <motion.div
           initial="initial"
           animate="animate"
-          variants={createStaggerVariants(images.length, 20)}
+          variants={createStaggerVariants(ANIMATION_CONFIG.stagger.large)}
           className="space-y-2"
         >
           {images.map((image) => (
