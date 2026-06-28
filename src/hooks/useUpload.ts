@@ -105,24 +105,7 @@ export function useUpload() {
 
       return { file: imageFile, link }
     },
-    onSuccess: (_data, _variables: File) => {
-      toast.success('上传成功')
-      addOperationLog({
-        type: 'upload',
-        action: '上传成功',
-        status: 'success',
-        detail: _variables?.name,
-      })
-    },
-    onError: (error: Error) => {
-      toast.error(error.message)
-      addOperationLog({
-        type: 'upload',
-        action: '上传失败',
-        status: 'error',
-        detail: error.message,
-      })
-    },
+    // onSuccess and onError removed — dead code; per-call-site overrides below
   })
 
   // 添加文件到上传队列

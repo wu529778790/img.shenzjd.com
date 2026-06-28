@@ -10,18 +10,12 @@ import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { useConfigStore } from '@/stores/configStore'
+import { useConfigStore, type ConfigState } from '@/stores/configStore'
 import { useOperationLogStore } from '@/stores/operationLogStore'
 import { useThemeStore } from '@/hooks/useTheme'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import type { Config } from '@/types/config'
-
-interface ConfigState extends Config {
-  updateConfig: (updates: Partial<Config>) => void
-  resetConfig: () => void
-}
 
 // ── Section components (defined outside SettingsPage for stable identity) ─────
 
