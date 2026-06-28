@@ -10,6 +10,7 @@ import { useConfigStore } from '@/stores/configStore'
 import { useUploadStore } from '@/stores/uploadStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
+import { useOperationLogStore } from '@/stores/operationLogStore'
 import type { ImageFile, LinkOptions } from '@/types/image'
 
 export function useUpload() {
@@ -17,6 +18,7 @@ export function useUpload() {
   const token = (session as any)?.accessToken || ''
   const config = useConfigStore()
   const queryClient = useQueryClient()
+  const { addLog: addOperationLog } = useOperationLogStore()
   const { addTasks, updateTask, removeTask: removeTaskStore, clearQueue, retryTask: retryTaskStore, retryFailed: retryFailedStore } = useUploadStore()
 
   const uploadMutation = useMutation({
@@ -103,11 +105,23 @@ export function useUpload() {
 
       return { file: imageFile, link }
     },
-    onSuccess: () => {
+    onSuccess: (_data, _variables: File) => {
       toast.success('上传成功')
+      addOperationLog({
+        type: 'upload',
+        action: '上传成功',
+        status: 'success',
+        detail: _variables?.name,
+      })
     },
     onError: (error: Error) => {
       toast.error(error.message)
+      addOperationLog({
+        type: 'upload',
+        action: '上传失败',
+        status: 'error',
+        detail: error.message,
+      })
     },
   })
 
@@ -125,17 +139,29 @@ export function useUpload() {
         updateTask(taskId, { status: 'uploading', progress: 0 })
 
         uploadMutation.mutate(file, {
-          onSuccess: () => {
+          onSuccess: (_data, variables: File) => {
             updateTask(taskId, {
               status: 'success',
               progress: 100,
             })
+            addOperationLog({
+              type: 'upload',
+              action: '上传成功',
+              status: 'success',
+              detail: variables?.name,
+            })
           },
-          onError: (error) => {
+          onError: (error: Error) => {
             updateTask(taskId, {
               status: 'error',
               progress: 0,
               error: error.message,
+            })
+            addOperationLog({
+              type: 'upload',
+              action: '上传失败',
+              status: 'error',
+              detail: error.message,
             })
           },
         })
