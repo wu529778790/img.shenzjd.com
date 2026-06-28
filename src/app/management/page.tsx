@@ -224,12 +224,6 @@ export default function ManagementPage() {
             onBulkDelete={handleBulkDelete}
             isLoading={isLoading}
           />
-
-          {isLoading && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">加载中...</p>
-            </div>
-          )}
         </div>
       </div>
     </div>
