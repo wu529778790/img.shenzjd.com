@@ -15,12 +15,12 @@ export default function ConfigPage() {
   const router = useRouter()
   const configStore = useConfigStore()
 
-  const [token, setToken] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [repos, setRepos] = useState<Array<{ name: string; full_name: string }>>([])
   const [branches, setBranches] = useState<string[]>([])
   const [loadingRepos, setLoadingRepos] = useState(false)
   const [loadingBranches, setLoadingBranches] = useState(false)
+  const [currentUser, setCurrentUser] = useState<string>('')
 
   // 从 configStore 获取属性
   const {
@@ -31,26 +31,26 @@ export default function ConfigPage() {
     updateConfig,
   } = configStore
 
-  // 获取 session 中的 token
+  // 获取当前登录用户
   useEffect(() => {
-    const fetchSession = async () => {
+    const fetchUser = async () => {
       const session = await getSession()
-      if (session) {
-        setToken((session as any).accessToken || '')
+      if (session?.user) {
+        setCurrentUser((session.user as any).name || session.user.email || '')
       }
     }
-    fetchSession()
+    fetchUser()
   }, [])
 
   // 获取用户仓库列表
   useEffect(() => {
-    if (!token) return
+    if (!currentUser) return
 
     const fetchRepos = async () => {
       setLoadingRepos(true)
       try {
         const response = await fetch('/api/repos', {
-          headers: { Authorization: `token ${token}` },
+          headers: { Authorization: `token ${(await getSession())?.accessToken}` },
         })
         const data = await response.json()
         setRepos(data)
@@ -63,18 +63,18 @@ export default function ConfigPage() {
     }
 
     fetchRepos()
-  }, [token])
+  }, [currentUser])
 
   // 当选择仓库时，获取分支列表
   useEffect(() => {
-    if (!repo || !token) return
+    if (!repo || !currentUser) return
 
     const fetchBranches = async () => {
       setLoadingBranches(true)
       try {
         const response = await fetch(
-          `/api/repos/${owner}/${repo}/branches`,
-          { headers: { Authorization: `token ${token}` } }
+          `/api/repos/${currentUser}/${repo}/branches`,
+          { headers: { Authorization: `token ${(await getSession())?.accessToken}` } }
         )
         const data = await response.json()
         setBranches(data.map((b: any) => b.name))
@@ -87,31 +87,24 @@ export default function ConfigPage() {
     }
 
     fetchBranches()
-  }, [repo, owner, token])
+  }, [repo, currentUser])
 
   const handleAutoConfig = async () => {
-    if (!token) {
+    if (!currentUser) {
       toast.error('请先登录')
       return
     }
 
     setLoading(true)
     try {
-      // 获取当前用户名
-      const response = await fetch('/api/auth/user', {
-        headers: { Authorization: `token ${token}` },
-      })
-      const { user } = await response.json()
-
-      const username = user.login
-      const repoName = `${username.toLowerCase()}-imgx`
+      const repoName = `${currentUser.toLowerCase()}-imgx`
 
       // 创建新仓库
       const createResponse = await fetch('/api/repos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `token ${token}`,
+          Authorization: `token ${(await getSession())?.accessToken}`,
         },
         body: JSON.stringify({
           name: repoName,
@@ -125,7 +118,7 @@ export default function ConfigPage() {
       }
 
       updateConfig({
-        owner: username,
+        owner: currentUser,
         repo: repoName,
         branch: 'main',
         directory: 'images',
@@ -142,13 +135,13 @@ export default function ConfigPage() {
   }
 
   const handleManualConfig = () => {
-    if (!owner || !repo || !branch) {
+    if (!currentUser || !repo || !branch) {
       toast.error('请填写完整的配置信息')
       return
     }
 
     updateConfig({
-      owner,
+      owner: currentUser,
       repo,
       branch,
       directory,
@@ -192,17 +185,6 @@ export default function ConfigPage() {
           <h2 className="text-xl font-semibold mb-4">手动配置</h2>
 
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="owner">GitHub 用户名</Label>
-              <Input
-                id="owner"
-                value={owner}
-                onChange={(e) => updateConfig({ owner: e.target.value })}
-                placeholder="your-username"
-                className="mt-1"
-              />
-            </div>
-
             <div>
               <Label htmlFor="repo">仓库名</Label>
               {loadingRepos ? (

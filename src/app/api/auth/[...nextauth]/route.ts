@@ -1,5 +1,13 @@
 import NextAuth from 'next-auth'
 import GitHubProvider from 'next-auth/providers/github'
+import type { Session } from 'next-auth'
+
+// 扩展 Session 类型以包含 accessToken
+declare module 'next-auth' {
+  interface Session {
+    accessToken?: string
+  }
+}
 
 export const authOptions = {
   providers: [
@@ -20,7 +28,7 @@ export const authOptions = {
       }
       return token
     },
-    async session({ session, token }: { session: any; token: any }) {
+    async session({ session, token }: { session: Session; token: any }) {
       session.accessToken = token.accessToken
       return session
     },

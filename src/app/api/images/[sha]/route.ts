@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../../auth/[...nextauth]/route'
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ sha: string }> }
 ) {
-  const authHeader = request.headers.get('Authorization')
-
-  if (!authHeader || !authHeader.startsWith('token ')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const token = authHeader.substring(6)
-
   try {
+    const session = await getServerSession(authOptions)
+
+    if (!session || !session.accessToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const token = session.accessToken as string
     const { sha } = await params
     const body = await request.json()
     const { owner, repo, filePath } = body

@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../../../../auth/[...nextauth]/route'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ owner: string; repo: string }> }
 ) {
-  const authHeader = request.headers.get('Authorization')
-
-  if (!authHeader || !authHeader.startsWith('token ')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const token = authHeader.substring(6)
-  const { owner, repo } = await params
-
   try {
+    const session = await getServerSession(authOptions)
+
+    if (!session || !session.accessToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const token = session.accessToken as string
+    const { owner, repo } = await params
+
     const response = await fetch(
       `https://api.github.com/repos/${owner}/${repo}/branches`,
       {
