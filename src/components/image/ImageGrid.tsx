@@ -153,7 +153,6 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
               selectedIds={selectedIds}
               selectable={selectionMode}
             />
-            />
           ) : (
             <motion.div
               variants={createStaggerVariants()}
