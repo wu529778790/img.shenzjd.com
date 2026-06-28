@@ -112,7 +112,7 @@ export function SkeletonToolbar() {
 export function ManagementSkeleton() {
   return (
     <div className="min-h-[calc(100vh-4rem)]">
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* 顶部工具栏骨架 */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}

@@ -135,7 +135,7 @@ export default function ManagementPage() {
   // 如果正在加载，显示骨架屏
   if (status === 'loading' || (isLoading && images.length === 0)) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="min-h-[calc(100vh-4rem)]">
         <PageTransition>
           <ManagementSkeleton />
         </PageTransition>
@@ -207,7 +207,7 @@ export default function ManagementPage() {
   return (
     <div className="min-h-[calc(100vh-4rem)]">
       <PageTransition>
-        <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* 统一工具栏（单行） */}
           <div className="mb-4">
             <ManagementToolbar
