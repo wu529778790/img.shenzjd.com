@@ -1,9 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Search, FolderTree, Lock, ArrowUp, ArrowDown, X } from 'lucide-react'
+import {
+  Search,
+  FolderTree,
+  Lock,
+  ArrowUp,
+  ArrowDown,
+  X,
+  FolderOpen,
+  Image as ImageIcon
+} from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -34,6 +43,70 @@ export default function ManagementPage() {
   // 检查配置是否完整
   const isConfigured = configStore.owner && configStore.repo && configStore.branch
 
+  // 使用 useMemo 缓存过滤和排序结果
+  const filteredImages = useMemo(() => {
+    const filtered = images.filter((image) => {
+      const matchesSearch = image.name.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesDirectory = !selectedDirectory || image.path.startsWith(selectedDirectory)
+      return matchesSearch && matchesDirectory
+    })
+
+    return filtered.sort((a, b) => {
+      let comparison = 0
+
+      switch (sortField) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name)
+          break
+        case 'size':
+          comparison = a.size - b.size
+          break
+        case 'path':
+          comparison = a.path.localeCompare(b.path)
+          break
+        case 'uploaded_at':
+        default:
+          comparison = (a.uploaded_at?.getTime() || 0) - (b.uploaded_at?.getTime() || 0)
+          break
+      }
+
+      return sortOrder === 'asc' ? comparison : -comparison
+    })
+  }, [images, searchQuery, selectedDirectory, sortField, sortOrder])
+
+  // 使用 useMemo 提取目录树
+  const directories = useMemo(() => {
+    return Array.from(
+      new Set(
+        images
+          .map((img) => {
+            const parts = img.path.split('/')
+            return parts.length > 1 ? parts.slice(0, -1).join('/') : ''
+          })
+          .filter(Boolean)
+      )
+    )
+  }, [images])
+
+  // 使用 useCallback 优化事件处理
+  const handleSort = useCallback((field: SortField) => {
+    setSortField(field)
+    setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')
+  }, [])
+
+  const handleDirectoryChange = useCallback((dir: string) => {
+    setSelectedDirectory(prev => prev === dir ? '' : dir)
+  }, [])
+
+  // 统计数据
+  const stats = useMemo(() => {
+    if (images.length === 0) return null
+    return {
+      total: images.length,
+      totalSize: images.reduce((sum, img) => sum + img.size, 0),
+    }
+  }, [images])
+
   // 如果正在加载，显示骨架屏
   if (status === 'loading' || (isLoading && images.length === 0)) {
     return (
@@ -48,9 +121,9 @@ export default function ManagementPage() {
   // 如果未登录，显示登录提示
   if (!session) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12">
         <PageTransition>
-          <CardAnimation className="max-w-md mx-auto p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+          <CardAnimation className="max-w-md w-full mx-4 p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -65,9 +138,11 @@ export default function ManagementPage() {
             <p className="text-gray-500 dark:text-gray-400 mb-6">
               登录后才能管理图片
             </p>
-            <p className="text-sm text-gray-400">
-              请先登录以继续
-            </p>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button onClick={() => router.push('/login')} size="lg" className="w-full">
+                立即登录
+              </Button>
+            </motion.div>
           </CardAnimation>
         </PageTransition>
       </div>
@@ -76,9 +151,9 @@ export default function ManagementPage() {
 
   if (!isConfigured) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12">
         <PageTransition>
-          <CardAnimation className="max-w-md mx-auto p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+          <CardAnimation className="max-w-md w-full mx-4 p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -94,7 +169,7 @@ export default function ManagementPage() {
               在开始之前，需要先配置您的 GitHub 仓库
             </p>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button onClick={() => router.push('/config')} size="lg">
+              <Button onClick={() => router.push('/config')} size="lg" className="w-full">
                 去配置
               </Button>
             </motion.div>
@@ -104,232 +179,216 @@ export default function ManagementPage() {
     )
   }
 
-  // 过滤图片
-  let filteredImages = images.filter((image) => {
-    const matchesSearch = image.name.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesDirectory = !selectedDirectory || image.path.startsWith(selectedDirectory)
-    return matchesSearch && matchesDirectory
-  })
-
-  // 排序图片
-  filteredImages.sort((a, b) => {
-    let comparison = 0
-
-    switch (sortField) {
-      case 'name':
-        comparison = a.name.localeCompare(b.name)
-        break
-      case 'size':
-        comparison = a.size - b.size
-        break
-      case 'path':
-        comparison = a.path.localeCompare(b.path)
-        break
-      case 'uploaded_at':
-      default:
-        comparison = (a.uploaded_at?.getTime() || 0) - (b.uploaded_at?.getTime() || 0)
-        break
-    }
-
-    return sortOrder === 'asc' ? comparison : -comparison
-  })
-
-  // 切换排序
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortField(field)
-      setSortOrder('desc')
-    }
-  }
-
-  // 提取目录树
-  const directories = Array.from(
-    new Set(
-      images
-        .map((img) => {
-          const parts = img.path.split('/')
-          return parts.length > 1 ? parts.slice(0, -1).join('/') : ''
-        })
-        .filter(Boolean)
-    )
-  )
-
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="min-h-[calc(100vh-4rem)]">
       <PageTransition>
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* 侧边栏 - 目录树 */}
-          <AnimatePresence>
-            {directories.length > 0 && (
-              <motion.aside
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="lg:w-64 flex-shrink-0"
-              >
-                <CardAnimation className="sticky top-20 p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-                  <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
-                    <FolderTree className="h-5 w-5 text-primary" />
-                    <h2 className="font-semibold text-lg">目录</h2>
-                  </div>
-                  <div className="space-y-1">
+        <div className="container mx-auto px-4 py-6 max-w-7xl">
+          {/* 顶部工具栏 */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <CardAnimation className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+              {/* 统计和搜索区域 */}
+              <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+                {/* 左侧：统计信息 */}
+                <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+                  <ImageStats images={images} />
+                  {stats && (
+                    <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                      <Badge variant="secondary" className="font-medium">
+                        {stats.total} 张图片
+                      </Badge>
+                      <span className="hidden sm:inline text-gray-300 dark:text-gray-700">|</span>
+                      <span className="font-mono text-xs">
+                        {stats.totalSize > 0 ? (stats.totalSize / 1024 / 1024).toFixed(1) : '0.0'} MB
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* 右侧：搜索框 */}
+                <div className="relative w-full lg:w-72 group">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-gray-400 group-focus-within:text-primary transition-colors pointer-events-none" />
+                  <Input
+                    type="text"
+                    placeholder="搜索图片..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className={cn(
+                      "pl-10 h-10 rounded-xl border-gray-200 dark:border-gray-700",
+                      "focus:ring-2 focus:ring-primary/20 focus:border-primary",
+                      "transition-all duration-200",
+                      searchQuery && "pr-10"
+                    )}
+                    aria-label="搜索图片"
+                  />
+                  {searchQuery && (
                     <motion.button
-                      whileHover={{ x: 4 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={cn(
-                        'w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200',
-                        !selectedDirectory
-                          ? 'bg-primary text-white shadow-md'
-                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                      )}
-                      onClick={() => setSelectedDirectory('')}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center transition-colors"
+                      aria-label="清除搜索"
                     >
-                      全部图片
+                      <X className="h-3 w-3" />
                     </motion.button>
-                    {directories.map((dir) => (
-                      <motion.button
-                        key={dir}
-                        whileHover={{ x: 4 }}
+                  )}
+                </div>
+              </div>
+
+              {/* 排序和过滤区域 */}
+              <div className="flex flex-col sm:flex-row gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                {/* 排序按钮组 */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    排序:
+                  </span>
+                  <div className="flex gap-1.5">
+                    {[
+                      { field: 'name' as SortField, label: '名称' },
+                      { field: 'size' as SortField, label: '大小' },
+                      { field: 'uploaded_at' as SortField, label: '日期' },
+                    ].map(({ field, label }) => (
+                      <motion.div
+                        key={field}
+                        whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className={cn(
-                          'w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200',
-                          selectedDirectory === dir
-                            ? 'bg-primary text-white shadow-md'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                        )}
-                        onClick={() => setSelectedDirectory(dir)}
                       >
-                        <span className="truncate block">{dir}</span>
-                      </motion.button>
+                        <Button
+                          variant={sortField === field ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => handleSort(field)}
+                          className={cn(
+                            "h-8 px-3 rounded-lg font-medium transition-all",
+                            sortField === field
+                              ? "shadow-sm"
+                              : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                          )}
+                          aria-label={`按${label}排序`}
+                        >
+                          <span className="hidden sm:inline">{label}</span>
+                          <span className="sm:hidden">{label[0]}</span>
+                          {sortField === field && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="ml-1"
+                            >
+                              {sortOrder === 'asc' ? (
+                                <ArrowUp className="h-3.5 w-3.5" />
+                              ) : (
+                                <ArrowDown className="h-3.5 w-3.5" />
+                              )}
+                            </motion.div>
+                          )}
+                        </Button>
+                      </motion.div>
                     ))}
                   </div>
-                </CardAnimation>
-              </motion.aside>
-            )}
-          </AnimatePresence>
+                </div>
 
-          {/* 主内容区 */}
-          <div className="flex-1 min-w-0">
-            {/* 搜索栏和排序 */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="mb-6 flex flex-col sm:flex-row gap-3"
-            >
-              {/* 搜索框 */}
-              <div className="relative flex-1 group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-primary transition-colors" />
-                <Input
-                  type="text"
-                  placeholder="搜索图片名称..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-11 h-11 rounded-xl border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 transition-all"
-                />
-                {searchQuery && (
-                  <motion.button
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    <X className="h-3 w-3" />
-                  </motion.button>
+                {/* 目录过滤 */}
+                {directories.length > 0 && (
+                  <>
+                    <div className="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700" />
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <FolderOpen className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        目录:
+                      </span>
+                      <div className="flex gap-1 flex-wrap">
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setSelectedDirectory('')}
+                          className={cn(
+                            "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                            !selectedDirectory
+                              ? "bg-primary text-white shadow-sm"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                          )}
+                        >
+                          全部
+                        </motion.button>
+                        {directories.slice(0, 5).map((dir) => (
+                          <motion.button
+                            key={dir}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleDirectoryChange(dir)}
+                            className={cn(
+                              "px-3 py-1.5 rounded-lg text-sm font-medium transition-all truncate max-w-[150px]",
+                              selectedDirectory === dir
+                                ? "bg-primary text-white shadow-sm"
+                                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                            )}
+                            title={dir}
+                          >
+                            {dir.split('/').pop()}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
+            </CardAnimation>
+          </motion.div>
 
-              {/* 排序按钮组 */}
-              <div className="flex gap-2">
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button
-                    variant="outline"
-                    size="default"
-                    onClick={() => handleSort('name')}
-                    className={cn(
-                      'h-11 px-4 rounded-xl transition-all',
-                      sortField === 'name' && 'bg-primary/10 border-primary text-primary hover:bg-primary/20'
-                    )}
-                  >
-                    <span className="hidden sm:inline">名称</span>
-                    <span className="sm:hidden">名称</span>
-                    {sortField === 'name' && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="ml-1"
-                      >
-                        {sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
-                      </motion.div>
-                    )}
-                  </Button>
-                </motion.div>
-
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button
-                    variant="outline"
-                    size="default"
-                    onClick={() => handleSort('size')}
-                    className={cn(
-                      'h-11 px-4 rounded-xl transition-all',
-                      sortField === 'size' && 'bg-primary/10 border-primary text-primary hover:bg-primary/20'
-                    )}
-                  >
-                    <span className="hidden sm:inline">大小</span>
-                    <span className="sm:hidden">大小</span>
-                    {sortField === 'size' && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="ml-1"
-                      >
-                        {sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
-                      </motion.div>
-                    )}
-                  </Button>
-                </motion.div>
-
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button
-                    variant="outline"
-                    size="default"
-                    onClick={() => handleSort('uploaded_at')}
-                    className={cn(
-                      'h-11 px-4 rounded-xl transition-all',
-                      sortField === 'uploaded_at' && 'bg-primary/10 border-primary text-primary hover:bg-primary/20'
-                    )}
-                  >
-                    <span className="hidden sm:inline">日期</span>
-                    <span className="sm:hidden">日期</span>
-                    {sortField === 'uploaded_at' && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="ml-1"
-                      >
-                        {sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
-                      </motion.div>
-                    )}
-                  </Button>
-                </motion.div>
-              </div>
-            </motion.div>
-
-            {/* 图片统计 */}
-            <ImageStats images={images} />
-
-            {/* 图片列表 */}
+          {/* 图片网格 */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+          >
             <ImageGrid
               images={filteredImages}
               onDelete={handleDelete}
               onBulkDelete={handleBulkDelete}
               isLoading={isLoading}
             />
-          </div>
+          </motion.div>
+
+          {/* 空状态 */}
+          {!isLoading && filteredImages.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-16 px-4"
+            >
+              <div className="max-w-md mx-auto space-y-4">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+                  className="mx-auto w-24 h-24 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center"
+                >
+                  <ImageIcon className="h-12 w-12 text-gray-400" />
+                </motion.div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {searchQuery || selectedDirectory ? '没有找到图片' : '暂无图片'}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {searchQuery
+                    ? `没有找到匹配"${searchQuery}"的图片`
+                    : selectedDirectory
+                    ? `"${selectedDirectory}"目录下没有图片`
+                    : '上传您的第一张图片开始使用'}
+                </p>
+                {!searchQuery && !selectedDirectory && (
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button onClick={() => router.push('/upload')} className="mt-4">
+                      上传图片
+                    </Button>
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+          )}
         </div>
       </PageTransition>
     </div>
