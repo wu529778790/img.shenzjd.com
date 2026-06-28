@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { FileImage, MoreVertical, Trash2, Link2, Eye, AlertTriangle } from 'lucide-react'
+import { MoreVertical, Trash2, Link2, Eye } from 'lucide-react'
 import { formatFileSize } from '@/lib/utils'
 import { generateLink } from '@/lib/link'
 import { Button } from '@/components/ui/button'
@@ -13,18 +13,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { useOperationLogStore } from '@/stores/operationLogStore'
 import { toast } from 'sonner'
+import { ImageCardDeleteConfirm } from './ImageCardDeleteConfirm'
 import { ImagePreview } from './ImagePreview'
 import type { ImageFile } from '@/types/image'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -78,14 +71,9 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
         status: 'success',
         detail: `${formatNames[format]}: ${link}`,
       })
-    } catch (error) {
+    } catch {
       toast.error('复制失败')
     }
-  }
-
-  const handleDelete = async () => {
-    if (!token || !onDelete) return
-    setShowDeleteConfirm(true)
   }
 
   return (
@@ -225,7 +213,7 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={handleDelete}
+                  onClick={() => setShowDeleteConfirm(true)}
                   className="text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/20 cursor-pointer"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
@@ -238,66 +226,15 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
       </motion.div>
 
       {/* 单张删除确认弹窗 */}
-      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
-                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-              </div>
-              <div>
-                <DialogTitle className="text-lg">确认删除</DialogTitle>
-                <DialogDescription className="mt-1">
-                  此操作无法撤销，删除后链接将失效
-                </DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-
-          {/* 文件信息预览 */}
-          <div className="mt-3 max-h-40 overflow-y-auto rounded-lg bg-gray-50 dark:bg-gray-900 p-3">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="truncate font-mono text-gray-600 dark:text-gray-400">{image.name}</span>
-              <span className="text-gray-400 text-xs">{formatFileSize(image.size)}</span>
-            </div>
-          </div>
-
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
-              取消
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={async () => {
-                setShowDeleteConfirm(false)
-                if (!token || !onDelete) return
-                try {
-                  const response = await fetch(`/api/images/${image.sha}`, {
-                    method: 'DELETE',
-                    headers: {
-                      Authorization: `token ${token}`,
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                      owner: configStore.owner,
-                      repo: configStore.repo,
-                    }),
-                  })
-                  if (!response.ok) throw new Error('Delete failed')
-                  toast.success('删除成功')
-                  onDelete(image.id)
-                } catch (error) {
-                  toast.error('删除失败')
-                  console.error('Delete error:', error)
-                }
-              }}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              确认删除
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ImageCardDeleteConfirm
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        image={image}
+        token={token}
+        owner={configStore.owner}
+        repo={configStore.repo}
+        onDeleted={onDelete ?? (() => {})}
+      />
 
       {/* 图片预览模态框 */}
       {showPreview && (

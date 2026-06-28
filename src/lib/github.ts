@@ -1,15 +1,5 @@
 import axios, { AxiosInstance } from 'axios'
-
-export interface GitHubFileInfo {
-  name: string
-  path: string
-  sha: string
-  size: number
-  url: string
-  html_url: string
-  download_url: string
-  type: 'file' | 'dir'
-}
+import type { GitHubFileInfo } from '@/types/image'
 
 export interface GitHubRepo {
   id: number

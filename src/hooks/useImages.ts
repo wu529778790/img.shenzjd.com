@@ -1,14 +1,14 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { useOperationLogStore } from '@/stores/operationLogStore'
-import { GitHubAPI, GitHubFileInfo } from '@/lib/github'
+import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
-import type { ImageFile } from '@/types/image'
+import type { GitHubFileInfo, ImageFile } from '@/types/image'
 
 // ── Conversion: GitHub API layer → Business layer ──────────────────────────
 // GitHubFileInfo 是 API 层的原始类型（来自 GitHub REST API）
@@ -30,7 +30,6 @@ export function useImages() {
   const configStore = useConfigStore()
   const queryClient = useQueryClient()
   const { addLog: addOperationLog } = useOperationLogStore()
-  const [allImages, setAllImages] = useState<ImageFile[]>([])
 
   const { owner, repo, branch, cdn, useRaw } = configStore
 
