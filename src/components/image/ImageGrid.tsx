@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Search, Eye } from 'lucide-react'
 import { toast } from 'sonner'
 import { ImageCard } from './ImageCard'
 import { LazyImageGrid } from './LazyImageGrid'
+import { VirtualizedImageGrid } from './VirtualizedImageGrid'
 import { formatFileSize } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
-import { motion } from 'framer-motion'
-import { ANIMATION_CONFIG, createStaggerVariants, AnimatedListItem } from '@/components/animations/PageAnimations'
+import { cn } from '@/lib/utils'
 
 type ViewMode = 'grid' | 'list'
 
@@ -47,6 +47,9 @@ export function ImageGrid({
   const selectionMode = externalSelectionMode ?? internalSelectionMode
   const selectedIds = externalSelectedIds ?? internalSelectedIds
 
+  // 判断是否应该使用虚拟滚动
+  const shouldUseVirtualization = images.length > 30
+
   const handleSelect = (id: string, selected: boolean) => {
     if (onSelect) {
       onSelect(id, selected)
@@ -62,41 +65,30 @@ export function ImageGrid({
 
   const allSelected = images.length > 0 && selectedIds.size === images.length
 
+  // 图片预览处理
+  const handleImagePreview = useMemo(() => {
+    return (image: ImageFile) => {
+      // 预览逻辑在子组件中处理
+    }
+  }, [])
+
   return (
     <>
       <div className="space-y-4">
         {/* 图片网格/列表 */}
         {isLoading ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-16"
-          >
+          <div className="text-center py-16">
             <div className="inline-flex items-center gap-3 text-gray-500 dark:text-gray-400">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              >
-                <Search className="h-5 w-5" />
-              </motion.div>
+              <div className="h-5 w-5 border-2 border-gray-300 dark:border-gray-600 border-t-primary rounded-full animate-spin" />
               <span>加载中...</span>
             </div>
-          </motion.div>
+          </div>
         ) : images.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-16 px-4"
-          >
+          <div className="text-center py-16 px-4">
             <div className="max-w-md mx-auto space-y-4">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-                className="mx-auto w-24 h-24 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center"
-              >
+              <div className="mx-auto w-24 h-24 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center">
                 <ImageCardPlaceholder />
-              </motion.div>
+              </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 暂无图片
               </h3>
@@ -104,31 +96,37 @@ export function ImageGrid({
                 上传您的第一张图片开始使用
               </p>
             </div>
-          </motion.div>
+          </div>
         ) : viewMode === 'grid' ? (
-          <LazyImageGrid
-            images={images}
-            onDelete={onDelete}
-            onSelect={handleSelect}
-            selectedIds={selectedIds}
-            selectable={selectionMode}
-            onImageChange={onImageChange}
-            initialLoadCount={images.length <= 30 ? images.length : 24}
-            batchSize={12}
-          />
+          // 网格视图 - 根据图片数量选择渲染策略
+          shouldUseVirtualization ? (
+            <VirtualizedImageGrid
+              images={images}
+              onDelete={onDelete}
+              onSelect={handleSelect}
+              selectedIds={selectedIds}
+              selectable={selectionMode}
+              onPreview={handleImagePreview}
+              onImageChange={onImageChange}
+            />
+          ) : (
+            <LazyImageGrid
+              images={images}
+              onDelete={onDelete}
+              onSelect={handleSelect}
+              selectedIds={selectedIds}
+              selectable={selectionMode}
+              onImageChange={onImageChange}
+              initialLoadCount={images.length <= 30 ? images.length : 12}
+              batchSize={8}
+            />
+          )
         ) : (
           // 列表视图
-          <motion.div
-          initial="initial"
-          animate="animate"
-          variants={createStaggerVariants(ANIMATION_CONFIG.stagger.large)}
-          className="space-y-2"
-        >
-          {images.map((image) => (
-            <AnimatedListItem key={image.id}>
-              <motion.div
-                layout
-                whileHover={{ x: 4 }}
+          <div className="space-y-2">
+            {images.map((image) => (
+              <div
+                key={image.id}
                 className={`
                   flex items-center gap-4 p-4 rounded-xl border-2
                   bg-white dark:bg-gray-800
@@ -141,8 +139,7 @@ export function ImageGrid({
                 `}
                 onClick={() => handleSelect(image.id, !selectedIds.has(image.id))}
               >
-                <motion.input
-                  whileTap={{ scale: 0.9 }}
+                <input
                   type="checkbox"
                   checked={selectedIds.has(image.id)}
                   onChange={() => handleSelect(image.id, !selectedIds.has(image.id))}
@@ -157,17 +154,13 @@ export function ImageGrid({
                     {formatFileSize(image.size)}
                   </p>
                 </div>
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
-                >
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                   <Eye className="h-5 w-5 text-primary" />
-                </motion.div>
-              </motion.div>
-            </AnimatedListItem>
-          ))}
-        </motion.div>
-      )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   )

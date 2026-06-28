@@ -28,7 +28,7 @@ export function LazyImageGrid({
   selectable = false,
   onImageChange,
   initialLoadCount = 12,  // 首屏只渲染 12 张
-  batchSize = 12,  // 每次滚动再加载 12 张
+  batchSize = 8,  // 每次滚动再加载 8 张（减少批次大小）
 }: LazyImageGridProps) {
   // 将计算逻辑提到 useMemo，避免每次 render 重复计算
   const resolvedInitialLoadCount = useMemo(
@@ -45,17 +45,17 @@ export function LazyImageGrid({
   const visibleImages = images.slice(0, visibleCount)
   const hasMore = visibleCount < images.length
 
-  // 加载更多图片（防抖）
+  // 加载更多图片（防抖 + 延迟）
   const loadMore = useCallback(() => {
     if (isLoadingMore || !hasMore) return
 
     setIsLoadingMore(true)
-    // 使用 requestAnimationFrame 确保不阻塞主线程
+    // 使用双重 requestAnimationFrame + 延迟确保不阻塞主线程
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         setVisibleCount((prev) => Math.min(prev + batchSize, images.length))
         setIsLoadingMore(false)
-      })
+      }, 50) // 50ms 延迟让主线程有机会渲染
     })
   }, [isLoadingMore, hasMore, batchSize, images.length])
 
@@ -88,7 +88,7 @@ export function LazyImageGrid({
       {/* 图片网格 */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-4">
         {visibleImages.map((image, index) => (
-          <div key={`${image.id}-${index}`}>
+          <div key={image.id}>
             <ImageCard
               image={image}
               onDelete={onDelete}

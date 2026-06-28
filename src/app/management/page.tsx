@@ -9,8 +9,6 @@ import { useConfigStore } from '@/stores/configStore'
 import { useImages } from '@/hooks/useImages'
 import { ImageGrid } from '@/components/image/ImageGrid'
 import { ManagementToolbar } from '@/components/image/ManagementToolbar'
-import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
-import { motion } from 'framer-motion'
 import { ManagementSkeleton } from '@/components/loading/Skeleton'
 
 type SortField = 'name' | 'size' | 'path'
@@ -42,13 +40,13 @@ export default function ManagementPage() {
 
   // 使用 useMemo 缓存过滤和排序结果
   const filteredImages = useMemo(() => {
-    const filtered = images.filter((image) => {
+    const result = images.filter((image) => {
       const matchesSearch = image.name.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesDirectory = !selectedDirectory || image.path.startsWith(selectedDirectory)
       return matchesSearch && matchesDirectory
     })
 
-    return filtered.sort((a, b) => {
+    return result.slice().sort((a, b) => {
       let comparison = 0
 
       switch (sortField) {
@@ -63,7 +61,6 @@ export default function ManagementPage() {
           break
         default:
           comparison = a.name.localeCompare(b.name)
-          break
       }
 
       return sortOrder === 'asc' ? comparison : -comparison
@@ -72,16 +69,15 @@ export default function ManagementPage() {
 
   // 使用 useMemo 提取目录树
   const directories = useMemo(() => {
-    return Array.from(
-      new Set(
-        images
-          .map((img) => {
-            const parts = img.path.split('/')
-            return parts.length > 1 ? parts.slice(0, -1).join('/') : ''
-          })
-          .filter(Boolean)
-      )
-    )
+    if (images.length === 0) return []
+    const dirSet = new Set<string>()
+    for (const img of images) {
+      const parts = img.path.split('/')
+      if (parts.length > 1) {
+        dirSet.add(parts.slice(0, -1).join('/'))
+      }
+    }
+    return Array.from(dirSet).sort()
   }, [images])
 
   // 排序切换
@@ -177,29 +173,20 @@ export default function ManagementPage() {
   if (!session) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12">
-        <PageTransition>
-          <CardAnimation className="max-w-md w-full mx-4 p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-              className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center mb-6"
-            >
-              <Lock className="h-10 w-10 text-gray-400" />
-            </motion.div>
-            <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">
-              需要登录
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">
-              登录后才能管理图片
-            </p>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button onClick={() => router.push('/login')} size="lg" className="w-full">
-                立即登录
-              </Button>
-            </motion.div>
-          </CardAnimation>
-        </PageTransition>
+        <div className="max-w-md w-full mx-4 p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+          <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center mb-6">
+            <Lock className="h-10 w-10 text-gray-400" />
+          </div>
+          <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">
+            需要登录
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
+            登录后才能管理图片
+          </p>
+          <Button onClick={() => router.push('/login')} size="lg" className="w-full">
+            立即登录
+          </Button>
+        </div>
       </div>
     )
   }
@@ -207,124 +194,102 @@ export default function ManagementPage() {
   if (!isConfigured) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12">
-        <PageTransition>
-          <CardAnimation className="max-w-md w-full mx-4 p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-              className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center mb-6"
-            >
-              <FolderTree className="h-10 w-10 text-gray-400" />
-            </motion.div>
-            <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">
-              请先配置图床
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">
-              在开始之前，需要先配置您的 GitHub 仓库
-            </p>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button onClick={() => router.push('/config')} size="lg" className="w-full">
-                去配置
-              </Button>
-            </motion.div>
-          </CardAnimation>
-        </PageTransition>
+        <div className="max-w-md w-full mx-4 p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+          <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center mb-6">
+            <FolderTree className="h-10 w-10 text-gray-400" />
+          </div>
+          <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">
+            请先配置图床
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
+            在开始之前，需要先配置您的 GitHub 仓库
+          </p>
+          <Button onClick={() => router.push('/config')} size="lg" className="w-full">
+            去配置
+          </Button>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="min-h-[calc(100vh-4rem)]">
-      <PageTransition>
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          {/* 统一工具栏（单行） */}
-          <div className="mb-4">
-            <ManagementToolbar
-              images={images}
-              filteredCount={filteredImages.length}
-              searchQuery={searchQuery}
-              onSearchChange={handleSearchChange}
-              sortField={sortField}
-              sortOrder={sortOrder}
-              onSortFieldChange={handleSortFieldChange}
-              onSortOrderToggle={handleSortOrderToggle}
-              directories={directories}
-              selectedDirectory={selectedDirectory}
-              onDirectoryChange={handleDirectoryChange}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              selectionMode={selectionMode}
-              onToggleSelectionMode={handleToggleSelectionMode}
-              selectedCount={selectedIds.size}
-              allSelected={allSelected}
-              onSelectAll={handleSelectAll}
-              onClearSelection={handleClearSelection}
-              onBulkCopy={handleBulkCopy}
-              onBulkDelete={handleBulkDeleteWithConfirm}
-              copied={copiedIds.size > 0}
-            />
-          </div>
-
-          {/* 图片网格 - 移除 PageTransition 和动画，减少性能开销 */}
-          <div className="transition-opacity duration-200">
-            <ImageGrid
-              images={filteredImages}
-              onDelete={handleDelete}
-              onBulkDelete={handleBulkDelete}
-              isLoading={isLoading}
-              viewMode={viewMode}
-              selectionMode={selectionMode}
-              selectedIds={selectedIds}
-              onSelect={(id, selected) => {
-                setSelectedIds((prev) => {
-                  const newSet = new Set(prev)
-                  if (selected) newSet.add(id)
-                  else newSet.delete(id)
-                  return newSet
-                })
-              }}
-            />
-          </div>
-
-          {/* 空状态 */}
-          {!isLoading && filteredImages.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-16 px-4"
-            >
-              <div className="max-w-md mx-auto space-y-4">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-                  className="mx-auto w-24 h-24 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center"
-                >
-                  <ImageIcon className="h-12 w-12 text-gray-400" />
-                </motion.div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {searchQuery || selectedDirectory ? '没有找到图片' : '暂无图片'}
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {searchQuery
-                    ? `没有找到匹配"${searchQuery}"的图片`
-                    : selectedDirectory
-                    ? `"${selectedDirectory}"目录下没有图片`
-                    : '上传您的第一张图片开始使用'}
-                </p>
-                {!searchQuery && !selectedDirectory && (
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button onClick={() => router.push('/')} className="mt-4">
-                      上传图片
-                    </Button>
-                  </motion.div>
-                )}
-              </div>
-            </motion.div>
-          )}
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* 统一工具栏（单行） */}
+        <div className="mb-4">
+          <ManagementToolbar
+            images={images}
+            filteredCount={filteredImages.length}
+            searchQuery={searchQuery}
+            onSearchChange={handleSearchChange}
+            sortField={sortField}
+            sortOrder={sortOrder}
+            onSortFieldChange={handleSortFieldChange}
+            onSortOrderToggle={handleSortOrderToggle}
+            directories={directories}
+            selectedDirectory={selectedDirectory}
+            onDirectoryChange={handleDirectoryChange}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            selectionMode={selectionMode}
+            onToggleSelectionMode={handleToggleSelectionMode}
+            selectedCount={selectedIds.size}
+            allSelected={allSelected}
+            onSelectAll={handleSelectAll}
+            onClearSelection={handleClearSelection}
+            onBulkCopy={handleBulkCopy}
+            onBulkDelete={handleBulkDeleteWithConfirm}
+            copied={copiedIds.size > 0}
+          />
         </div>
-      </PageTransition>
+
+        {/* 图片网格 - 移除 PageTransition 和动画，减少性能开销 */}
+        <div className="transition-opacity duration-200">
+          <ImageGrid
+            images={filteredImages}
+            onDelete={handleDelete}
+            onBulkDelete={handleBulkDelete}
+            isLoading={isLoading}
+            viewMode={viewMode}
+            selectionMode={selectionMode}
+            selectedIds={selectedIds}
+            onSelect={(id, selected) => {
+              setSelectedIds((prev) => {
+                const newSet = new Set(prev)
+                if (selected) newSet.add(id)
+                else newSet.delete(id)
+                return newSet
+              })
+            }}
+          />
+        </div>
+
+        {/* 空状态 */}
+        {!isLoading && filteredImages.length === 0 && (
+          <div className="text-center py-16 px-4">
+            <div className="max-w-md mx-auto space-y-4">
+              <div className="mx-auto w-24 h-24 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center">
+                <ImageIcon className="h-12 w-12 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {searchQuery || selectedDirectory ? '没有找到图片' : '暂无图片'}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {searchQuery
+                  ? '没有找到匹配 "' + searchQuery + '" 的图片'
+                  : selectedDirectory
+                  ? '"' + selectedDirectory + '" 目录下没有图片'
+                  : '上传您的第一张图片开始使用'}
+              </p>
+              {!searchQuery && !selectedDirectory && (
+                <Button onClick={() => router.push('/')} className="mt-4">
+                  上传图片
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

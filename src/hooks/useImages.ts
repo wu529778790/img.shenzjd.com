@@ -30,11 +30,11 @@ export function useImages() {
       // 使用 Git Trees API 一次性获取所有文件（仅需 1 次请求）
       const allFiles = await api.listAllFilesWithTree()
 
-      // 过滤出图片文件
-      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
+      // 过滤出图片文件 - 使用 Set 提高性能
+      const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'])
       const imageFiles = allFiles.filter((file) => {
         const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'))
-        return imageExtensions.includes(ext)
+        return imageExtensions.has(ext)
       })
 
       // 转换为业务层对象（不获取提交时间，使用文件名/大小/路径排序）
@@ -60,7 +60,8 @@ export function useImages() {
       })
     },
     enabled: !!token && !!owner && !!repo,
-    staleTime: 60 * 1000, // 1 分钟
+    staleTime: 2 * 60 * 1000, // 2 分钟
+    gcTime: 5 * 60 * 1000, // 5 分钟
   })
 
   // 用 ref 跟踪 images 变化，供 handleBulkDelete 使用
@@ -99,22 +100,36 @@ export function useImages() {
     },
   })
 
-  // 批量删除
+  // 批量删除 - 使用分批和延迟，避免阻塞 UI
   const bulkDeleteMutation = useMutation({
     mutationFn: async (filePaths: string[]) => {
       if (!token || !owner || !repo) throw new Error('Not configured')
 
       const api = new GitHubAPI(token, owner, repo, branch)
 
-      // 逐个删除
-      const results = await Promise.allSettled(
-        filePaths.map(async (filePath) => {
-          // 先获取当前文件信息以获取正确的 SHA
-          const file = await api.getFile(filePath, branch)
-          await api.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, file.sha)
-          return filePath
-        })
-      )
+      // 分批删除，每批最多 3 个，批次间延迟 500ms
+      const results = []
+      const batchSize = 3
+
+      for (let i = 0; i < filePaths.length; i += batchSize) {
+        const batch = filePaths.slice(i, i + batchSize)
+
+        const batchResults = await Promise.allSettled(
+          batch.map(async (filePath) => {
+            // 先获取当前文件信息以获取正确的 SHA
+            const file = await api.getFile(filePath, branch)
+            await api.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, file.sha)
+            return filePath
+          })
+        )
+
+        results.push(...batchResults)
+
+        // 批次之间添加延迟（最后一批不加）
+        if (i + batchSize < filePaths.length) {
+          await new Promise(resolve => setTimeout(resolve, 500))
+        }
+      }
 
       const successful = results.filter((r) => r.status === 'fulfilled').length
       const failed = results.filter((r) => r.status === 'rejected').length

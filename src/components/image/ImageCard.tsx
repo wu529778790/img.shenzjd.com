@@ -18,8 +18,6 @@ import { useOperationLogStore } from '@/stores/operationLogStore'
 import { toast } from 'sonner'
 import { ImageCardDeleteConfirm } from './ImageCardDeleteConfirm'
 import type { ImageFile } from '@/types/image'
-import { motion } from 'framer-motion'
-import { ANIMATION_CONFIG, scaleVariants } from '@/components/animations/PageAnimations'
 
 // 极小尺寸的 1×1 透明像素，用作 unoptimized 图片的 blur placeholder（< 100B）
 const TINY_BLUR_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=='
@@ -78,20 +76,14 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
 
   return (
     <>
-      <motion.div
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        variants={scaleVariants}
-        whileHover={{ scale: 1.02, y: -4 }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ duration: ANIMATION_CONFIG.duration.fast / 1000 }}
+      {/* 图片卡片 - 简化动画，只保留必要的hover效果 */}
+      <div
         className={`
           group relative overflow-hidden rounded-xl
           bg-white dark:bg-gray-800
           border border-gray-200 dark:border-gray-700
-          shadow-sm hover:shadow-xl
-          transition-all duration-300 ease-out
+          shadow-sm hover:shadow-md
+          transition-all duration-200 ease-out
           cursor-pointer
           ${selected ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-900' : ''}
         `}
@@ -109,16 +101,16 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
             src={image.cdnUrl || image.download_url}
             alt={image.name}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             priority={priority}
             loading={priority ? 'eager' : 'lazy'}
             unoptimized={!!image.cdnUrl}
             placeholder="blur"
             blurDataURL={TINY_BLUR_B64}
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
 
-          {/* 选中状态指示器 — layout="position" + CSS transition 替代 AnimatePresence */}
+          {/* 选中状态指示器 */}
           <div
             className="absolute top-3 right-3 transition-all duration-200"
             style={{
@@ -184,7 +176,7 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
             </DropdownMenu>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* 单张删除确认弹窗 */}
       <ImageCardDeleteConfirm
@@ -200,5 +192,3 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
     </>
   )
 })
-
-ImageCard.displayName = 'ImageCard'

@@ -30,7 +30,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu'
-import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { formatFileSize } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
@@ -111,11 +110,7 @@ export function ManagementToolbar({
   const currentSortLabel = SORT_OPTIONS.find((o) => o.field === sortField)?.label ?? '排序'
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm"
-    >
+    <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
       {/* 左侧：统计 */}
       {stats && (
         <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 px-1 shrink-0">
@@ -147,17 +142,13 @@ export function ManagementToolbar({
           aria-label="搜索图片"
         />
         {searchQuery && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+          <button
             onClick={() => onSearchChange('')}
             className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center transition-colors"
             aria-label="清除搜索"
           >
             <X className="h-3 w-3" />
-          </motion.button>
+          </button>
         )}
       </div>
 
@@ -256,72 +247,56 @@ export function ManagementToolbar({
       <div className="flex-1 min-w-0" />
 
       {/* 批量操作（多选模式下有选中时显示） */}
-      <AnimatePresence>
-        {selectionMode && selectedCount > 0 && (
-          <motion.div
-            initial={{ opacity: 0, scaleX: 0 }}
-            animate={{ opacity: 1, scaleX: 1 }}
-            exit={{ opacity: 0, scaleX: 0 }}
-            style={{ originX: 1 }}
-            className="flex items-center gap-1.5 overflow-hidden shrink-0"
+      {selectionMode && selectedCount > 0 && (
+        <div className="flex items-center gap-1.5 overflow-hidden shrink-0">
+          <span className="text-xs text-primary font-medium px-1">
+            {selectedCount} 项
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onClearSelection}
+            className="h-7 px-2 text-xs gap-1"
           >
-            <span className="text-xs text-primary font-medium px-1">
-              {selectedCount} 项
-            </span>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onClearSelection}
-              className="h-7 px-2 text-xs gap-1"
-            >
-              取消
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onBulkCopy}
-              className="h-7 px-2 text-xs gap-1"
-            >
-              {copied ? (
-                <Check className="h-3 w-3 text-green-600" />
-              ) : (
-                <Copy className="h-3 w-3" />
-              )}
-            </Button>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={onBulkDelete}
-              className="h-7 px-2 text-xs gap-1"
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            取消
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onBulkCopy}
+            className="h-7 px-2 text-xs gap-1"
+          >
+            {copied ? (
+              <Check className="h-3 w-3 text-green-600" />
+            ) : (
+              <Copy className="h-3 w-3" />
+            )}
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={onBulkDelete}
+            className="h-7 px-2 text-xs gap-1"
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
 
       {/* 多选模式下显示全选 */}
-      <AnimatePresence>
-        {selectionMode && (
-          <motion.div
-            initial={{ opacity: 0, scaleX: 0 }}
-            animate={{ opacity: 1, scaleX: 1 }}
-            exit={{ opacity: 0, scaleX: 0 }}
-            style={{ originX: 0 }}
-            className="overflow-hidden shrink-0"
-          >
-            <label className="flex items-center gap-1.5 text-xs cursor-pointer group px-1">
-              <input
-                type="checkbox"
-                checked={allSelected}
-                onChange={onSelectAll}
-                className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary cursor-pointer"
-              />
-              <span className="group-hover:text-primary transition-colors">全选</span>
-            </label>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {selectionMode && (
+        <div className="overflow-hidden shrink-0">
+          <label className="flex items-center gap-1.5 text-xs cursor-pointer group px-1">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={onSelectAll}
+              className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary cursor-pointer"
+            />
+            <span className="group-hover:text-primary transition-colors">全选</span>
+          </label>
+        </div>
+      )}
 
       {/* 多选按钮 */}
       <Button
@@ -365,6 +340,6 @@ export function ManagementToolbar({
           <List className="h-3.5 w-3.5" />
         </Button>
       </div>
-    </motion.div>
+    </div>
   )
 }

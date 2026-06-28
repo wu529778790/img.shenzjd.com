@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
-import { motion } from 'framer-motion'
+import { useRef, useMemo, useEffect, useState, useCallback } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { ImageCard } from '@/components/image/ImageCard'
+import { ImagePreview } from './ImagePreview'
 import type { ImageFile } from '@/types/image'
 
 interface VirtualizedImageGridProps {
@@ -11,13 +12,15 @@ interface VirtualizedImageGridProps {
   onSelect?: (id: string, selected: boolean) => void
   selectedIds?: Set<string>
   selectable?: boolean
-  itemHeight?: number
-  overscan?: number
+  onPreview?: (image: ImageFile) => void
+  onImageChange?: (image: ImageFile) => void
+  overscan?: number  // 预渲染行数
 }
 
 /**
- * 虚拟化图片网格组件
- * 只渲染可视区域内的图片，大幅提升长列表性能
+ * 虚拟滚动图片网格组件
+ * 使用 @tanstack/react-virtual 实现高性能虚拟滚动
+ * 只渲染可见区域的图片，支持大量图片（1000+）流畅滚动
  */
 export function VirtualizedImageGrid({
   images,
@@ -25,145 +28,172 @@ export function VirtualizedImageGrid({
   onSelect,
   selectedIds = new Set(),
   selectable = false,
-  itemHeight = 320, // 卡片高度 + 间距
-  overscan = 5, // 上下额外渲染的行数
+  onPreview,
+  onImageChange,
+  overscan = 3,
 }: VirtualizedImageGridProps) {
-  const [scrollTop, setScrollTop] = useState(0)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [containerHeight, setContainerHeight] = useState(0)
+  const parentRef = useRef<HTMLDivElement>(null)
+  const [containerWidth, setContainerWidth] = useState(0)
+  const [previewImage, setPreviewImage] = useState<ImageFile | null>(null)
 
-  // 响应式列数
-  const [columns, setColumns] = useState(4)
+  // 根据容器宽度动态计算列数
+  const columns = useMemo(() => {
+    if (!containerWidth) return 5
 
-  // 监听容器高度变化
+    if (containerWidth >= 1024) return 5
+    if (containerWidth >= 768) return 4
+    if (containerWidth >= 640) return 3
+    return 2
+  }, [containerWidth])
+
+  // 计算行数
+  const rowCount = Math.ceil(images.length / columns)
+
+  // 预估行高（图片卡片 + gap）
+  const estimatedRowHeight = 320
+
+  // 虚拟滚动器
+  const rowVirtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => estimatedRowHeight,
+    overscan,
+    enabled: images.length > 30,
+  })
+
+  // 监听容器宽度变化
   useEffect(() => {
-    if (!containerRef.current) return
+    if (!parentRef.current) return
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const width = entry.contentRect.width
-        setContainerHeight(entry.contentRect.height)
-
-        // 根据宽度计算列数
-        if (width < 640) {
-          setColumns(2) // mobile
-        } else if (width < 768) {
-          setColumns(2) // small tablet
-        } else if (width < 1024) {
-          setColumns(3) // tablet
-        } else if (width < 1280) {
-          setColumns(4) // desktop
-        } else if (width < 1536) {
-          setColumns(5) // wide
-        } else {
-          setColumns(5) // ultra-wide
-        }
+        setContainerWidth(entry.contentRect.width)
       }
     })
 
-    resizeObserver.observe(containerRef.current)
+    resizeObserver.observe(parentRef.current)
 
     return () => {
       resizeObserver.disconnect()
     }
   }, [])
 
-  // 计算总行数
-  const totalRows = Math.ceil(images.length / columns)
+  // 图片点击处理
+  const handleImageClick = useCallback((image: ImageFile) => {
+    if (selectable) {
+      onSelect?.(image.id, !selectedIds.has(image.id))
+    } else {
+      onPreview?.(image)
+      setPreviewImage(image)
+    }
+  }, [selectable, selectedIds, onSelect, onPreview])
 
-  // 计算可视范围
-  const { startIndex, endIndex } = useMemo(() => {
-    const startRow = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan)
-    const visibleRowCount = Math.ceil(containerHeight / itemHeight) + overscan * 2
-    const endRow = Math.min(totalRows, startRow + visibleRowCount)
+  // 当图片数量较少时，直接渲染所有图片
+  if (images.length <= 30) {
+    return (
+      <>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-4">
+          {images.map((image, index) => (
+            <div key={image.id}>
+              <ImageCard
+                image={image}
+                onDelete={onDelete}
+                onSelect={onSelect}
+                selected={selectedIds.has(image.id)}
+                selectable={selectable}
+                priority={index < 12}
+                onPreview={handleImageClick}
+              />
+            </div>
+          ))}
+        </div>
 
-    const startIdx = startRow * columns
-    const endIdx = Math.min(images.length, endRow * columns)
-
-    return { startIndex: startIdx, endIndex: endIdx }
-  }, [scrollTop, containerHeight, totalRows, columns, itemHeight, overscan, images.length])
-
-  // 可视范围内的图片
-  const visibleImages = useMemo(() => {
-    return images.slice(startIndex, endIndex).map((image, index) => ({
-      image,
-      globalIndex: startIndex + index,
-    }))
-  }, [images, startIndex, endIndex])
-
-  // 滚动处理
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement
-    setScrollTop(target.scrollTop)
-  }, [])
-
-  // 总高度
-  const totalHeight = totalRows * itemHeight
-
-  // 起始偏移
-  const startY = Math.floor(startIndex / columns) * itemHeight
-
-  if (images.length === 0) {
-    return null
+        {/* 图片预览模态框 */}
+        {previewImage && (
+          <ImagePreview
+            image={previewImage}
+            images={images}
+            onImageChange={onImageChange}
+            onClose={() => setPreviewImage(null)}
+          />
+        )}
+      </>
+    )
   }
 
+  // 虚拟滚动模式
+  const virtualItems = rowVirtualizer.getVirtualItems()
+
   return (
-    <div
-      ref={containerRef}
-      onScroll={handleScroll}
-      className="h-full scrollbar-thin"
-      style={{
-        height: containerHeight > 0 ? containerHeight : 'auto',
-      }}
-    >
-      <div style={{ height: totalHeight, position: 'relative' }}>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+    <>
+      <div
+        ref={parentRef}
+        className="overflow-auto h-[calc(100vh-280px)] scrollbar-thin"
+        style={{
+          contain: 'strict',
+        }}
+      >
+        <div
           style={{
-            position: 'absolute',
-            top: startY,
-            left: 0,
-            right: 0,
+            height: `${rowVirtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
           }}
         >
-          <div
-            className="grid gap-4"
-            style={{
-              gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-            }}
-          >
-            {visibleImages.map(({ image, globalIndex }) => (
-              <motion.div
-                key={`${image.id}-${globalIndex}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.2,
-                  delay: Math.min((globalIndex % columns) * 0.02, 0.1),  // 优化：20ms 延迟，最大 100ms
+          {virtualItems.map((virtualRow) => {
+            const startIndex = virtualRow.index * columns
+            const endIndex = Math.min(startIndex + columns, images.length)
+            const rowImages = images.slice(startIndex, endIndex)
+
+            return (
+              <div
+                key={virtualRow.index}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
                 }}
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-4"
               >
-                <ImageCard
-                  image={image}
-                  onDelete={onDelete}
-                  onSelect={onSelect}
-                  selected={selectedIds.has(image.id)}
-                  selectable={selectable}
-                  priority={globalIndex < 24} // 优先加载前 24 张（覆盖首屏 6-8 列 x 3-4 行）
-                />
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+                {rowImages.map((image) => (
+                  <div key={image.id}>
+                    <ImageCard
+                      image={image}
+                      onDelete={onDelete}
+                      onSelect={onSelect}
+                      selected={selectedIds.has(image.id)}
+                      selectable={selectable}
+                      priority={false}
+                      onPreview={handleImageClick}
+                    />
+                  </div>
+                ))}
+              </div>
+            )
+          })}
+        </div>
       </div>
-    </div>
+
+      {/* 图片预览模态框 */}
+      {previewImage && (
+        <ImagePreview
+          image={previewImage}
+          images={images}
+          onImageChange={onImageChange}
+          onClose={() => setPreviewImage(null)}
+        />
+      )}
+    </>
   )
 }
 
 /**
  * 决定是否使用虚拟列表
- * 当图片数量 > 20 时启用（优化性能）
+ * 当图片数量 > 30 时启用
  */
 export function shouldVirtualize(imagesCount: number): boolean {
-  return imagesCount > 20
+  return imagesCount > 30
 }
