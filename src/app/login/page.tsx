@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Key } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -11,7 +11,14 @@ export default function LoginPage() {
   const router = useRouter()
   const loginWithOAuth = useAuthStore((state) => state.loginWithOAuth)
 
+  // 检查是否配置了 GitHub OAuth
+  const [hasGitHubOAuth, setHasGitHubOAuth] = useState(false)
+
   useEffect(() => {
+    // 检查 OAuth 配置（需要在客户端执行）
+    const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID
+    setHasGitHubOAuth(Boolean(clientId))
+
     // 检查 URL 中是否有 token（OAuth 回调）
     const params = new URLSearchParams(window.location.search)
     const token = params.get('token')
