@@ -93,10 +93,10 @@ export function useUpload() {
       }
 
       // 3. 生成文件路径
-      const timestamp = Date.now()
-      const random = Math.random().toString(36).substring(2, 8)
       const ext = processedFile.name.split('.').pop()
-      const fileName = `${timestamp}-${random}.${ext}`
+      const fileName = config.useOriginalFileName
+        ? processedFile.name                                    // 保持原名
+        : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`  // 时间戳重命名
       const filePath = config.directory ? `${config.directory}/${fileName}` : fileName
 
       console.log('[Upload] File path:', filePath)

@@ -24,6 +24,8 @@ const defaultConfig: Config = {
   useRaw: true,
   copyFormat: 'markdown',
   autoCopyAfterUpload: true,
+  // 上传时使用原始文件名（关闭则用时间戳重命名）
+  useOriginalFileName: false,
   configPath: '.imgx-config/config.json',
   autoSync: true,
 }

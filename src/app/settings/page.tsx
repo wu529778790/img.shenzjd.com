@@ -118,6 +118,39 @@ function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
           </motion.div>
         </div>
 
+        {/* 文件名设置 */}
+        <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700/50">
+          <div className="flex items-center gap-2">
+            <Image className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wide">文件名设置</h3>
+          </div>
+
+          {/* 使用原始文件名 */}
+          <motion.div
+            whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
+            className="flex items-center justify-between p-4 rounded-xl -mx-2 transition-colors"
+          >
+            <div className="flex-1">
+              <p className="font-medium">保留原始文件名</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                关闭时自动使用时间戳命名（推荐），开启时保持上传时的文件名
+              </p>
+            </div>
+            <motion.label
+              whileTap={{ scale: 0.95 }}
+              className="relative inline-flex items-center cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={configStore.useOriginalFileName}
+                onChange={(e) => configStore.updateConfig({ useOriginalFileName: e.target.checked })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+            </motion.label>
+          </motion.div>
+        </div>
+
         {/* 复制链接设置 */}
         <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700/50">
           <div className="flex items-center gap-2">
