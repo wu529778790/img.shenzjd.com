@@ -22,14 +22,18 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, account }: { token: any; account?: any; profile?: any }) {
+    async jwt({ token, account, profile }: { token: any; account?: any; profile?: any }) {
       if (account) {
         token.accessToken = account.access_token
+        // 从 GitHub profile 中获取 username（login 字段）
+        token.githubUsername = profile?.login || null
       }
       return token
     },
     async session({ session, token }: { session: Session; token: any }) {
       session.accessToken = token.accessToken
+      // 将 GitHub username 添加到 session
+      session.user.githubUsername = token.githubUsername
       return session
     },
   },

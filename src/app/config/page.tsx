@@ -31,12 +31,29 @@ export default function ConfigPage() {
     updateConfig,
   } = configStore
 
-  // 获取当前登录用户
+  // 获取当前登录用户的 GitHub username
   useEffect(() => {
     const fetchUser = async () => {
-      const session = await getSession()
-      if (session?.user) {
-        setCurrentUser((session.user as any).name || session.user.email || '')
+      try {
+        const session = await getSession()
+        if (session?.user) {
+          // 优先使用 GitHub username (login)，如果没有则使用 name 或 email
+          const username = (session.user as any).githubUsername || session.user.name || session.user.email
+          // 提取 @ 前的部分作为 username（如果是 email）
+          const cleanUsername = username.includes('@') ? username.split('@')[0] : username
+          setCurrentUser(cleanUsername)
+
+          // 调试日志
+          console.log('Session user info:', {
+            name: session.user.name,
+            email: session.user.email,
+            githubUsername: (session.user as any).githubUsername,
+            image: session.user.image,
+            finalUsername: cleanUsername
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch user:', error)
       }
     }
     fetchUser()
