@@ -4,17 +4,24 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
-import { Settings, Moon, Sun, Monitor, Trash2, Lock, Link2, Globe, Zap, Image, Shield, ShieldAlert, User, Info } from 'lucide-react'
+import { Settings, Moon, Sun, Monitor, Trash2, Lock, Link2, Globe, Image, ShieldAlert, User, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { useConfigStore, type ConfigState } from '@/stores/configStore'
+import { useConfigStore } from '@/stores/configStore'
+import { useOperationLogStore } from '@/stores/operationLogStore'
 import { useThemeStore } from '@/hooks/useTheme'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import type { Config } from '@/types/config'
+
+interface ConfigState extends Config {
+  updateConfig: (updates: Partial<Config>) => void
+  resetConfig: () => void
+}
 
 // ── Section components (defined outside SettingsPage for stable identity) ─────
 
@@ -72,7 +79,6 @@ function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
         {/* 压缩设置 */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-primary" />
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wide">压缩设置</h3>
           </div>
 
@@ -275,7 +281,7 @@ function DangerSection({
   return (
     <CardAnimation delay={0} className="p-6 rounded-2xl bg-white dark:bg-gray-800 border border-red-200 dark:border-red-900/50 shadow-sm">
       <div className="flex items-center gap-2 mb-4 pb-3 border-b border-red-100 dark:border-red-900/50">
-        <Shield className="h-5 w-5 text-red-600 dark:text-red-400" />
+        <ShieldAlert className="h-5 w-5 text-red-600 dark:text-red-400" />
         <h2 className="text-xl font-semibold text-red-600 dark:text-red-400">危险操作</h2>
       </div>
       <div className="space-y-4">
@@ -379,6 +385,7 @@ export default function SettingsPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
   const configStore: ConfigState = useConfigStore()
+  const { addLog: addOperationLog } = useOperationLogStore()
   const { theme, setTheme } = useThemeStore()
 
   const [activeSection, setActiveSection] = useState(0)
@@ -437,6 +444,13 @@ export default function SettingsPage() {
   const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
     setTheme(newTheme)
     toast.success('主题已更新')
+    const themeNames: Record<string, string> = { light: '浅色', dark: '深色', system: '跟随系统' }
+    addOperationLog({
+      type: 'settings',
+      action: '切换主题',
+      status: 'success',
+      detail: themeNames[newTheme],
+    })
   }
 
   const handleClearConfig = () => {
@@ -460,6 +474,13 @@ export default function SettingsPage() {
     if (value) {
       configStore.updateConfig({ cdn: value as 'github' | 'jsdelivr' | 'github-pages' })
       toast.success('CDN 已更新')
+      const cdnNames: Record<string, string> = { github: 'GitHub', jsdelivr: 'jsDelivr', 'jsdmirror': 'jsDMirror', 'github-pages': 'GitHub Pages' }
+      addOperationLog({
+        type: 'settings',
+        action: '切换 CDN',
+        status: 'success',
+        detail: cdnNames[value],
+      })
     }
   }
 
