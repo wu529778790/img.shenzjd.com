@@ -1,11 +1,15 @@
 import NextAuth from 'next-auth'
 import GitHubProvider from 'next-auth/providers/github'
-import type { Session } from 'next-auth'
+import type { Session, User } from 'next-auth'
 
-// 扩展 Session 类型以包含 accessToken
+// 扩展 Session 和 User 类型
 declare module 'next-auth' {
   interface Session {
     accessToken?: string
+  }
+
+  interface User {
+    githubUsername?: string
   }
 }
 
@@ -34,7 +38,9 @@ export const authOptions = {
     async session({ session, token }: { session: Session; token: any }) {
       session.accessToken = token.accessToken
       // 将 GitHub username 添加到 session
-      session.user.githubUsername = token.githubUsername
+      if (session.user) {
+        (session.user as any).githubUsername = token.githubUsername
+      }
       console.log('Session callback - githubUsername:', token.githubUsername)
       return session
     },
