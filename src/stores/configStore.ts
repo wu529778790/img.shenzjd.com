@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { Config } from '@/types/config'
 
 export interface ConfigState extends Config {
-  updateConfig: (updates: Partial<Config>) => void
+  updateConfig: (updates: Partial<Config>, onUpdate?: () => void) => void
   resetConfig: () => void
 }
 
@@ -28,8 +28,9 @@ export const useConfigStore = create<ConfigState>()(
   persist(
     (set) => ({
       ...defaultConfig,
-      updateConfig: (updates) => {
+      updateConfig: (updates, onUpdate) => {
         set((state) => ({ ...state, ...updates }))
+        if (onUpdate) onUpdate()
       },
       resetConfig: () => {
         set(defaultConfig)

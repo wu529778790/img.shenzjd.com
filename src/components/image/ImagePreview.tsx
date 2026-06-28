@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { generateLink } from '@/lib/link'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
+import { useOperationLogStore } from '@/stores/operationLogStore'
 import { toast } from 'sonner'
 import type { ImageFile } from '@/types/image'
 
@@ -17,8 +18,9 @@ interface ImagePreviewProps {
 
 export function ImagePreview({ image, onClose }: ImagePreviewProps) {
   const { data: session } = useSession()
-  const token = (session as any)?.accessToken || ''
+  const token = session?.accessToken || ''
   const configStore = useConfigStore()
+  const { addLog: addOperationLog } = useOperationLogStore()
 
   // ESC 键关闭
   useEffect(() => {
@@ -46,6 +48,12 @@ export function ImagePreview({ image, onClose }: ImagePreviewProps) {
     try {
       await navigator.clipboard.writeText(link)
       toast.success('链接已复制')
+      addOperationLog({
+        type: 'copy',
+        action: '复制链接',
+        status: 'success',
+        detail: `${format}: ${link}`,
+      })
     } catch (error) {
       toast.error('复制失败')
     }

@@ -14,5 +14,3 @@ export interface Config {
   cdn: 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages'
   useRaw: boolean
 }
-
-export type CompressionQuality = 0 | 25 | 50 | 75 | 100

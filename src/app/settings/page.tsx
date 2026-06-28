@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner'
 import { useConfigStore, type ConfigState } from '@/stores/configStore'
 import { useOperationLogStore } from '@/stores/operationLogStore'
+import { useQueryClient } from '@tanstack/react-query'
 import { useThemeStore } from '@/hooks/useTheme'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -380,6 +381,7 @@ export default function SettingsPage() {
   const { data: session, status } = useSession()
   const configStore: ConfigState = useConfigStore()
   const { addLog: addOperationLog } = useOperationLogStore()
+  const queryClient = useQueryClient()
   const { theme, setTheme } = useThemeStore()
 
   const [activeSection, setActiveSection] = useState(0)
@@ -466,7 +468,16 @@ export default function SettingsPage() {
 
   const handleCdnChange = (value: string | null) => {
     if (value) {
-      configStore.updateConfig({ cdn: value as 'github' | 'jsdelivr' | 'github-pages' })
+      configStore.updateConfig(
+        { cdn: value as 'github' | 'jsdelivr' | 'github-pages' },
+        () => {
+          // CDN 配置变更后，invalidate 图片列表（CDN URL 会变）
+          const { owner, repo, branch } = configStore
+          if (owner && repo && branch) {
+            queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
+          }
+        }
+      )
       toast.success('CDN 已更新')
       const cdnNames: Record<string, string> = { github: 'GitHub', jsdelivr: 'jsDelivr', 'jsdmirror': 'jsDMirror', 'github-pages': 'GitHub Pages' }
       addOperationLog({

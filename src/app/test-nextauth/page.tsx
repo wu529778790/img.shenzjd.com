@@ -5,6 +5,15 @@ import { useSession, signIn, signOut } from 'next-auth/react'
 export default function NextAuthTestPage() {
   const { data: session, status } = useSession()
 
+  // 仅在开发环境显示
+  if (process.env.NODE_ENV !== 'development') {
+    return (
+      <div className="container mx-auto py-8">
+        <p className="text-gray-500">页面未找到</p>
+      </div>
+    )
+  }
+
   if (status === 'loading') {
     return (
       <div className="container mx-auto py-8">

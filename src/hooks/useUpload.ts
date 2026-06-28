@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { compressImage } from '@/lib/compress'
 import { addWatermark } from '@/lib/watermark'
@@ -15,9 +15,8 @@ import type { ImageFile, LinkOptions } from '@/types/image'
 
 export function useUpload() {
   const { data: session } = useSession()
-  const token = (session as any)?.accessToken || ''
+  const token = session?.accessToken || ''
   const config = useConfigStore()
-  const queryClient = useQueryClient()
   const { addLog: addOperationLog } = useOperationLogStore()
   const { addTasks, updateTask, removeTask: removeTaskStore, clearQueue, retryTask: retryTaskStore, retryFailed: retryFailedStore } = useUploadStore()
 

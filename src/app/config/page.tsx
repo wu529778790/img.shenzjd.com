@@ -10,10 +10,12 @@ import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { useConfigStore } from '@/stores/configStore'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function ConfigPage() {
   const router = useRouter()
   const configStore = useConfigStore()
+  const queryClient = useQueryClient()
 
   const [loading, setLoading] = useState(false)
   const [repos, setRepos] = useState<Array<{ name: string; full_name: string }>>([])
@@ -144,12 +146,19 @@ export default function ConfigPage() {
         throw new Error('Failed to create repo')
       }
 
-      updateConfig({
-        owner: currentUser,
-        repo: repoName,
-        branch: 'main',
-        directory: 'images',
-      })
+      updateConfig(
+        {
+          owner: currentUser,
+          repo: repoName,
+          branch: 'main',
+          directory: 'images',
+        },
+        () => {
+          // 配置更新后 invalidate 相关 queries
+          queryClient.invalidateQueries({ queryKey: ['images'] })
+          queryClient.invalidateQueries({ queryKey: ['repo-folders'] })
+        }
+      )
 
       toast.success('图床配置成功！')
       router.push('/upload')
@@ -167,12 +176,18 @@ export default function ConfigPage() {
       return
     }
 
-    updateConfig({
-      owner: currentUser,
-      repo,
-      branch,
-      directory,
-    })
+    updateConfig(
+      {
+        owner: currentUser,
+        repo,
+        branch,
+        directory,
+      },
+      () => {
+        queryClient.invalidateQueries({ queryKey: ['images'] })
+        queryClient.invalidateQueries({ queryKey: ['repo-folders'] })
+      }
+    )
 
     toast.success('配置已保存')
     router.push('/upload')

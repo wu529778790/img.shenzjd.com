@@ -12,7 +12,7 @@ import type { ImageFile } from '@/types/image'
 
 export function useImages() {
   const { data: session } = useSession()
-  const token = (session as any)?.accessToken || ''
+  const token = session?.accessToken || ''
   const configStore = useConfigStore()
   const queryClient = useQueryClient()
   const { addLog: addOperationLog } = useOperationLogStore()

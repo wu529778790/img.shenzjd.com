@@ -167,37 +167,3 @@ export function ManagementSkeleton() {
     </div>
   )
 }
-
-// 添加全局骨架动画样式
-export const skeletonStyles = `
-  .shimmer-bg {
-    background: linear-gradient(
-      90deg,
-      rgb(243 244 246 / 1) 0%,
-      rgb(229 231 235 / 1) 50%,
-      rgb(243 244 246 / 1) 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-  }
-
-  .dark .shimmer-bg {
-    background: linear-gradient(
-      90deg,
-      rgb(31 41 55 / 1) 0%,
-      rgb(55 65 81 / 1) 50%,
-      rgb(31 41 55 / 1) 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-  }
-
-  @keyframes shimmer {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
-  }
-`

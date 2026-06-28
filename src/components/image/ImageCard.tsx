@@ -41,7 +41,7 @@ interface ImageCardProps {
 
 export function ImageCard({ image, onDelete, onSelect, selected, selectable, priority }: ImageCardProps) {
   const { data: session } = useSession()
-  const token = (session as any)?.accessToken || ''
+  const token = session?.accessToken || ''
   const configStore = useConfigStore()
   const { addLog: addOperationLog } = useOperationLogStore()
 

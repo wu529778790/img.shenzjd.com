@@ -14,7 +14,7 @@ export interface RepoFolder {
 
 export function useRepoFolders() {
   const { data: session } = useSession()
-  const token = (session as any)?.accessToken || ''
+  const token = session?.accessToken || ''
   const config = useConfigStore()
 
   const fetchFolders = useCallback(async (): Promise<RepoFolder[]> => {
