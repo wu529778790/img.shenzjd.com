@@ -96,7 +96,8 @@ export const listItemVariants: Variants = {
 }
 
 // 创建一个交错动画的列表
-export function createStaggerVariants(itemsCount: number, baseDelay: number = ANIMATION_CONFIG.stagger.small) {
+// baseDelay: 交错延迟（ms），用于 staggerChildren，值越大列表越长动画越慢
+export function createStaggerVariants(baseDelay: number = ANIMATION_CONFIG.stagger.small) {
   return {
     animate: {
       transition: {
@@ -165,7 +166,7 @@ export function AnimatedList({ children, className }: AnimatedListProps) {
     <motion.div
       initial="initial"
       animate="animate"
-      variants={createStaggerVariants(0)}
+      variants={createStaggerVariants()}
       className={className}
     >
       {children}

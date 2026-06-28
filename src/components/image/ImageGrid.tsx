@@ -255,7 +255,7 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
         ) : (
           // 普通网格（图片数量 ≤ 50）
           <motion.div
-            variants={createStaggerVariants(images.length)}
+            variants={createStaggerVariants()}
             initial="initial"
             animate="animate"
             className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4"
@@ -278,7 +278,7 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
         <motion.div
           initial="initial"
           animate="animate"
-          variants={createStaggerVariants(images.length, 20)}
+          variants={createStaggerVariants(20)}
           className="space-y-2"
         >
           {images.map((image) => (
