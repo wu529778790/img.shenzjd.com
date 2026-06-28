@@ -189,15 +189,15 @@ export default function ManagementPage() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
-            <CardAnimation className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <CardAnimation className="p-3 sm:p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
               {/* 统计和搜索区域 */}
-              <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+              <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
                 {/* 左侧：统计信息 */}
-                <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
                   <ImageStats images={images} />
                   {stats && (
-                    <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                      <Badge variant="secondary" className="font-medium">
+                    <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                      <Badge variant="secondary" className="font-medium text-xs">
                         {stats.total} 张图片
                       </Badge>
                       <span className="hidden sm:inline text-gray-300 dark:text-gray-700">|</span>
@@ -209,7 +209,7 @@ export default function ManagementPage() {
                 </div>
 
                 {/* 右侧：搜索框 */}
-                <div className="relative w-full lg:w-72 group">
+                <div className="relative w-full lg:w-64 group">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-gray-400 group-focus-within:text-primary transition-colors pointer-events-none" />
                   <Input
                     type="text"
@@ -220,7 +220,7 @@ export default function ManagementPage() {
                       "pl-10 h-10 rounded-xl border-gray-200 dark:border-gray-700",
                       "focus:ring-2 focus:ring-primary/20 focus:border-primary",
                       "transition-all duration-200",
-                      searchQuery && "pr-10"
+                      searchQuery && "pr-9"
                     )}
                     aria-label="搜索图片"
                   />
@@ -241,13 +241,13 @@ export default function ManagementPage() {
               </div>
 
               {/* 排序和过滤区域 */}
-              <div className="flex flex-col sm:flex-row gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex flex-col sm:flex-row gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
                 {/* 排序按钮组 */}
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
                     排序:
                   </span>
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-1">
                     {[
                       { field: 'name' as SortField, label: '名称' },
                       { field: 'size' as SortField, label: '大小' },
@@ -297,7 +297,7 @@ export default function ManagementPage() {
                     <div className="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700" />
                     <div className="flex items-center gap-2 flex-wrap">
                       <FolderOpen className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
                         目录:
                       </span>
                       <div className="flex gap-1 flex-wrap">
@@ -306,7 +306,7 @@ export default function ManagementPage() {
                           whileTap={{ scale: 0.98 }}
                           onClick={() => setSelectedDirectory('')}
                           className={cn(
-                            "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                            "px-2.5 py-1 rounded-md text-xs font-medium transition-all",
                             !selectedDirectory
                               ? "bg-primary text-white shadow-sm"
                               : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
@@ -321,7 +321,7 @@ export default function ManagementPage() {
                             whileTap={{ scale: 0.98 }}
                             onClick={() => handleDirectoryChange(dir)}
                             className={cn(
-                              "px-3 py-1.5 rounded-lg text-sm font-medium transition-all truncate max-w-[150px]",
+                              "px-2.5 py-1 rounded-md text-xs font-medium transition-all truncate max-w-[150px]",
                               selectedDirectory === dir
                                 ? "bg-primary text-white shadow-sm"
                                 : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"

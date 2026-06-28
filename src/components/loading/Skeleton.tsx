@@ -125,40 +125,40 @@ export function SkeletonStats() {
 // 骨架工具栏 - 统计+搜索
 export function SkeletonToolbar() {
   return (
-    <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+    <div className="p-3 sm:p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
       {/* 第一行：统计 + 搜索 */}
-      <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+      <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
         {/* 左侧：统计信息 */}
-        <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
           <SkeletonStats />
-          <div className="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700" />
-          <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
+          <div className="hidden sm:block w-px h-5 bg-gray-200 dark:bg-gray-700" />
+          <div className="h-3.5 w-28 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
         </div>
 
         {/* 右侧：搜索框 */}
-        <div className="relative w-full lg:w-72">
-          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-xl shimmer-bg" />
+        <div className="relative w-full lg:w-64">
+          <div className="h-9 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
         </div>
       </div>
 
       {/* 第二行：排序 + 目录过滤 */}
-      <div className="flex flex-col sm:flex-row gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+      <div className="flex flex-col sm:flex-row gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
         {/* 排序按钮 */}
         <div className="flex items-center gap-2">
-          <div className="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
-          <div className="flex gap-1.5">
-            <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
-            <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
-            <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
+          <div className="h-3.5 w-10 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
+          <div className="flex gap-1">
+            <div className="h-7 w-14 bg-gray-200 dark:bg-gray-700 rounded-md shimmer-bg" />
+            <div className="h-7 w-14 bg-gray-200 dark:bg-gray-700 rounded-md shimmer-bg" />
+            <div className="h-7 w-14 bg-gray-200 dark:bg-gray-700 rounded-md shimmer-bg" />
           </div>
         </div>
 
         {/* 目录过滤 */}
         <div className="flex items-center gap-2">
-          <div className="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
-          <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
-          <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
-          <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded-lg shimmer-bg" />
+          <div className="h-3.5 w-10 bg-gray-200 dark:bg-gray-700 rounded shimmer-bg" />
+          <div className="h-7 w-16 bg-gray-200 dark:bg-gray-700 rounded-md shimmer-bg" />
+          <div className="h-7 w-20 bg-gray-200 dark:bg-gray-700 rounded-md shimmer-bg" />
+          <div className="h-7 w-16 bg-gray-200 dark:bg-gray-700 rounded-md shimmer-bg" />
         </div>
       </div>
     </div>
