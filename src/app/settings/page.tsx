@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
-import { Settings, Moon, Sun, Monitor, Trash2, Lock, Link2, Globe, Image, ShieldAlert, User, Info } from 'lucide-react'
+import { Settings, Trash2, Lock, Link2, Globe, Image, ShieldAlert, User, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
@@ -13,54 +13,11 @@ import { toast } from 'sonner'
 import { useConfigStore, type ConfigState } from '@/stores/configStore'
 import { useOperationLogStore } from '@/stores/operationLogStore'
 import { useQueryClient } from '@tanstack/react-query'
-import { useThemeStore } from '@/hooks/useTheme'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 // ── Section components (defined outside SettingsPage for stable identity) ─────
-
-function AppearanceSection({
-  theme,
-  onThemeChange,
-}: {
-  theme: 'light' | 'dark' | 'system'
-  onThemeChange: (t: 'light' | 'dark' | 'system') => void
-}) {
-  return (
-    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
-        <Sun className="h-5 w-5 text-primary" />
-        <h2 className="text-xl font-semibold">主题模式</h2>
-      </div>
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { value: 'light', icon: Sun, label: '浅色' },
-          { value: 'dark',  icon: Moon, label: '深色' },
-          { value: 'system', icon: Monitor, label: '跟随系统' },
-        ].map((option) => {
-          const Icon = option.icon
-          const isSelected = theme === option.value
-          return (
-            <motion.div key={option.value} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                variant={isSelected ? 'default' : 'outline'}
-                onClick={() => onThemeChange(option.value as 'light' | 'dark' | 'system')}
-                className={cn(
-                  'w-full h-auto py-4 flex flex-col items-center gap-2 rounded-xl transition-all',
-                  isSelected && 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-800'
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="text-sm font-medium">{option.label}</span>
-              </Button>
-            </motion.div>
-          )
-        })}
-      </div>
-    </CardAnimation>
-  )
-}
 
 function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
   return (
@@ -320,14 +277,32 @@ function DangerSection({
   )
 }
 
-function AccountSection() {
+function AccountSection({ session }: { session: any }) {
+  const user = session?.user
+  if (!user) return null
+
   return (
     <CardAnimation delay={0} className="p-6 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
         <User className="h-5 w-5 text-primary" />
         <h2 className="text-xl font-semibold">账户</h2>
       </div>
-      <p className="text-sm text-gray-500 dark:text-gray-400">更多账户设置即将推出。</p>
+      <div className="flex items-center gap-4">
+        {user.image ? (
+          <img src={user.image} alt={user.name || ''} className="h-14 w-14 rounded-full ring-2 ring-gray-200 dark:ring-gray-700" />
+        ) : (
+          <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+            {(user.name || user.email || '?')[0].toUpperCase()}
+          </div>
+        )}
+        <div className="flex-1 min-w-0 space-y-1">
+          <p className="font-semibold text-lg truncate">{user.name || '未设置姓名'}</p>
+          {user.email && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+          )}
+          <p className="text-xs text-gray-400">GitHub 账户</p>
+        </div>
+      </div>
     </CardAnimation>
   )
 }
@@ -382,17 +357,15 @@ export default function SettingsPage() {
   const configStore: ConfigState = useConfigStore()
   const { addLog: addOperationLog } = useOperationLogStore()
   const queryClient = useQueryClient()
-  const { theme, setTheme } = useThemeStore()
 
   const [activeSection, setActiveSection] = useState(0)
 
   const sections = [
-    { id: 'appearance', label: '外观', icon: Sun },
-    { id: 'image',      label: '图片处理', icon: Image },
-    { id: 'network',    label: '网络', icon: Globe },
-    { id: 'danger',     label: '危险操作', icon: ShieldAlert },
-    { id: 'account',    label: '账户', icon: User },
-    { id: 'about',      label: '关于', icon: Info },
+    { id: 'image',    label: '图片处理', icon: Image },
+    { id: 'network',  label: '网络',     icon: Globe },
+    { id: 'danger',   label: '危险操作', icon: ShieldAlert },
+    { id: 'account',  label: '账户',     icon: User },
+    { id: 'about',    label: '关于',     icon: Info },
   ] as const
 
   // 如果正在加载
@@ -435,18 +408,6 @@ export default function SettingsPage() {
         </PageTransition>
       </div>
     )
-  }
-
-  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
-    setTheme(newTheme)
-    toast.success('主题已更新')
-    const themeNames: Record<string, string> = { light: '浅色', dark: '深色', system: '跟随系统' }
-    addOperationLog({
-      type: 'settings',
-      action: '切换主题',
-      status: 'success',
-      detail: themeNames[newTheme],
-    })
   }
 
   const handleClearConfig = () => {
@@ -579,18 +540,15 @@ export default function SettingsPage() {
                   })}
                 </div>
 
-                {activeSection === 0 && (
-                  <AppearanceSection theme={theme} onThemeChange={handleThemeChange} />
-                )}
-                {activeSection === 1 && <ImageProcessingSection configStore={configStore} />}
-                {activeSection === 2 && (
+                {activeSection === 0 && <ImageProcessingSection configStore={configStore} />}
+                {activeSection === 1 && (
                   <NetworkSection configStore={configStore} onCdnChange={handleCdnChange} />
                 )}
-                {activeSection === 3 && (
+                {activeSection === 2 && (
                   <DangerSection onClearConfig={handleClearConfig} onClearAuth={handleClearAuth} />
                 )}
-                {activeSection === 4 && <AccountSection />}
-                {activeSection === 5 && <AboutSection />}
+                {activeSection === 3 && <AccountSection session={session} />}
+                {activeSection === 4 && <AboutSection />}
               </motion.div>
             </AnimatePresence>
           </main>

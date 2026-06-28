@@ -149,19 +149,6 @@ export function Header() {
               </svg>
             </a>
 
-            {/* 图床信息 */}
-            {configStore.repo && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-sm text-gray-600 dark:text-gray-400"
-              >
-                <span className="font-mono text-xs">
-                  {configStore.owner}/{configStore.repo}
-                </span>
-              </motion.div>
-            )}
-
             {/* 用户菜单 */}
             {user && (
               <DropdownMenu>

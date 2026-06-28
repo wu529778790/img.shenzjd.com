@@ -11,7 +11,6 @@ import { useConfigStore } from '@/stores/configStore'
 import { useImages } from '@/hooks/useImages'
 import { ImageGrid } from '@/components/image/ImageGrid'
 import { ImageStats } from '@/components/image/ImageStats'
-import { OperationLogPanel } from '@/components/management/OperationLogPanel'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -353,13 +352,6 @@ export default function ManagementPage() {
               onBulkDelete={handleBulkDelete}
               isLoading={isLoading}
             />
-          </div>
-
-          {/* Right sidebar — operation log */}
-          <div className="hidden lg:block w-72 flex-shrink-0">
-            <div className="sticky top-20">
-              <OperationLogPanel />
-            </div>
           </div>
         </div>
       </PageTransition>
