@@ -19,8 +19,8 @@ import { toast } from 'sonner'
 import { ImageCardDeleteConfirm } from './ImageCardDeleteConfirm'
 import type { ImageFile } from '@/types/image'
 
-// 极小尺寸的 1×1 透明像素，用作 unoptimized 图片的 blur placeholder（< 100B）
-const TINY_BLUR_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=='
+// 图片加载占位符 - 柔和的灰色渐变（小尺寸以减少 base64 长度）
+const IMAGE_PLACEHOLDER_B64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdACmZ/8QAFBEBAAAAAAAAAAAAAAAAAAAAof/aAAgBAQABBP8H/8QAFBEBAAAAAAAAAAAAAAAAAAAAof/aAAgBAgABPwH/2Q=='
 
 interface ImageCardProps {
   image: ImageFile
@@ -78,16 +78,19 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
     <>
       {/* 图片卡片 - 简化动画，只保留必要的hover效果 */}
       <div
-        className={`
+        className="
           group relative overflow-hidden rounded-xl
           bg-white dark:bg-gray-800
           border border-gray-200 dark:border-gray-700
           shadow-sm hover:shadow-md
           transition-all duration-200 ease-out
           cursor-pointer
-          focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900
+          focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
+          dark:focus-visible:ring-offset-gray-900
+          aria-checked:ring-2 aria-checked:ring-primary
+          aria-checked:ring-offset-2 dark:aria-checked:ring-offset-gray-900
           ${selected ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-900' : ''}
-        `}
+        "
         onClick={() => {
           if (selectable) {
             onSelect?.(image.id, !selected)
@@ -121,7 +124,7 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
             loading={priority ? 'eager' : 'lazy'}
             unoptimized={!!image.cdnUrl}
             placeholder="blur"
-            blurDataURL={TINY_BLUR_B64}
+            blurDataURL={IMAGE_PLACEHOLDER_B64}
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
 
@@ -155,7 +158,7 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
             </span>
             <DropdownMenu>
               <DropdownMenuTrigger
-                className="h-8 w-8 p-0 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="h-9 w-9 p-0 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 onClick={(e) => e.stopPropagation()}
                 aria-label={`${image.name} 操作菜单`}
               >

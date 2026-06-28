@@ -442,13 +442,15 @@
   }
 }
 
-/* 确保至少 44px 的触摸目标 */
+/* 确保至少 44px 的触摸目标 - 仅原生交互元素 */
 @layer base {
-  button, a, input, select, textarea, [role="button"], [role="link"] {
+  button, a, input, select, textarea {
     min-height: 44px;
     min-width: 44px;
   }
 }
+
+/* 自定义可点击元素在组件内单独定义 */
 
 /* 打印样式增强 */
 @media print {
