@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dialog'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
+import { useOperationLogStore } from '@/stores/operationLogStore'
 import { toast } from 'sonner'
 import { ImagePreview } from './ImagePreview'
 import type { ImageFile } from '@/types/image'
@@ -42,6 +43,7 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
   const { data: session } = useSession()
   const token = (session as any)?.accessToken || ''
   const configStore = useConfigStore()
+  const { addLog: addOperationLog } = useOperationLogStore()
 
   const [showPreview, setShowPreview] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -70,6 +72,12 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
         url: '链接',
       }
       toast.success(`${formatNames[format]}已复制`)
+      addOperationLog({
+        type: 'copy',
+        action: '复制链接',
+        status: 'success',
+        detail: `${formatNames[format]}: ${link}`,
+      })
     } catch (error) {
       toast.error('复制失败')
     }
