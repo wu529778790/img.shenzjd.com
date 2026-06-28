@@ -1,16 +1,20 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const callbackUrl = useMemo(() => searchParams.get('callbackUrl') || '/upload', [])
 
   const handleGitHubLogin = () => {
-    signIn('github', { callbackUrl: '/upload' })
+    signIn('github', { callbackUrl })
   }
 
   return (
@@ -36,4 +40,8 @@ export default function LoginPage() {
       </Card>
     </div>
   )
+}
+
+export default function LoginPage() {
+  return <LoginContent />
 }

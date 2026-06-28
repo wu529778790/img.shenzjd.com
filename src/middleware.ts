@@ -7,5 +7,5 @@ export default withAuth({
 })
 
 export const config = {
-  matcher: ['/management/:path*', '/settings/:path*']
+  matcher: ['/management/:path*', '/settings/:path*', '/upload/:path*', '/config/:path*']
 }
