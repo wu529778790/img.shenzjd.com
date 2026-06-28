@@ -76,7 +76,7 @@ export class GitHubAPI {
   }
 
   // 递归列出所有文件
-  async listAllFiles(path: string = '', allFiles: GitHubFile[] = []): Promise<GitHubFile[]> {
+  async listAllFiles(path: string = '', allFiles: Map<string, GitHubFile> = new Map()): Promise<GitHubFile[]> {
     try {
       const files = await this.listContents(path)
 
@@ -85,14 +85,17 @@ export class GitHubAPI {
           // 递归遍历子文件夹
           await this.listAllFiles(file.path, allFiles)
         } else {
-          allFiles.push(file)
+          // 使用 SHA 作为 key，避免重复
+          if (!allFiles.has(file.sha)) {
+            allFiles.set(file.sha, file)
+          }
         }
       }
 
-      return allFiles
+      return Array.from(allFiles.values())
     } catch (error) {
       console.error(`Failed to list files in ${path}:`, error)
-      return allFiles
+      return Array.from(allFiles.values())
     }
   }
 
