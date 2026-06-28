@@ -124,13 +124,6 @@ export function Header() {
                   >
                     <Icon className="h-4 w-4" />
                     {item.name}
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeNav"
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"
-                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                      />
-                    )}
                   </Link>
                 </motion.div>
               )
