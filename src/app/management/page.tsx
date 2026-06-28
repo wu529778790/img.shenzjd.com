@@ -222,6 +222,7 @@ export default function ManagementPage() {
             images={filteredImages}
             onDelete={handleDelete}
             onBulkDelete={handleBulkDelete}
+            isLoading={isLoading}
           />
 
           {isLoading && (

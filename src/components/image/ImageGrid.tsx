@@ -12,11 +12,12 @@ interface ImageGridProps {
   images: ImageFile[]
   onDelete?: (id: string) => void
   onBulkDelete?: (ids: string[]) => void
+  isLoading?: boolean
 }
 
 type ViewMode = 'grid' | 'list'
 
-export function ImageGrid({ images, onDelete, onBulkDelete }: ImageGridProps) {
+export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }: ImageGridProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set())
@@ -139,7 +140,11 @@ export function ImageGrid({ images, onDelete, onBulkDelete }: ImageGridProps) {
       )}
 
       {/* 图片网格/列表 */}
-      {images.length === 0 ? (
+      {isLoading ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500">加载中...</p>
+        </div>
+      ) : images.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500">暂无图片</p>
         </div>
