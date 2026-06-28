@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/providers/SessionProvider";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { Header } from "@/components/layout/Header";
+import { SyncGitHubTokenToLocalStorage } from "@/hooks/useSyncGitHubToken";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,6 +35,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300`}>
         <ReactQueryProvider>
           <AuthProvider>
+            <SyncGitHubTokenToLocalStorage />
             <div className="relative flex min-h-screen flex-col">
               <Header />
               <main className="flex-1">
