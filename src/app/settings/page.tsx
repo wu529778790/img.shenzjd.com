@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
-import { Settings, Trash2, Lock, Link2, Globe, Image, ShieldAlert, User, Info } from 'lucide-react'
+import { Settings, Trash2, Lock, Link2, Globe, Image, ShieldAlert, User, Info, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner'
 import { useConfigStore, type ConfigState } from '@/stores/configStore'
 import { useOperationLogStore } from '@/stores/operationLogStore'
+import { OperationLogPanel } from '@/components/management/OperationLogPanel'
 import { useQueryClient } from '@tanstack/react-query'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -361,11 +362,12 @@ export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState(0)
 
   const sections = [
-    { id: 'image',    label: '图片处理', icon: Image },
-    { id: 'network',  label: '网络',     icon: Globe },
-    { id: 'danger',   label: '危险操作', icon: ShieldAlert },
-    { id: 'account',  label: '账户',     icon: User },
-    { id: 'about',    label: '关于',     icon: Info },
+    { id: 'image',      label: '图片处理', icon: Image },
+    { id: 'network',    label: '网络',     icon: Globe },
+    { id: 'operation',  label: '操作日志', icon: FileText },
+    { id: 'danger',     label: '危险操作', icon: ShieldAlert },
+    { id: 'account',    label: '账户',     icon: User },
+    { id: 'about',      label: '关于',     icon: Info },
   ] as const
 
   // 如果正在加载
@@ -545,10 +547,13 @@ export default function SettingsPage() {
                   <NetworkSection configStore={configStore} onCdnChange={handleCdnChange} />
                 )}
                 {activeSection === 2 && (
+                  <OperationLogPanel />
+                )}
+                {activeSection === 3 && (
                   <DangerSection onClearConfig={handleClearConfig} onClearAuth={handleClearAuth} />
                 )}
-                {activeSection === 3 && <AccountSection session={session} />}
-                {activeSection === 4 && <AboutSection />}
+                {activeSection === 4 && <AccountSection session={session} />}
+                {activeSection === 5 && <AboutSection />}
               </motion.div>
             </AnimatePresence>
           </main>

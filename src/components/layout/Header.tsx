@@ -138,7 +138,7 @@ export function Header() {
 
             {/* GitHub 链接 */}
             <a
-              href="https://github.com"
+              href="https://github.com/wu529778790/img.shenzjd.com"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
