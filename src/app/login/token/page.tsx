@@ -1,19 +1,18 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import { Key } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { useAuthStore } from '@/stores/authStore'
 
 export default function TokenLoginPage() {
   const router = useRouter()
   const [token, setToken] = useState('')
-  const { login } = useAuthStore()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,24 +23,18 @@ export default function TokenLoginPage() {
     }
 
     try {
-      // 验证 token
-      const response = await fetch('/api/auth/user', {
-        headers: {
-          Authorization: `token ${token}`,
-        },
+      const result = await signIn('credentials', {
+        token,
+        redirect: false,
       })
 
-      if (!response.ok) {
-        throw new Error('Invalid token')
+      if (result?.error) {
+        throw new Error(result.error)
       }
-
-      const { user } = await response.json()
-
-      // 保存到 store
-      login(token)
 
       toast.success('登录成功')
       router.push('/upload')
+      router.refresh()
     } catch (error) {
       toast.error('Token 无效，请检查')
       console.error('Token validation failed:', error)

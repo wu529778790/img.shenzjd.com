@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { compressImage } from '@/lib/compress'
 import { addWatermark } from '@/lib/watermark'
-import { useAuthStore } from '@/stores/authStore'
+import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { useUploadStore } from '@/stores/uploadStore'
 import { GitHubAPI } from '@/lib/github'
@@ -13,7 +13,8 @@ import { generateLink } from '@/lib/link'
 import type { ImageFile, LinkOptions } from '@/types/image'
 
 export function useUpload() {
-  const token = useAuthStore((state) => state.token)
+  const { data: session } = useSession()
+  const token = (session as any)?.accessToken || ''
   const config = useConfigStore()
   const { addTasks, updateTask, removeTask, clearQueue } = useUploadStore()
 

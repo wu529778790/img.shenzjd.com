@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { X, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { generateLink } from '@/lib/link'
-import { useAuthStore } from '@/stores/authStore'
+import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { toast } from 'sonner'
 import type { ImageFile } from '@/types/image'
@@ -16,7 +16,8 @@ interface ImagePreviewProps {
 }
 
 export function ImagePreview({ image, onClose }: ImagePreviewProps) {
-  const { token } = useAuthStore()
+  const { data: session } = useSession()
+  const token = (session as any)?.accessToken || ''
   const configStore = useConfigStore()
 
   // ESC 键关闭

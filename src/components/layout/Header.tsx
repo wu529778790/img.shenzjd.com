@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { signOut, useSession } from 'next-auth/react'
 import { Upload, Image, Settings, ToolCase, FolderGit, LogOut, User } from 'lucide-react'
-import { useAuthStore } from '@/stores/authStore'
 import { useConfigStore } from '@/stores/configStore'
 import {
   DropdownMenu,
@@ -24,12 +24,12 @@ const navigation = [
 
 export function Header() {
   const pathname = usePathname()
-  const { user, logout } = useAuthStore()
+  const { data: session } = useSession()
+  const user = session?.user
   const configStore = useConfigStore()
 
-  const handleLogout = () => {
-    logout()
-    window.location.href = '/login'
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/login' })
   }
 
   return (
@@ -74,37 +74,39 @@ export function Header() {
             )}
 
             {/* 用户菜单 */}
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-2">
-                {user?.avatar_url ? (
-                  <img
-                    src={user.avatar_url}
-                    alt={user.login}
-                    className="h-8 w-8 rounded-full"
-                  />
-                ) : (
-                  <User className="h-5 w-5" />
-                )}
-                <span className="hidden md:inline">{user?.login}</span>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col">
-                      <span>{user?.name || user?.login}</span>
-                      {user?.email && (
-                        <span className="text-xs text-gray-500">{user.email}</span>
-                      )}
-                    </div>
-                  </DropdownMenuLabel>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  退出登录
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-2">
+                  {user.image ? (
+                    <img
+                      src={user.image}
+                      alt={user.name || ''}
+                      className="h-8 w-8 rounded-full"
+                    />
+                  ) : (
+                    <User className="h-5 w-5" />
+                  )}
+                  <span className="hidden md:inline">{user.name || user.email}</span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col">
+                        <span>{user.name || user.email}</span>
+                        {user.email && (
+                          <span className="text-xs text-gray-500">{user.email}</span>
+                        )}
+                      </div>
+                    </DropdownMenuLabel>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    退出登录
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
       </div>

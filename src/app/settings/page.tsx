@@ -1,24 +1,36 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { signOut } from 'next-auth/react'
 import { Settings, Moon, Sun, Monitor, Trash2, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { toast } from 'sonner'
-import { useAuthStore } from '@/stores/authStore'
 import { useConfigStore } from '@/stores/configStore'
 import { useThemeStore } from '@/hooks/useTheme'
 
 export default function SettingsPage() {
   const router = useRouter()
-  const { isAuthenticated } = useAuthStore()
+  const { data: session, status } = useSession()
   const configStore = useConfigStore()
   const { theme, setTheme } = useThemeStore()
 
+  // 如果正在加载
+  if (status === 'loading') {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="text-center py-12">
+          <p className="text-gray-500">加载中...</p>
+        </div>
+      </div>
+    )
+  }
+
   // 如果未登录，显示登录提示
-  if (!isAuthenticated) {
+  if (!session) {
     return (
       <div className="container mx-auto py-8">
         <div className="text-center py-12">
@@ -49,11 +61,10 @@ export default function SettingsPage() {
     router.push('/config')
   }
 
-  const handleClearAuth = () => {
+  const handleClearAuth = async () => {
     if (!confirm('确定要退出登录吗？')) return
 
-    localStorage.removeItem('auth-storage')
-    useAuthStore.getState().logout()
+    await signOut({ redirect: false })
     toast.success('已退出登录')
     router.push('/login')
   }

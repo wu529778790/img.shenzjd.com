@@ -2,63 +2,22 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import { Key } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { useAuthStore } from '@/stores/authStore'
 
 export default function LoginPage() {
   const router = useRouter()
-  const loginWithOAuth = useAuthStore((state) => state.loginWithOAuth)
-
-  // 检查是否配置了 GitHub OAuth
   const [hasGitHubOAuth, setHasGitHubOAuth] = useState(false)
 
   useEffect(() => {
-    // 检查 OAuth 配置（需要在客户端执行）
     const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID
-    console.log('🔍 Debug - GITHUB_CLIENT_ID from env:', clientId)
-    console.log('🔍 Debug - All NEXT_PUBLIC envs:', Object.keys(process.env).filter(key => key.startsWith('NEXT_PUBLIC_')))
     setHasGitHubOAuth(Boolean(clientId))
+  }, [])
 
-    // 检查 URL 中是否有 token（OAuth 回调）
-    const params = new URLSearchParams(window.location.search)
-    const token = params.get('token')
-    const user = params.get('user')
-    const error = params.get('error')
-
-    if (error) {
-      console.error('OAuth error:', error)
-      // TODO: 显示错误提示
-    }
-
-    if (token && user) {
-      // OAuth 登录成功，保存到 store
-      const userData = JSON.parse(decodeURIComponent(user))
-      loginWithOAuth(token, userData)
-
-      // 清空 URL 参数
-      window.history.replaceState({}, '', '/login')
-      // 跳转到上传页
-      router.push('/upload')
-    }
-  }, [router, loginWithOAuth])
-
-  const handleGitHubLogin = async () => {
-    try {
-      const response = await fetch('/api/auth/login')
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'GitHub OAuth 未配置')
-      }
-
-      window.location.href = data.url
-    } catch (error) {
-      console.error('GitHub login error:', error)
-      // TODO: 显示错误提示
-      alert(error instanceof Error ? error.message : 'GitHub OAuth 未配置，请使用 Token 登录')
-    }
+  const handleGitHubLogin = () => {
+    signIn('github', { callbackUrl: '/upload' })
   }
 
   const handleTokenLogin = () => {

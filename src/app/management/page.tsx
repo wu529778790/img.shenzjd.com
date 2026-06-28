@@ -2,17 +2,17 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Search, FolderTree, Loader2, Lock } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { useAuthStore } from '@/stores/authStore'
 import { useConfigStore } from '@/stores/configStore'
 import { useImages } from '@/hooks/useImages'
 import { ImageGrid } from '@/components/image/ImageGrid'
 
 export default function ManagementPage() {
   const router = useRouter()
-  const { isAuthenticated } = useAuthStore()
+  const { data: session, status } = useSession()
   const configStore = useConfigStore()
 
   const { images, isLoading, handleDelete, handleBulkDelete, isDeleting } = useImages()
@@ -23,8 +23,19 @@ export default function ManagementPage() {
   // 检查配置是否完整
   const isConfigured = configStore.owner && configStore.repo && configStore.branch
 
+  // 如果正在加载
+  if (status === 'loading') {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="text-center py-12">
+          <p className="text-gray-500">加载中...</p>
+        </div>
+      </div>
+    )
+  }
+
   // 如果未登录，显示登录提示
-  if (!isAuthenticated) {
+  if (!session) {
     return (
       <div className="container mx-auto py-8">
         <div className="text-center py-12">

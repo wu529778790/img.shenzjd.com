@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useAuthStore } from '@/stores/authStore'
+import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { toast } from 'sonner'
 import { ImagePreview } from './ImagePreview'
@@ -28,7 +28,8 @@ interface ImageCardProps {
 }
 
 export function ImageCard({ image, onDelete, onSelect, selected, selectable }: ImageCardProps) {
-  const { token } = useAuthStore()
+  const { data: session } = useSession()
+  const token = (session as any)?.accessToken || ''
   const configStore = useConfigStore()
 
   const [showPreview, setShowPreview] = useState(false)

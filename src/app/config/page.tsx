@@ -2,20 +2,20 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { getSession } from 'next-auth/react'
 import { Settings, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { useAuthStore } from '@/stores/authStore'
 import { useConfigStore } from '@/stores/configStore'
 
 export default function ConfigPage() {
   const router = useRouter()
-  const { token } = useAuthStore()
   const configStore = useConfigStore()
 
+  const [token, setToken] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [repos, setRepos] = useState<Array<{ name: string; full_name: string }>>([])
   const [branches, setBranches] = useState<string[]>([])
@@ -30,6 +30,17 @@ export default function ConfigPage() {
     directory,
     updateConfig,
   } = configStore
+
+  // 获取 session 中的 token
+  useEffect(() => {
+    const fetchSession = async () => {
+      const session = await getSession()
+      if (session) {
+        setToken((session as any).accessToken || '')
+      }
+    }
+    fetchSession()
+  }, [])
 
   // 获取用户仓库列表
   useEffect(() => {

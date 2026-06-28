@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { useAuthStore } from '@/stores/authStore'
+import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { GitHubAPI } from '@/lib/github'
 import type { ImageFile } from '@/types/image'
 
 export function useImages() {
-  const token = useAuthStore((state) => state.token)
+  const { data: session } = useSession()
+  const token = (session as any)?.accessToken || ''
   const configStore = useConfigStore()
   const queryClient = useQueryClient()
   const [allImages, setAllImages] = useState<ImageFile[]>([])
