@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions)
 
     if (!session || !session.accessToken) {
-      console.error('No session or accessToken:', { hasSession: !!session, hasToken: !!session?.accessToken })
+      console.error('Repos API: No session or accessToken')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -23,17 +23,27 @@ export async function GET(request: NextRequest) {
       next: { revalidate: 300 }, // 缓存 5 分钟
     })
 
-    console.log('GitHub API response status:', response.status, response.statusText)
+    console.log('GitHub repos API response status:', response.status, response.statusText)
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('GitHub API error:', errorText)
+      console.error('GitHub repos API error:', errorText)
       throw new Error(`GitHub API returned ${response.status}: ${response.statusText}`)
     }
 
     const repos = await response.json()
     console.log('Fetched repos count:', repos.length)
-    return NextResponse.json(repos)
+    console.log('First 5 repos:', repos.slice(0, 5).map((r: any) => ({ name: r.name, full_name: r.full_name, private: r.private })))
+
+    // 过滤并标准化 repo 数据
+    const standardizedRepos = repos.map((repo: any) => ({
+      name: repo.name,
+      full_name: repo.full_name,
+      private: repo.private,
+      owner: repo.owner?.login,
+    }))
+
+    return NextResponse.json(standardizedRepos)
   } catch (error) {
     console.error('Fetch repos error:', error)
     return NextResponse.json(

@@ -62,6 +62,7 @@ export default function ConfigPage() {
         }
 
         const data = await response.json()
+        console.log('Repos data:', data)
         setRepos(Array.isArray(data) ? data : [])
       } catch (error) {
         console.error('Failed to fetch repos:', error)
