@@ -52,11 +52,17 @@ export default function ConfigPage() {
         const response = await fetch('/api/repos', {
           headers: { Authorization: `token ${(await getSession())?.accessToken}` },
         })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch repos')
+        }
+
         const data = await response.json()
-        setRepos(data)
+        setRepos(Array.isArray(data) ? data : [])
       } catch (error) {
         console.error('Failed to fetch repos:', error)
         toast.error('获取仓库列表失败')
+        setRepos([])
       } finally {
         setLoadingRepos(false)
       }
@@ -76,11 +82,17 @@ export default function ConfigPage() {
           `/api/repos/${currentUser}/${repo}/branches`,
           { headers: { Authorization: `token ${(await getSession())?.accessToken}` } }
         )
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch branches')
+        }
+
         const data = await response.json()
-        setBranches(data.map((b: any) => b.name))
+        setBranches(Array.isArray(data) ? data.map((b: any) => b.name) : [])
       } catch (error) {
         console.error('Failed to fetch branches:', error)
         toast.error('获取分支列表失败')
+        setBranches([])
       } finally {
         setLoadingBranches(false)
       }
