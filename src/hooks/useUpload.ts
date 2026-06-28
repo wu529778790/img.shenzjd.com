@@ -82,13 +82,27 @@ export function useUpload() {
 
       // 4. 上传到 GitHub
       try {
+        console.log('[Upload] Starting GitHub upload...')
         const result = await api.createOrUpdateFile(
           filePath,
           processedFile,
           `Upload ${fileName} via ImgX`
         )
 
-        console.log('[Upload] GitHub API response:', result)
+        console.log('[Upload] GitHub upload result:', result)
+
+        // 验证文件是否真的创建成功
+        console.log('[Upload] Verifying file was created...')
+        const verifyFile = await api.getFile(filePath).catch((err) => {
+          console.error('[Upload] Verification failed:', err)
+          return null
+        })
+
+        if (!verifyFile) {
+          throw new Error('文件上传后验证失败，可能未成功创建')
+        }
+
+        console.log('[Upload] File verified successfully:', verifyFile.sha)
 
         const imageFile: ImageFile = {
           id: result.sha,
@@ -97,7 +111,7 @@ export function useUpload() {
           sha: result.sha,
           size: processedFile.size,
           url: `https://github.com/${config.owner}/${config.repo}/blob/${config.branch}/${filePath}`,
-          html_url: `https://github.com/${config.owner}/${config.repo}/blob/${config.branch}/${filePath}`,
+          html_url: result.html_url,
           download_url: `https://raw.githubusercontent.com/${config.owner}/${config.repo}/${config.branch}/${filePath}`,
           type: 'file',
           uploaded_at: new Date(),
@@ -117,7 +131,8 @@ export function useUpload() {
 
         const link = generateLink(linkOptions)
 
-        console.log('[Upload] Upload completed successfully:', fileName)
+        console.log('[Upload] Upload completed and verified successfully:', fileName)
+        console.log('[Upload] File URL:', result.html_url)
 
         return { file: imageFile, link }
       } catch (error: any) {

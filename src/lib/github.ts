@@ -110,15 +110,21 @@ export class GitHubAPI {
     filePath: string,
     content: string | Blob,
     message: string
-  ): Promise<{ sha: string }> {
+  ): Promise<{ sha: string; html_url: string }> {
     // 检查文件是否存在
     let sha: string | undefined
+    let fileExists = false
     try {
       const existing = await this.getFile(filePath)
       sha = existing.sha
+      fileExists = true
+      console.log(`[GitHub] File exists, will update: ${filePath}`)
     } catch {
       // 文件不存在，创建新文件
+      console.log(`[GitHub] File does not exist, will create: ${filePath}`)
     }
+
+    console.log(`[GitHub] ${fileExists ? 'Updating' : 'Creating'} file: ${filePath}`)
 
     // 处理 Blob 内容
     let contentBase64: string
@@ -127,6 +133,8 @@ export class GitHubAPI {
     } else {
       contentBase64 = Buffer.from(content).toString('base64')
     }
+
+    console.log(`[GitHub] Content size: ${contentBase64.length} bytes (base64)`)
 
     const response = await this.client.put(
       `/repos/${this.owner}/${this.repo}/contents/${filePath}`,
@@ -137,7 +145,16 @@ export class GitHubAPI {
       }
     )
 
-    return { sha: response.data.content.sha }
+    console.log(`[GitHub] Response:`, {
+      sha: response.data.content.sha,
+      html_url: response.data.content.html_url,
+      size: response.data.content.size,
+    })
+
+    return {
+      sha: response.data.content.sha,
+      html_url: response.data.content.html_url,
+    }
   }
 
   // 删除文件
