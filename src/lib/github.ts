@@ -196,7 +196,7 @@ export class GitHubAPI {
       filePaths.map(async (filePath) => {
         try {
           const file = await this.getFile(filePath)
-          return this.deleteFile(filePath, `Delete ${filePath}`, file.sha)
+          return this.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, file.sha)
         } catch (error) {
           console.error(`Failed to delete ${filePath}:`, error)
           throw error
