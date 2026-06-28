@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Search, FolderTree, Loader2, Lock, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Image as ImageIcon } from 'lucide-react'
+import { Search, FolderTree, Lock, ArrowUp, ArrowDown, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -30,7 +30,6 @@ export default function ManagementPage() {
   const [selectedDirectory, setSelectedDirectory] = useState<string>('')
   const [sortField, setSortField] = useState<SortField>('uploaded_at')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
-  const [showFilters, setShowFilters] = useState(false)
 
   // 检查配置是否完整
   const isConfigured = configStore.owner && configStore.repo && configStore.branch
