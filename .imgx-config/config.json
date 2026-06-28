@@ -1,0 +1,18 @@
+{
+  "owner": "wu529778790",
+  "repo": "img.shenzjd.com",
+  "branch": "master",
+  "directory": "",
+  "compressionEnabled": true,
+  "compressionQuality": 80,
+  "watermarkEnabled": false,
+  "watermarkText": "",
+  "watermarkColor": "#ffffff",
+  "watermarkSize": 24,
+  "watermarkPosition": "bottom-right",
+  "theme": "system",
+  "cdn": "jsdmirror",
+  "useRaw": true,
+  "configPath": ".imgx-config/config.json",
+  "autoSync": true
+}
