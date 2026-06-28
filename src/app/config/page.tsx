@@ -53,8 +53,12 @@ export default function ConfigPage() {
           headers: { Authorization: `token ${(await getSession())?.accessToken}` },
         })
 
+        console.log('Repos API response:', response.status, response.statusText)
+
         if (!response.ok) {
-          throw new Error('Failed to fetch repos')
+          const errorData = await response.json().catch(() => ({}))
+          console.error('Repos API error:', errorData)
+          throw new Error(errorData.error || `HTTP ${response.status}`)
         }
 
         const data = await response.json()

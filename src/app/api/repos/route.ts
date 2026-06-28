@@ -7,10 +7,13 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions)
 
     if (!session || !session.accessToken) {
+      console.error('No session or accessToken:', { hasSession: !!session, hasToken: !!session?.accessToken })
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const token = session.accessToken as string
+
+    console.log('Fetching repos with token:', token.substring(0, 10) + '...')
 
     const response = await fetch('https://api.github.com/user/repos', {
       headers: {
@@ -20,15 +23,21 @@ export async function GET(request: NextRequest) {
       next: { revalidate: 300 }, // 缓存 5 分钟
     })
 
+    console.log('GitHub API response status:', response.status, response.statusText)
+
     if (!response.ok) {
-      throw new Error('Failed to fetch repos')
+      const errorText = await response.text()
+      console.error('GitHub API error:', errorText)
+      throw new Error(`GitHub API returned ${response.status}: ${response.statusText}`)
     }
 
     const repos = await response.json()
+    console.log('Fetched repos count:', repos.length)
     return NextResponse.json(repos)
   } catch (error) {
+    console.error('Fetch repos error:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch repos' },
+      { error: error instanceof Error ? error.message : 'Failed to fetch repos' },
       { status: 500 }
     )
   }
