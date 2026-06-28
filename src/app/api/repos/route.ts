@@ -11,6 +11,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // 调试：返回 session 信息
+    console.log('Session debug:', {
+      hasUser: !!session.user,
+      userName: session.user?.name,
+      userEmail: session.user?.email,
+      userImage: session.user?.image,
+      accessToken: session.accessToken ? session.accessToken.substring(0, 10) + '...' : null,
+      userAllKeys: session.user ? Object.keys(session.user) : [],
+    })
+
     const token = session.accessToken as string
 
     console.log('Fetching repos with token:', token.substring(0, 10) + '...')
