@@ -179,6 +179,45 @@ export class GitHubAPI {
     return response.data
   }
 
+  // 获取文件的最后提交时间
+  async getFileCommitTime(path: string): Promise<Date | null> {
+    try {
+      const response = await this.client.get(`/repos/${this.owner}/${this.repo}/commits`, {
+        params: {
+          path: path,
+          per_page: 1,
+          sha: this.branch,
+        },
+      })
+
+      if (response.data && response.data.length > 0) {
+        const commitDate = response.data[0].commit?.committer?.date
+        return commitDate ? new Date(commitDate) : null
+      }
+
+      return null
+    } catch (error) {
+      console.error(`Failed to get commit time for ${path}:`, error)
+      return null
+    }
+  }
+
+  // 批量获取文件的最后提交时间
+  async getFilesCommitTime(paths: string[]): Promise<Map<string, Date>> {
+    const results = new Map<string, Date>()
+
+    await Promise.allSettled(
+      paths.map(async (path) => {
+        const date = await this.getFileCommitTime(path)
+        if (date) {
+          results.set(path, date)
+        }
+      })
+    )
+
+    return results
+  }
+
   private async blobToBase64(blob: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()

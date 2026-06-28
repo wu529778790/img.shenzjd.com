@@ -14,16 +14,12 @@ import type { GitHubFileInfo, ImageFile } from '@/types/image'
 // GitHubFileInfo 是 API 层的原始类型（来自 GitHub REST API）
 // ImageFile 是业务层类型（含 cdnUrl, uploaded_at 等派生字段）
 // 这个转换函数是两层之间的唯一边界
-function toImageFile(file: GitHubFileInfo, cdnUrl: string): ImageFile {
-  // 尝试从 SHA 解析日期，如果失败则设为 undefined
-  const dateFromSha = new Date(file.sha)
-  const uploadedAt = isNaN(dateFromSha.getTime()) ? undefined : dateFromSha
-
+function toImageFile(file: GitHubFileInfo, cdnUrl: string, commitTime?: Date): ImageFile {
   return {
     ...file,
     id: file.sha,
     type: 'file' as const,
-    uploaded_at: uploadedAt,
+    uploaded_at: commitTime, // 使用 GitHub Commits API 获取的最后提交时间
     cdnUrl,
   }
 }
@@ -55,24 +51,26 @@ export function useImages() {
           const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'))
           return imageExtensions.includes(ext)
         })
-        .map((file) => {
-          // 根据 CDN 配置生成正确的 URL
-          const cdnUrl = generateLink({
-            format: 'url',
-            cdn: cdn || 'github',
-            owner,
-            repo,
-            branch,
-            path: file.path,
-            fileName: file.name,
-            useRaw: useRaw ?? true,
-          })
 
-          // API 层 → 业务层显式转换
-          return toImageFile(file, cdnUrl)
+      // 批量获取所有文件的最后提交时间
+      const filePaths = imageFiles.map((file) => file.path)
+      const commitTimes = await api.getFilesCommitTime(filePaths)
+
+      // 转换为业务层对象，包含提交时间
+      return imageFiles.map((file) => {
+        const cdnUrl = generateLink({
+          format: 'url',
+          cdn: cdn || 'github',
+          owner,
+          repo,
+          branch,
+          path: file.path,
+          fileName: file.name,
+          useRaw: useRaw ?? true,
         })
 
-      return imageFiles
+        return toImageFile(file, cdnUrl, commitTimes.get(file.path) || undefined)
+      })
     },
     enabled: !!token && !!owner && !!repo,
     staleTime: 60 * 1000, // 1 分钟
