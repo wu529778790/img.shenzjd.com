@@ -177,17 +177,17 @@ export default function ManagementPage() {
           >
             图片管理
           </motion.h1>
-          <motion.p
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className="text-gray-500 dark:text-gray-400 mt-2"
+            className="flex items-center gap-2 mt-2 text-gray-500 dark:text-gray-400"
           >
-            管理您的图片
-            <Badge variant="secondary" className="ml-2">
+            <span>管理您的图片</span>
+            <Badge variant="secondary">
               {images.length} 张
             </Badge>
-          </motion.p>
+          </motion.div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
