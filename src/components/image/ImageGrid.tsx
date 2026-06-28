@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { ImageCard } from './ImageCard'
 import { LazyImageGrid } from './LazyImageGrid'
 import { VirtualizedImageGrid } from './VirtualizedImageGrid'
+import { ErrorBoundary } from '@/components/error/ErrorBoundary'
 import { formatFileSize } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
 import { cn } from '@/lib/utils'
@@ -98,29 +99,33 @@ export function ImageGrid({
             </div>
           </div>
         ) : viewMode === 'grid' ? (
-          // 网格视图 - 根据图片数量选择渲染策略
-          shouldUseVirtualization ? (
-            <VirtualizedImageGrid
-              images={images}
-              onDelete={onDelete}
-              onSelect={handleSelect}
-              selectedIds={selectedIds}
-              selectable={selectionMode}
-              onPreview={handleImagePreview}
-              onImageChange={onImageChange}
-            />
-          ) : (
-            <LazyImageGrid
-              images={images}
-              onDelete={onDelete}
-              onSelect={handleSelect}
-              selectedIds={selectedIds}
-              selectable={selectionMode}
-              onImageChange={onImageChange}
-              initialLoadCount={images.length <= 30 ? images.length : 12}
-              batchSize={8}
-            />
-          )
+          // 网格视图 - 使用错误边界包裹
+          <ErrorBoundary>
+            <div>
+              {shouldUseVirtualization ? (
+                <VirtualizedImageGrid
+                  images={images}
+                  onDelete={onDelete}
+                  onSelect={handleSelect}
+                  selectedIds={selectedIds}
+                  selectable={selectionMode}
+                  onPreview={handleImagePreview}
+                  onImageChange={onImageChange}
+                />
+              ) : (
+                <LazyImageGrid
+                  images={images}
+                  onDelete={onDelete}
+                  onSelect={handleSelect}
+                  selectedIds={selectedIds}
+                  selectable={selectionMode}
+                  onImageChange={onImageChange}
+                  initialLoadCount={images.length <= 30 ? images.length : 12}
+                  batchSize={8}
+                />
+              )}
+            </div>
+          </ErrorBoundary>
         ) : (
           // 列表视图
           <div className="space-y-2">

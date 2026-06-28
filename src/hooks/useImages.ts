@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useSession } from 'next-auth/react'
@@ -64,9 +64,12 @@ export function useImages() {
     gcTime: 5 * 60 * 1000, // 5 分钟
   })
 
-  // 用 ref 跟踪 images 变化，供 handleBulkDelete 使用
+  // 用 ref 跟踪 images 变化，供 handleDelete 使用
+  // 使用 useEffect 确保只在 images 实际变化时更新 ref
   const imagesRef = useRef(images)
-  imagesRef.current = images
+  useEffect(() => {
+    imagesRef.current = images
+  }, [images])
 
   // 删除图片
   const deleteMutation = useMutation({

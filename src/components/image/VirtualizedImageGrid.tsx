@@ -63,7 +63,8 @@ export function VirtualizedImageGrid({
 
   // 监听容器宽度变化
   useEffect(() => {
-    if (!parentRef.current) return
+    const parent = parentRef.current
+    if (!parent) return
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -71,7 +72,7 @@ export function VirtualizedImageGrid({
       }
     })
 
-    resizeObserver.observe(parentRef.current)
+    resizeObserver.observe(parent)
 
     return () => {
       resizeObserver.disconnect()
