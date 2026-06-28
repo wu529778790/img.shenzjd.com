@@ -128,20 +128,18 @@ export default function HomePage() {
             className="mt-6"
           >
             <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-4 flex-wrap">
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <FolderOpen className="h-4 w-4" />
-                  <span>上传图片到</span>
-                  <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
-                    {owner}/{repo}
-                  </span>
-                  <span>，选择文件夹:</span>
-                </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <FolderOpen className="h-4 w-4 text-gray-600 dark:text-gray-400 shrink-0" />
+                <span className="text-sm text-gray-600 dark:text-gray-400">上传到</span>
+                <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
+                  {owner}/{repo}
+                </span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">/</span>
                 <Select
                   value={selectedFolder}
                   onValueChange={handleFolderChange}
                 >
-                  <SelectTrigger className="w-[240px]">
+                  <SelectTrigger className="w-[200px] h-8">
                     <SelectValue placeholder="选择文件夹" />
                   </SelectTrigger>
                   <SelectContent>
@@ -156,8 +154,8 @@ export default function HomePage() {
                   </SelectContent>
                 </Select>
                 {selectedFolder && (
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    当前: <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs">{selectedFolder}</code>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
+                    当前: <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">{selectedFolder}</code>
                   </span>
                 )}
               </div>
@@ -206,21 +204,18 @@ export default function HomePage() {
           </AnimatePresence>
         </CardAnimation>
 
-        {/* 提示信息 */}
+        {/* 提示信息 - 优化为单行布局 */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mt-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+          className="mt-6 px-4 py-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
         >
-          <div className="flex gap-3">
-            <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-800 dark:text-blue-200">
-              <p className="font-medium mb-1">提示</p>
-              <p className="text-blue-700 dark:text-blue-300">
-                支持的格式：PNG、JPG、JPEG、GIF、WEBP。单文件最大 10MB。支持批量上传。
-              </p>
-            </div>
+          <div className="flex items-center gap-2 text-sm text-blue-800 dark:text-blue-200">
+            <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+            <span className="text-blue-700 dark:text-blue-300">
+              支持 PNG、JPG、JPEG、GIF、WEBP 格式，单文件最大 10MB，支持批量上传
+            </span>
           </div>
         </motion.div>
       </PageTransition>
