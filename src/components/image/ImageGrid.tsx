@@ -1,14 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Search } from 'lucide-react'
+import { Search, Eye } from 'lucide-react'
 import { toast } from 'sonner'
 import { ImageCard } from './ImageCard'
-import { ImageGridListView } from './ImageGridListView'
-import { BulkDeleteConfirm } from './BulkDeleteConfirm'
 import { LazyImageGrid } from './LazyImageGrid'
+import { formatFileSize } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
 import { motion } from 'framer-motion'
+import { createStaggerVariants, AnimatedListItem } from '@/components/animations/PageAnimations'
 
 type ViewMode = 'grid' | 'list'
 
@@ -117,29 +117,8 @@ export function ImageGrid({
             batchSize={12}
           />
         ) : (
-          // 普通网格（图片数量 ≤ 50）
+          // 列表视图
           <motion.div
-            variants={createStaggerVariants(images.length)}
-            initial="initial"
-            animate="animate"
-            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-4"
-          >
-            {images.map((image, index) => (
-              <AnimatedListItem key={image.id}>
-                <ImageCard
-                  image={image}
-                  onDelete={onDelete}
-                  onSelect={handleSelect}
-                  selected={selectedIds.has(image.id)}
-                  selectable
-                  priority={index < 5} // 前5张图片优先加载，避免LCP警告
-                />
-              </AnimatedListItem>
-            ))}
-          </motion.div>
-        )
-      ) : (
-        <motion.div
           initial="initial"
           animate="animate"
           variants={createStaggerVariants(images.length, 20)}
