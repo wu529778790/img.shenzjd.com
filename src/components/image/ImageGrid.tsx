@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { LayoutGrid, List, Trash2, Copy, Check, Search, Eye } from 'lucide-react'
+import { LayoutGrid, List, Trash2, Copy, Check, Search, Eye, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { formatFileSize } from '@/lib/utils'
@@ -10,6 +10,14 @@ import { VirtualizedImageGrid, shouldVirtualize } from './VirtualizedImageGrid'
 import type { ImageFile } from '@/types/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ANIMATION_CONFIG, createStaggerVariants, AnimatedList, AnimatedListItem } from '@/components/animations/PageAnimations'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 interface ImageGridProps {
   images: ImageFile[]
@@ -25,6 +33,7 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set())
   const [showBulkActions, setShowBulkActions] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const handleBulkCopy = async () => {
     const count = selectedIds.size
@@ -42,7 +51,6 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
       } else {
         newSet.delete(id)
       }
-      // 延迟更新 showBulkActions 以确保状态正确
       setTimeout(() => setShowBulkActions(newSet.size > 0), 0)
       return newSet
     })
@@ -65,17 +73,21 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
 
   const handleBulkDelete = () => {
     if (!onBulkDelete || selectedIds.size === 0) return
+    setShowDeleteConfirm(true)
+  }
 
-    if (!confirm(`确定要删除选中的 ${selectedIds.size} 个文件吗？`)) return
-
+  const confirmBulkDelete = () => {
+    if (!onBulkDelete) return
     onBulkDelete(Array.from(selectedIds))
     setSelectedIds(new Set())
     setShowBulkActions(false)
+    setShowDeleteConfirm(false)
   }
 
   const allSelected = images.length > 0 && selectedIds.size === images.length
 
   return (
+    <>
     <div className="space-y-4">
       {/* 工具栏 */}
       {images.length > 0 && (
@@ -256,7 +268,7 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
                   onSelect={handleSelect}
                   selected={selectedIds.has(image.id)}
                   selectable
-                  priority={index < 5} // 前5张图片优先加载，避免LCP警告
+                  priority={index < 5}
                 />
               </AnimatedListItem>
             ))}
@@ -314,6 +326,60 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
         </motion.div>
       )}
     </div>
+
+    {/* 批量删除确认弹窗 */}
+    <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+            </div>
+            <div>
+              <DialogTitle className="text-lg">确认删除</DialogTitle>
+              <DialogDescription className="mt-1">
+                此操作无法撤销，确定要删除选中的 {selectedIds.size} 个文件吗？
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+
+        {/* 文件列表预览 */}
+        {selectedIds.size <= 10 && (
+          <div className="mt-3 max-h-40 overflow-y-auto rounded-lg bg-gray-50 dark:bg-gray-900 p-3">
+            <div className="space-y-1">
+              {Array.from(selectedIds).map((id) => {
+                const image = images.find((img) => img.id === id)
+                if (!image) return null
+                return (
+                  <div key={id} className="flex items-center gap-2 text-sm">
+                    <span className="truncate font-mono text-gray-600 dark:text-gray-400">{image.name}</span>
+                    <span className="text-gray-400 text-xs">{formatFileSize(image.size)}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {selectedIds.size > 10 && (
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            已选择 {selectedIds.size} 个文件，数量较多不逐一显示
+          </p>
+        )}
+
+        <DialogFooter className="mt-4">
+          <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
+            取消
+          </Button>
+          <Button variant="destructive" onClick={confirmBulkDelete}>
+            <Trash2 className="h-4 w-4 mr-2" />
+            确认删除
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }
 
