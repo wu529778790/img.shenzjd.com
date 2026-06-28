@@ -145,11 +145,14 @@ export class GitHubAPI {
       }
     )
 
-    console.log(`[GitHub] Response:`, {
-      sha: response.data.content.sha,
-      html_url: response.data.content.html_url,
-      size: response.data.content.size,
-    })
+    console.log(`[GitHub] Full response data:`, JSON.stringify(response.data, null, 2))
+
+    // 检查响应中是否有错误信息
+    if (response.data.content?.sha) {
+      console.log(`[GitHub] ✅ File created successfully: ${response.data.content.html_url}`)
+    } else {
+      console.error(`[GitHub] ❌ Response missing content:`, response.data)
+    }
 
     return {
       sha: response.data.content.sha,
