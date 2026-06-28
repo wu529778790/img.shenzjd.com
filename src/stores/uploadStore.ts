@@ -7,6 +7,8 @@ interface UploadState {
   updateTask: (id: string, updates: Partial<UploadTask>) => void
   removeTask: (id: string) => void
   clearQueue: () => void
+  retryTask: (id: string) => void
+  retryFailed: () => string[]
 }
 
 export const useUploadStore = create<UploadState>((set, get) => ({
@@ -38,5 +40,29 @@ export const useUploadStore = create<UploadState>((set, get) => ({
 
   clearQueue: () => {
     set({ queue: [] })
+  },
+
+  retryTask: (id: string) => {
+    set((state) => ({
+      queue: state.queue.map((task) =>
+        task.id === id && task.status === 'error'
+          ? { ...task, status: 'pending', progress: 0, error: undefined }
+          : task
+      ),
+    }))
+  },
+
+  retryFailed: () => {
+    const failedIds: string[] = []
+    set((state) => ({
+      queue: state.queue.map((task) => {
+        if (task.status === 'error') {
+          failedIds.push(task.id)
+          return { ...task, status: 'pending', progress: 0, error: undefined }
+        }
+        return task
+      }),
+    }))
+    return failedIds
   },
 }))

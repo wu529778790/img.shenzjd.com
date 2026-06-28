@@ -21,7 +21,7 @@ export default function UploadPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
   const configStore = useConfigStore()
-  const { uploadQueue, addFiles } = useUpload()
+  const { uploadQueue, addFiles, retryTask, retryAllFailed, removeTask } = useUpload()
   const { data: folders = [], isLoading: foldersLoading } = useRepoFolders()
   const foldersList = folders as RepoFolder[]
 
@@ -215,9 +215,21 @@ export default function UploadPage() {
                       {uploadQueue.length}
                     </Badge>
                   </div>
+                  {uploadQueue.some((task) => task.status === 'error') && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={retryAllFailed}
+                      className="gap-1"
+                    >
+                      重试全部失败
+                    </Button>
+                  )}
                 </motion.div>
                 <UploadQueue
                   queue={uploadQueue}
+                  onRetry={(task) => retryTask(task.id)}
+                  onRemove={removeTask}
                 />
               </motion.div>
             )}

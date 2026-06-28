@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { compressImage } from '@/lib/compress'
 import { addWatermark } from '@/lib/watermark'
@@ -16,7 +16,8 @@ export function useUpload() {
   const { data: session } = useSession()
   const token = (session as any)?.accessToken || ''
   const config = useConfigStore()
-  const { addTasks, updateTask, removeTask, clearQueue } = useUploadStore()
+  const queryClient = useQueryClient()
+  const { addTasks, updateTask, removeTask: removeTaskStore, clearQueue, retryTask: retryTaskStore, retryFailed: retryFailedStore } = useUploadStore()
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File): Promise<{ file: ImageFile; link: string }> => {
@@ -110,6 +111,7 @@ export function useUpload() {
     },
   })
 
+  // 添加文件到上传队列
   const addFiles = useCallback(
     (files: File[]) => {
       // 添加到队列
@@ -142,14 +144,63 @@ export function useUpload() {
     [addTasks, updateTask, uploadMutation]
   )
 
+  // 获取失败任务的文件列表
+  const getFailedTaskFiles = useCallback((): File[] => {
+    const queue = useUploadStore.getState().queue
+    return queue
+      .filter((task) => task.status === 'error')
+      .map((task) => task.file)
+  }, [])
+
+  // 获取单个失败任务的文件
+  const getFailedTaskFile = useCallback((taskId: string): File | null => {
+    const queue = useUploadStore.getState().queue
+    const task = queue.find((t) => t.id === taskId)
+    if (task && task.status === 'error') {
+      return task.file
+    }
+    return null
+  }, [])
+
+  // 重试单个失败任务
+  const retryTask = useCallback((taskId: string) => {
+    const file = getFailedTaskFile(taskId)
+    if (file) {
+      // 重置任务状态
+      retryTaskStore(taskId)
+      // 重新上传
+      addFiles([file])
+    }
+  }, [getFailedTaskFile, retryTaskStore, addFiles])
+
+  // 重试所有失败任务
+  const retryAllFailed = useCallback(() => {
+    const failedFiles = getFailedTaskFiles()
+    if (failedFiles.length > 0) {
+      // 重置所有失败任务
+      const failedIds = retryFailedStore()
+      // 重新上传所有失败的文件
+      addFiles(failedFiles)
+      return failedIds.length
+    }
+    return 0
+  }, [getFailedTaskFiles, retryFailedStore, addFiles])
+
+  // 移除单个任务
+  const removeTask = useCallback((taskId: string) => {
+    removeTaskStore(taskId)
+  }, [removeTaskStore])
+
   const clearCompleted = useCallback(() => {
-    // TODO: 清除已完成的任务
     clearQueue()
   }, [clearQueue])
 
   return {
     addFiles,
     clearCompleted,
+    removeTask,
+    retryTask,
+    retryAllFailed,
     uploadQueue: useUploadStore((state) => state.queue),
     isUploading: uploadMutation.isPending,
   }
