@@ -83,19 +83,23 @@ export default function ConfigPage() {
       setLoadingBranches(true)
       try {
         const response = await fetch(
-          `/api/repos/${currentUser}/${repo}/branches`,
+          `/api/repos/${encodeURIComponent(currentUser)}/${encodeURIComponent(repo)}/branches`,
           { headers: { Authorization: `token ${(await getSession())?.accessToken}` } }
         )
 
+        console.log('Branches API response:', response.status, response.statusText)
+
         if (!response.ok) {
-          throw new Error('Failed to fetch branches')
+          const errorData = await response.json().catch(() => ({}))
+          console.error('Branches API error:', errorData)
+          throw new Error(errorData.error || `HTTP ${response.status}`)
         }
 
         const data = await response.json()
         setBranches(Array.isArray(data) ? data.map((b: any) => b.name) : [])
       } catch (error) {
         console.error('Failed to fetch branches:', error)
-        toast.error('获取分支列表失败')
+        toast.error(`获取分支列表失败: ${error instanceof Error ? error.message : '未知错误'}`)
         setBranches([])
       } finally {
         setLoadingBranches(false)
