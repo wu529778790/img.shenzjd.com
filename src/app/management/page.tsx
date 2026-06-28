@@ -10,6 +10,7 @@ import { useImages } from '@/hooks/useImages'
 import { ImageGrid } from '@/components/image/ImageGrid'
 import { ManagementToolbar } from '@/components/image/ManagementToolbar'
 import { ManagementSkeleton } from '@/components/loading/Skeleton'
+import { IMAGE_GRID_CONFIG, SEARCH_CONFIG, DIRECTORY_CONFIG } from '@/lib/constants'
 
 type SortField = 'name' | 'size' | 'path'
 type SortOrder = 'asc' | 'desc'
@@ -94,10 +95,10 @@ export default function ManagementPage() {
     if (directoryDebounceRef.current) {
       clearTimeout(directoryDebounceRef.current)
     }
-    // 设置新的定时器，300ms 延迟
+    // 设置新的定时器
     directoryDebounceRef.current = setTimeout(() => {
       setSelectedDirectory(dir)
-    }, 300)
+    }, DIRECTORY_CONFIG.DEBOUNCE_MS)
   }, [])
 
   // 防抖搜索
@@ -107,7 +108,7 @@ export default function ManagementPage() {
     }
     searchDebounceRef.current = setTimeout(() => {
       setSearchQuery(query)
-    }, 200)
+    }, SEARCH_CONFIG.DEBOUNCE_MS)
   }, [])
 
   // 清理定时器

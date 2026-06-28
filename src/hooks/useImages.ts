@@ -8,6 +8,7 @@ import { useConfigStore } from '@/stores/configStore'
 import { useOperationLogStore } from '@/stores/operationLogStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
+import { BULK_DELETE_CONFIG } from '@/lib/constants'
 import type { GitHubFileInfo, ImageFile } from '@/types/image'
 
 export function useImages() {
@@ -111,11 +112,12 @@ export function useImages() {
       const api = new GitHubAPI(token, owner, repo, branch)
 
       // 分批删除，每批最多 3 个，批次间延迟 500ms
+      // 使用 BULK_DELETE_CONFIG 配置便于调整
       const results = []
-      const batchSize = 3
+      const { BATCH_SIZE, BATCH_DELAY_MS } = BULK_DELETE_CONFIG
 
-      for (let i = 0; i < filePaths.length; i += batchSize) {
-        const batch = filePaths.slice(i, i + batchSize)
+      for (let i = 0; i < filePaths.length; i += BATCH_SIZE) {
+        const batch = filePaths.slice(i, i + BATCH_SIZE)
 
         const batchResults = await Promise.allSettled(
           batch.map(async (filePath) => {
@@ -129,8 +131,8 @@ export function useImages() {
         results.push(...batchResults)
 
         // 批次之间添加延迟（最后一批不加）
-        if (i + batchSize < filePaths.length) {
-          await new Promise(resolve => setTimeout(resolve, 500))
+        if (i + BATCH_SIZE < filePaths.length) {
+          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS))
         }
       }
 

@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { Search, Eye } from 'lucide-react'
-import { toast } from 'sonner'
 import { ImageCard } from './ImageCard'
 import { LazyImageGrid } from './LazyImageGrid'
 import { VirtualizedImageGrid } from './VirtualizedImageGrid'
 import { ErrorBoundary } from '@/components/error/ErrorBoundary'
 import { formatFileSize } from '@/lib/utils'
+import { IMAGE_GRID_CONFIG } from '@/lib/constants'
 import type { ImageFile } from '@/types/image'
 import { cn } from '@/lib/utils'
 
@@ -41,7 +41,6 @@ export function ImageGrid({
   const [internalViewMode, setInternalViewMode] = useState<ViewMode>('grid')
   const [internalSelectionMode, setInternalSelectionMode] = useState(false)
   const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(new Set())
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   // 使用外部状态或内部状态
   const viewMode = externalViewMode ?? internalViewMode
@@ -49,7 +48,7 @@ export function ImageGrid({
   const selectedIds = externalSelectedIds ?? internalSelectedIds
 
   // 判断是否应该使用虚拟滚动
-  const shouldUseVirtualization = images.length > 30
+  const shouldUseVirtualization = images.length > IMAGE_GRID_CONFIG.VIRTUALIZATION_THRESHOLD
 
   const handleSelect = (id: string, selected: boolean) => {
     if (onSelect) {
@@ -65,13 +64,6 @@ export function ImageGrid({
   }
 
   const allSelected = images.length > 0 && selectedIds.size === images.length
-
-  // 图片预览处理
-  const handleImagePreview = useMemo(() => {
-    return (image: ImageFile) => {
-      // 预览逻辑在子组件中处理
-    }
-  }, [])
 
   return (
     <>
@@ -109,7 +101,6 @@ export function ImageGrid({
                   onSelect={handleSelect}
                   selectedIds={selectedIds}
                   selectable={selectionMode}
-                  onPreview={handleImagePreview}
                   onImageChange={onImageChange}
                 />
               ) : (
@@ -120,8 +111,8 @@ export function ImageGrid({
                   selectedIds={selectedIds}
                   selectable={selectionMode}
                   onImageChange={onImageChange}
-                  initialLoadCount={images.length <= 30 ? images.length : 12}
-                  batchSize={8}
+                  initialLoadCount={images.length <= IMAGE_GRID_CONFIG.VIRTUALIZATION_THRESHOLD ? images.length : IMAGE_GRID_CONFIG.INITIAL_LOAD_COUNT}
+                  batchSize={IMAGE_GRID_CONFIG.BATCH_SIZE}
                 />
               )}
             </div>

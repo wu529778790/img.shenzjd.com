@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import type { ImageFile } from '@/types/image'
 import { ImageCard } from './ImageCard'
 import { ImagePreview } from './ImagePreview'
+import { IMAGE_GRID_CONFIG } from '@/lib/constants'
 
 interface LazyImageGridProps {
   images: ImageFile[]
@@ -27,13 +28,13 @@ export function LazyImageGrid({
   selectedIds = new Set(),
   selectable = false,
   onImageChange,
-  initialLoadCount = 12,  // 首屏只渲染 12 张
-  batchSize = 8,  // 每次滚动再加载 8 张（减少批次大小）
+  initialLoadCount: initialLoadCountProp,
+  batchSize = IMAGE_GRID_CONFIG.BATCH_SIZE,
 }: LazyImageGridProps) {
   // 将计算逻辑提到 useMemo，避免每次 render 重复计算
   const resolvedInitialLoadCount = useMemo(
-    () => (initialLoadCount ?? (images.length <= 30 ? images.length : 24)),
-    [initialLoadCount, images.length]
+    () => (initialLoadCountProp ?? (images.length <= IMAGE_GRID_CONFIG.VIRTUALIZATION_THRESHOLD ? images.length : 24)),
+    [initialLoadCountProp, images.length]
   )
 
   const [visibleCount, setVisibleCount] = useState(resolvedInitialLoadCount)

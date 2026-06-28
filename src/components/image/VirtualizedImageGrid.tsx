@@ -4,6 +4,7 @@ import { useRef, useMemo, useEffect, useState, useCallback } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { ImageCard } from '@/components/image/ImageCard'
 import { ImagePreview } from './ImagePreview'
+import { IMAGE_GRID_CONFIG } from '@/lib/constants'
 import type { ImageFile } from '@/types/image'
 
 interface VirtualizedImageGridProps {
@@ -30,7 +31,7 @@ export function VirtualizedImageGrid({
   selectable = false,
   onPreview,
   onImageChange,
-  overscan = 3,
+  overscan = IMAGE_GRID_CONFIG.VIRTUALIZATION_OVERSCAN,
 }: VirtualizedImageGridProps) {
   const parentRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(0)
@@ -38,19 +39,19 @@ export function VirtualizedImageGrid({
 
   // 根据容器宽度动态计算列数
   const columns = useMemo(() => {
-    if (!containerWidth) return 5
+    if (!containerWidth) return IMAGE_GRID_CONFIG.COLUMNS.wide
 
-    if (containerWidth >= 1024) return 5
-    if (containerWidth >= 768) return 4
-    if (containerWidth >= 640) return 3
-    return 2
+    if (containerWidth >= IMAGE_GRID_CONFIG.BREAKPOINTS.lg) return IMAGE_GRID_CONFIG.COLUMNS.wide
+    if (containerWidth >= IMAGE_GRID_CONFIG.BREAKPOINTS.md) return IMAGE_GRID_CONFIG.COLUMNS.desktop
+    if (containerWidth >= IMAGE_GRID_CONFIG.BREAKPOINTS.sm) return IMAGE_GRID_CONFIG.COLUMNS.tablet
+    return IMAGE_GRID_CONFIG.COLUMNS.mobile
   }, [containerWidth])
 
   // 计算行数
   const rowCount = Math.ceil(images.length / columns)
 
   // 预估行高（图片卡片 + gap）
-  const estimatedRowHeight = 320
+  const estimatedRowHeight = IMAGE_GRID_CONFIG.ESTIMATED_ROW_HEIGHT
 
   // 虚拟滚动器
   const rowVirtualizer = useVirtualizer({
@@ -58,7 +59,7 @@ export function VirtualizedImageGrid({
     getScrollElement: () => parentRef.current,
     estimateSize: () => estimatedRowHeight,
     overscan,
-    enabled: images.length > 30,
+    enabled: images.length > IMAGE_GRID_CONFIG.VIRTUALIZATION_THRESHOLD,
   })
 
   // 监听容器宽度变化
@@ -129,9 +130,10 @@ export function VirtualizedImageGrid({
     <>
       <div
         ref={parentRef}
-        className="overflow-auto h-[calc(100vh-280px)] scrollbar-thin"
+        className="overflow-auto scrollbar-thin"
         style={{
           contain: 'strict',
+          height: `calc(100vh - ${IMAGE_GRID_CONFIG.HEADER_HEIGHT}px)`,
         }}
       >
         <div
@@ -193,8 +195,8 @@ export function VirtualizedImageGrid({
 
 /**
  * 决定是否使用虚拟列表
- * 当图片数量 > 30 时启用
+ * 当图片数量 > VIRTUALIZATION_THRESHOLD 时启用
  */
 export function shouldVirtualize(imagesCount: number): boolean {
-  return imagesCount > 30
+  return imagesCount > IMAGE_GRID_CONFIG.VIRTUALIZATION_THRESHOLD
 }
