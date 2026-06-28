@@ -99,7 +99,10 @@ export function Header() {
           {/* 桌面端导航菜单 */}
           <nav className="hidden md:flex items-center gap-1">
             {navigation.map((item, index) => {
-              const isActive = pathname.startsWith(item.href)
+              // 修复：根路径 '/' 需要精确匹配，避免匹配所有路径
+              const isActive = item.href === '/'
+                ? pathname === '/'
+                : pathname.startsWith(item.href)
               const Icon = item.icon
               return (
                 <motion.div
@@ -219,7 +222,10 @@ export function Header() {
             >
               <div className="py-2 space-y-1">
                 {navigation.map((item) => {
-                  const isActive = pathname.startsWith(item.href)
+                  // 修复：根路径 '/' 需要精确匹配，避免匹配所有路径
+                  const isActive = item.href === '/'
+                    ? pathname === '/'
+                    : pathname.startsWith(item.href)
                   const Icon = item.icon
                   return (
                     <Link
