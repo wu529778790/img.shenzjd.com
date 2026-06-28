@@ -35,6 +35,8 @@ export function generateLink(options: LinkOptions): string {
       return `<img src="${baseUrl}" alt="${fileName}" />`
     case 'bbcode':
       return `[img]${baseUrl}[/img]`
+    case 'url':
+      return baseUrl
     default:
       return baseUrl
   }

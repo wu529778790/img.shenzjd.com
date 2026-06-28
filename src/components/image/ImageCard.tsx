@@ -34,7 +34,7 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable }: I
 
   const [showPreview, setShowPreview] = useState(false)
 
-  const handleCopyLink = async (format: 'markdown' | 'html' | 'bbcode') => {
+  const handleCopyLink = async (format: 'markdown' | 'html' | 'bbcode' | 'url') => {
     const { owner, repo, branch, cdn, useRaw } = configStore
 
     const link = generateLink({
@@ -50,7 +50,13 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable }: I
 
     try {
       await navigator.clipboard.writeText(link)
-      toast.success('链接已复制')
+      const formatNames: Record<string, string> = {
+        markdown: 'Markdown',
+        html: 'HTML',
+        bbcode: 'BBCode',
+        url: '链接',
+      }
+      toast.success(`${formatNames[format]}已复制`)
     } catch (error) {
       toast.error('复制失败')
     }
@@ -150,6 +156,10 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable }: I
                 <DropdownMenuItem onClick={() => handleCopyLink('bbcode')}>
                   <Link2 className="mr-2 h-4 w-4" />
                   复制 BBCode
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleCopyLink('url')}>
+                  <Link2 className="mr-2 h-4 w-4" />
+                  复制链接
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

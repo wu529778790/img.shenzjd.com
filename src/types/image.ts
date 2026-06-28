@@ -22,7 +22,7 @@ export interface UploadTask {
 }
 
 export interface LinkOptions {
-  format: 'markdown' | 'html' | 'bbcode'
+  format: 'markdown' | 'html' | 'bbcode' | 'url'
   cdn: 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages'
   owner: string
   repo: string
