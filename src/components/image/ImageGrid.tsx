@@ -113,7 +113,7 @@ export function ImageGrid({
             selectedIds={selectedIds}
             selectable={selectionMode}
             onImageChange={onImageChange}
-            initialLoadCount={images.length <= 30 ? images.length : 12}
+            initialLoadCount={images.length <= 30 ? images.length : 24}
             batchSize={12}
           />
         ) : (

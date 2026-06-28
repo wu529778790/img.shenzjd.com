@@ -149,7 +149,7 @@ export function VirtualizedImageGrid({
                   onSelect={onSelect}
                   selected={selectedIds.has(image.id)}
                   selectable={selectable}
-                  priority={globalIndex < 10} // 只优先加载前 10 张
+                  priority={globalIndex < 24} // 优先加载前 24 张（覆盖首屏 6-8 列 x 3-4 行）
                 />
               </motion.div>
             ))}
