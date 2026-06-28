@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios'
 
-export interface GitHubFile {
+export interface GitHubFileInfo {
   name: string
   path: string
   sha: string
@@ -76,7 +76,7 @@ export class GitHubAPI {
   }
 
   // 递归列出所有文件
-  async listAllFiles(path: string = '', allFiles: Map<string, GitHubFile> = new Map()): Promise<GitHubFile[]> {
+  async listAllFiles(path: string = '', allFiles: Map<string, GitHubFileInfo> = new Map()): Promise<GitHubFileInfo[]> {
     try {
       const files = await this.listContents(path)
 
@@ -100,11 +100,11 @@ export class GitHubAPI {
   }
 
   // 列出目录内容
-  async listContents(path: string = '') {
+  async listContents(path: string = ''): Promise<GitHubFileInfo[]> {
     const response = await this.client.get(`/repos/${this.owner}/${this.repo}/contents/${path}`, {
       params: { ref: this.branch },
     })
-    return response.data as GitHubFile[]
+    return response.data as GitHubFileInfo[]
   }
 
   // 获取单个文件

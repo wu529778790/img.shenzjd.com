@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { useConfigStore } from '@/stores/configStore'
 import { useQueryClient } from '@tanstack/react-query'
+import { GitHubAPI, GitHubRepo } from '@/lib/github'
 
 export default function ConfigPage() {
   const router = useRouter()
@@ -18,7 +19,7 @@ export default function ConfigPage() {
   const queryClient = useQueryClient()
 
   const [loading, setLoading] = useState(false)
-  const [repos, setRepos] = useState<Array<{ name: string; full_name: string }>>([])
+  const [repos, setRepos] = useState<GitHubRepo[]>([])
   const [branches, setBranches] = useState<string[]>([])
   const [loadingRepos, setLoadingRepos] = useState(false)
   const [loadingBranches, setLoadingBranches] = useState(false)
@@ -60,18 +61,12 @@ export default function ConfigPage() {
     const fetchRepos = async () => {
       setLoadingRepos(true)
       try {
-        const response = await fetch('/api/repos', {
-          headers: { Authorization: `token ${(await getSession())?.accessToken}` },
-        })
+        const session = await getSession()
+        const token = session?.accessToken as string | undefined
+        if (!token) throw new Error('Not authenticated')
 
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          console.error('Repos API error:', errorData)
-          throw new Error(errorData.error || `HTTP ${response.status}`)
-        }
-
-        const data = await response.json()
+        const api = new GitHubAPI(token, currentUser, '')
+        const data = await api.listRepos()
         setRepos(Array.isArray(data) ? data : [])
       } catch (error) {
         console.error('Failed to fetch repos:', error)
@@ -92,20 +87,16 @@ export default function ConfigPage() {
     const fetchBranches = async () => {
       setLoadingBranches(true)
       try {
-        const response = await fetch(
-          `/api/repos/${encodeURIComponent(currentUser)}/${encodeURIComponent(repo)}/branches`,
-          { headers: { Authorization: `token ${(await getSession())?.accessToken}` } }
-        )
+        const session = await getSession()
+        const token = session?.accessToken as string | undefined
+        if (!token) throw new Error('Not authenticated')
 
+        const api = new GitHubAPI(token, currentUser, repo)
+        const data = await api.getRepo()
+        const defaultBranch = data.default_branch
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          console.error('Branches API error:', errorData)
-          throw new Error(errorData.error || `HTTP ${response.status}`)
-        }
-
-        const data = await response.json()
-        setBranches(Array.isArray(data) ? data.map((b: any) => b.name) : [])
+        // GitHub API 默认分支通常就是 main/master，暂时用默认分支
+        setBranches([defaultBranch])
       } catch (error) {
         console.error('Failed to fetch branches:', error)
         toast.error(`获取分支列表失败: ${error instanceof Error ? error.message : '未知错误'}`)
@@ -129,22 +120,12 @@ export default function ConfigPage() {
       const repoName = `${currentUser.toLowerCase()}-imgx`
 
       // 创建新仓库
-      const createResponse = await fetch('/api/repos', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `token ${(await getSession())?.accessToken}`,
-        },
-        body: JSON.stringify({
-          name: repoName,
-          description: 'ImgX image host',
-          private: false,
-        }),
-      })
+      const session = await getSession()
+      const token = session?.accessToken as string | undefined
+      if (!token) throw new Error('Not authenticated')
 
-      if (!createResponse.ok) {
-        throw new Error('Failed to create repo')
-      }
+      const api = new GitHubAPI(token, currentUser, '')
+      await api.createRepo(repoName, 'ImgX image host', false)
 
       updateConfig(
         {

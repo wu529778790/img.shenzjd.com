@@ -13,6 +13,18 @@ export interface ImageFile {
   uploaded_at?: Date
 }
 
+// GitHub API 原始文件信息（API 层，与业务层 ImageFile 解耦）
+export interface GitHubFileInfo {
+  name: string
+  path: string
+  sha: string
+  size: number
+  url: string
+  html_url: string
+  download_url: string
+  type: 'file' | 'dir'
+}
+
 export interface UploadTask {
   id: string
   file: File
