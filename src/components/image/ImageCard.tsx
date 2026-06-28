@@ -97,7 +97,13 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable, pri
           cursor-pointer
           ${selected ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-900' : ''}
         `}
-        onClick={() => selectable && onSelect?.(image.id, !selected)}
+        onClick={() => {
+          if (selectable) {
+            onSelect?.(image.id, !selected)
+          } else {
+            setShowPreview(true)
+          }
+        }}
       >
         {/* 图片预览区域 */}
         <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-900">

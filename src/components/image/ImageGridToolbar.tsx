@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { LayoutGrid, List, Trash2, Copy, Check } from 'lucide-react'
+import { LayoutGrid, List, Trash2, Copy, Check, CheckSquare, Square } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -18,6 +18,8 @@ interface ImageGridToolbarProps {
   onBulkCopy: () => void
   onBulkDelete: () => void
   copied: boolean
+  selectionMode?: boolean
+  onToggleSelectionMode?: () => void
 }
 
 export function ImageGridToolbar({
@@ -31,6 +33,8 @@ export function ImageGridToolbar({
   onBulkCopy,
   onBulkDelete,
   copied,
+  selectionMode = false,
+  onToggleSelectionMode,
 }: ImageGridToolbarProps) {
   const hasSelection = selectedCount > 0
 
@@ -41,23 +45,58 @@ export function ImageGridToolbar({
       className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm"
     >
       <div className="flex flex-wrap items-center gap-2">
-        {/* 全选 */}
-        <label className="flex items-center gap-2 text-sm cursor-pointer group">
-          <motion.input
-            whileTap={{ scale: 0.9 }}
-            type="checkbox"
-            checked={allSelected}
-            onChange={onSelectAll}
-            className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary cursor-pointer"
-          />
-          <span className="group-hover:text-primary transition-colors">
-            全选
-          </span>
-        </label>
+        {/* 多选模式按钮 */}
+        {onToggleSelectionMode && (
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button
+              size="sm"
+              variant={selectionMode ? 'default' : 'outline'}
+              onClick={onToggleSelectionMode}
+              className="gap-1"
+            >
+              {selectionMode ? (
+                <>
+                  <CheckSquare className="h-4 w-4" />
+                  <span>退出多选</span>
+                </>
+              ) : (
+                <>
+                  <Square className="h-4 w-4" />
+                  <span>多选</span>
+                </>
+              )}
+            </Button>
+          </motion.div>
+        )}
 
-        {/* 批量操作按钮 */}
+        {/* 全选 - 仅在多选模式下显示 */}
         <AnimatePresence>
-          {hasSelection && (
+          {selectionMode && (
+            <motion.div
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: 'auto' }}
+              exit={{ opacity: 0, width: 0 }}
+              className="flex items-center gap-2 overflow-hidden"
+            >
+              <label className="flex items-center gap-2 text-sm cursor-pointer group">
+                <motion.input
+                  whileTap={{ scale: 0.9 }}
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={onSelectAll}
+                  className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary cursor-pointer"
+                />
+                <span className="group-hover:text-primary transition-colors">
+                  全选
+                </span>
+              </label>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 批量操作按钮 - 仅在有选择且在多选模式下显示 */}
+        <AnimatePresence>
+          {hasSelection && selectionMode && (
             <motion.div
               initial={{ opacity: 0, width: 0 }}
               animate={{ opacity: 1, width: 'auto' }}

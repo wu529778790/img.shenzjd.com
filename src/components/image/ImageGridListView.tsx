@@ -10,9 +10,10 @@ interface ImageGridListViewProps {
   images: ImageFile[]
   selectedIds: Set<string>
   onSelect: (id: string, selected: boolean) => void
+  selectionMode?: boolean
 }
 
-export function ImageGridListView({ images, selectedIds, onSelect }: ImageGridListViewProps) {
+export function ImageGridListView({ images, selectedIds, onSelect, selectionMode = false }: ImageGridListViewProps) {
   return (
     <motion.div
       initial="initial"
@@ -35,16 +36,18 @@ export function ImageGridListView({ images, selectedIds, onSelect }: ImageGridLi
               group
               ${selectedIds.has(image.id) ? 'border-primary bg-primary/5 dark:bg-primary/10' : ''}
             `}
-            onClick={() => onSelect(image.id, !selectedIds.has(image.id))}
+            onClick={() => selectionMode && onSelect(image.id, !selectedIds.has(image.id))}
           >
-            <motion.input
-              whileTap={{ scale: 0.9 }}
-              type="checkbox"
-              checked={selectedIds.has(image.id)}
-              onChange={() => onSelect(image.id, !selectedIds.has(image.id))}
-              className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary cursor-pointer"
-              onClick={(e) => e.stopPropagation()}
-            />
+            {selectionMode && (
+              <motion.input
+                whileTap={{ scale: 0.9 }}
+                type="checkbox"
+                checked={selectedIds.has(image.id)}
+                onChange={() => onSelect(image.id, !selectedIds.has(image.id))}
+                className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary cursor-pointer"
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate group-hover:text-primary transition-colors">
                 {image.name}

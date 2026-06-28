@@ -24,6 +24,7 @@ type ViewMode = 'grid' | 'list'
 
 export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }: ImageGridProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set())
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -57,6 +58,15 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
 
   const handleClearSelection = () => {
     setSelectedIds(new Set())
+    setSelectionMode(false)
+  }
+
+  const handleToggleSelectionMode = () => {
+    if (selectionMode) {
+      // 退出多选模式时清除选择
+      setSelectedIds(new Set())
+    }
+    setSelectionMode(!selectionMode)
   }
 
   const handleBulkDelete = () => {
@@ -89,6 +99,8 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
             onBulkCopy={handleBulkCopy}
             onBulkDelete={handleBulkDelete}
             copied={copiedIds.size > 0}
+            selectionMode={selectionMode}
+            onToggleSelectionMode={handleToggleSelectionMode}
           />
         )}
 
@@ -139,7 +151,8 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
               onDelete={onDelete}
               onSelect={handleSelect}
               selectedIds={selectedIds}
-              selectable
+              selectable={selectionMode}
+            />
             />
           ) : (
             <motion.div
@@ -155,7 +168,7 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
                     onDelete={onDelete}
                     onSelect={handleSelect}
                     selected={selectedIds.has(image.id)}
-                    selectable
+                    selectable={selectionMode}
                     priority={index < 5}
                   />
                 </AnimatedListItem>
@@ -167,6 +180,7 @@ export function ImageGrid({ images, onDelete, onBulkDelete, isLoading = false }:
             images={images}
             selectedIds={selectedIds}
             onSelect={handleSelect}
+            selectionMode={selectionMode}
           />
         )}
       </div>
