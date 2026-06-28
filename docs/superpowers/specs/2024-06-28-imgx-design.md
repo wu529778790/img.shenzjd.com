@@ -1,8 +1,8 @@
-# MyPicX - 图床产品技术设计文档（Part 1）
+# ImgX - 图床产品技术设计文档（Part 1）
 
 ## 📋 文档信息
 
-- **项目名称**: MyPicX
+- **项目名称**: ImgX
 - **版本**: V1.0 MVP
 - **目标用户**: 个人开发者、博主
 - **技术栈**: Next.js 14 + TypeScript + Tailwind CSS + shadcn/ui
@@ -688,7 +688,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       <Card className="w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">MyPicX</h1>
+          <h1 className="text-3xl font-bold">ImgX</h1>
           <p className="text-gray-500 mt-2">个人图床管理工具</p>
         </div>
 
