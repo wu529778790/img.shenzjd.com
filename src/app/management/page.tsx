@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Lock, FolderTree, Image as ImageIcon } from 'lucide-react'
@@ -136,9 +136,7 @@ export default function ManagementPage() {
   if (status === 'loading' || (isLoading && images.length === 0)) {
     return (
       <div className="min-h-[calc(100vh-4rem)]">
-        <PageTransition>
-          <ManagementSkeleton />
-        </PageTransition>
+        <ManagementSkeleton />
       </div>
     )
   }

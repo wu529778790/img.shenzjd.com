@@ -7,15 +7,15 @@ import { motion, AnimatePresence, Variants } from 'framer-motion'
 export const ANIMATION_CONFIG = {
   // 基础持续时间 (ms)
   duration: {
-    fast: 150,
-    normal: 250,
-    slow: 400,
+    fast: 100,   // 优化：150 → 100
+    normal: 200, // 优化：250 → 200
+    slow: 300,   // 优化：400 → 300
   },
   // 交错延迟 (ms) - 优化性能，减少延迟并设置上限
   stagger: {
-    small: 10,    // 优化：30 → 10
-    medium: 20,   // 优化：50 → 20
-    large: 40,    // 优化：80 → 40
+    small: 5,    // 优化：30 → 5（极大减少）
+    medium: 10,  // 优化：50 → 10
+    large: 20,   // 优化：80 → 20
   },
   // 缩放效果
   scale: {

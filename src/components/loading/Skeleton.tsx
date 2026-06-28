@@ -6,17 +6,16 @@ import { motion } from 'framer-motion'
 export function SkeletonCard() {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
       className="group relative overflow-hidden rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm"
     >
       {/* 图片占位 - 使用 shimmer 效果 */}
       <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-900">
         <motion.div
-          initial={{ opacity: 0.5 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.5, repeat: Infinity, repeatType: 'reverse' }}
+          animate={{ opacity: [0.4, 0.8, 0.4] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
           className="absolute inset-0 shimmer-bg"
         />
       </div>
