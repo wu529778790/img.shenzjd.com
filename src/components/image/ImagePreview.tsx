@@ -14,7 +14,7 @@ import type { ImageFile } from '@/types/image'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // CDN 图片跳过 Next.js 内部优化
-const cdnLoader = ({ src }: { src: string }) => src
+const cdnLoader = ({ src }: { src: string; width?: number; quality?: number }) => src
 
 interface ImagePreviewProps {
   image: ImageFile

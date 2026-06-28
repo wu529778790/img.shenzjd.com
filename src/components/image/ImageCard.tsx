@@ -24,7 +24,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ANIMATION_CONFIG, scaleVariants } from '@/components/animations/PageAnimations'
 
 // CDN 图片跳过 Next.js 内部优化（@ 符号导致 URL 验证失败）
-const cdnLoader = ({ src }: { src: string }) => src
+const cdnLoader = ({ src }: { src: string; width?: number; quality?: number }) => src
 
 interface ImageCardProps {
   image: ImageFile

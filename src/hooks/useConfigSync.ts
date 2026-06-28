@@ -32,6 +32,14 @@ async function saveConfigToGitHub(
     return { success: false, message: '未找到 GitHub token' }
   }
 
+  // 如果文件不存在（无 sha）且首次保存，先确保父目录存在
+  if (!sha) {
+    const dirPath = path.split('/').slice(0, -1).join('/')
+    if (dirPath) {
+      await ensureDirectoryExists(token, owner, repo, branch, dirPath)
+    }
+  }
+
   const configContent = JSON.stringify(config, null, 2)
   const contentBase64 = btoa(unescape(encodeURIComponent(configContent)))
 
@@ -69,6 +77,40 @@ async function saveConfigToGitHub(
     message: '配置已保存到 GitHub',
     sha: data.content.sha,
   }
+}
+
+/**
+ * 确保 GitHub 目录存在（通过创建占位文件）
+ */
+async function ensureDirectoryExists(
+  token: string,
+  owner: string,
+  repo: string,
+  branch: string,
+  dirPath: string
+): Promise<void> {
+  // 先检查目录是否已存在（通过尝试列出 .gitkeep）
+  const keepPath = `${dirPath}/.gitkeep`
+  const checkResponse = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/contents/${keepPath}?ref=${branch}`,
+    { headers: { 'Authorization': `token ${token}` } }
+  )
+  if (checkResponse.ok) return // 目录已存在
+
+  // 创建 .gitkeep 占位文件来建立目录
+  const contentBase64 = btoa('# imgx config directory\n')
+  await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${keepPath}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `token ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message: 'chore: create imgx config directory',
+      content: contentBase64,
+      branch,
+    }),
+  })
 }
 
 /**
