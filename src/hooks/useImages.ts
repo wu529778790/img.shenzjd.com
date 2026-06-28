@@ -24,11 +24,13 @@ export function useImages() {
       if (!token || !owner || !repo) return []
 
       const api = new GitHubAPI(token, owner, repo, branch)
-      const files = await api.listContents('')
+
+      // 递归获取所有文件（包括子文件夹）
+      const allFiles = await api.listAllFiles('')
 
       // 过滤出图片文件
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
-      const imageFiles = files
+      const imageFiles = allFiles
         .filter((file) => {
           const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'))
           return imageExtensions.includes(ext)
@@ -37,7 +39,7 @@ export function useImages() {
           ...file,
           id: file.sha,
           type: 'file' as const,
-          uploaded_at: new Date(),
+          uploaded_at: new Date(file.sha), // 使用 SHA 创建日期（GitHub API 不返回文件创建时间）
         }))
 
       return imageFiles

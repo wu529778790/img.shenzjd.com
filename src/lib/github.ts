@@ -37,7 +37,6 @@ export class GitHubAPI {
       headers: {
         Authorization: `token ${token}`,
         Accept: 'application/vnd.github.v3+json',
-        'User-Agent': 'ImgX',
       },
     })
   }
@@ -74,6 +73,27 @@ export class GitHubAPI {
   async getRepo() {
     const response = await this.client.get(`/repos/${this.owner}/${this.repo}`)
     return response.data
+  }
+
+  // 递归列出所有文件
+  async listAllFiles(path: string = '', allFiles: GitHubFile[] = []): Promise<GitHubFile[]> {
+    try {
+      const files = await this.listContents(path)
+
+      for (const file of files) {
+        if (file.type === 'dir') {
+          // 递归遍历子文件夹
+          await this.listAllFiles(file.path, allFiles)
+        } else {
+          allFiles.push(file)
+        }
+      }
+
+      return allFiles
+    } catch (error) {
+      console.error(`Failed to list files in ${path}:`, error)
+      return allFiles
+    }
   }
 
   // 列出目录内容
