@@ -1,15 +1,18 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { useUpload } from '@/hooks/useUpload'
+import { useRepoFolders, type RepoFolder } from '@/hooks/useRepoFolders'
 import { UploadArea } from '@/components/upload/UploadArea'
 import { UploadQueue } from '@/components/upload/UploadQueue'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Image as ImageIcon, Sparkles, Zap, UploadCloud } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Image as ImageIcon, Sparkles, Zap, UploadCloud, FolderOpen } from 'lucide-react'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -19,10 +22,22 @@ export default function UploadPage() {
   const { data: session, status } = useSession()
   const configStore = useConfigStore()
   const { uploadQueue, addFiles } = useUpload()
+  const { data: folders = [], isLoading: foldersLoading } = useRepoFolders()
+  const foldersList = folders as RepoFolder[]
 
   // 检查配置是否完整
   const { owner, repo, branch } = configStore
   const isConfigured = owner && repo && branch
+
+  // 当前选择的文件夹路径
+  const [selectedFolder, setSelectedFolder] = useState(configStore.directory || '')
+
+  // 处理文件夹变更
+  const handleFolderChange = (folderPath: string | null) => {
+    const path = folderPath || ''
+    setSelectedFolder(path)
+    configStore.updateConfig({ directory: path })
+  }
 
   // 如果正在加载
   if (status === 'loading') {
@@ -129,6 +144,48 @@ export default function UploadPage() {
             </span>
           </motion.p>
         </motion.div>
+
+        {/* 文件夹选择 */}
+        {foldersList.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-6"
+          >
+            <CardAnimation className="p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <FolderOpen className="h-4 w-4" />
+                  <span>上传到文件夹:</span>
+                </div>
+                <Select
+                  value={selectedFolder}
+                  onValueChange={handleFolderChange}
+                >
+                  <SelectTrigger className="w-[240px]">
+                    <SelectValue placeholder="选择文件夹" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">
+                      <span className="text-gray-500">根目录</span>
+                    </SelectItem>
+                    {foldersList.map((folder) => (
+                      <SelectItem key={folder.path} value={folder.path}>
+                        <span className="font-mono text-sm">{folder.name}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedFolder && (
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    当前: <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs">{selectedFolder}</code>
+                  </span>
+                )}
+              </div>
+            </CardAnimation>
+          </motion.div>
+        )}
 
         {/* 上传区域 */}
         <CardAnimation
