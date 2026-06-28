@@ -123,13 +123,13 @@ export function useUpload() {
         // 5. 生成链接
         const linkOptions: LinkOptions = {
           format: 'markdown',
-          cdn: 'github',
+          cdn: config.cdn || 'github',
           owner: config.owner,
           repo: config.repo,
           branch: config.branch,
           path: filePath,
           fileName: fileName,
-          useRaw: true,
+          useRaw: config.useRaw ?? true,
         }
 
         const link = generateLink(linkOptions)

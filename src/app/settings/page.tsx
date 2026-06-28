@@ -566,7 +566,7 @@ export default function SettingsPage() {
   const handleCdnChange = (value: string | null) => {
     if (value) {
       configStore.updateConfig(
-        { cdn: value as 'github' | 'jsdelivr' | 'github-pages' },
+        { cdn: value as 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages' },
         () => {
           // CDN 配置变更后，invalidate 图片列表（CDN URL 会变）
           const { owner, repo, branch } = configStore
