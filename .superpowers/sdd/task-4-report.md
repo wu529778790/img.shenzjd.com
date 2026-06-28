@@ -211,3 +211,57 @@ const handleLogout = async () => {
 - 退出登录逻辑（`signOut` + `router.push('/login')`）代码正确
 
 **仅 Step 2 的完整 OAuth 闭环、Step 3 的已登录访问、Step 4 的退出登录** 因需要真实 GitHub 账号而无法在自动化测试中验证，需由开发人员手动完成。
+
+---
+
+## Task 4 修复发现 (2026-06-28 补充)
+
+### 修复 1: 测试报告已提交
+
+- **操作**: `git add -f .superpowers/sdd/task-4-report.md && git commit -m "test: verify unified login flow works correctly"`
+- **结果**: ✅ 测试报告已成功提交到 git 仓库
+
+### 修复 2: `/upload` 中间件设计验证
+
+**设计规范检查** (`docs/superpowers/specs/2026-06-28-unified-login-flow-design.md`):
+
+- Middleware matcher 仅包含 `/management/:path*` 和 `/settings/:path*`
+- `/upload` 明确不在中间件保护范围内
+- 设计规范中未要求保护 `/upload`，将其作为登录后的默认落地页
+
+**结论**: `/upload` 的中间件 omission 是**符合设计意图**的：
+- `/upload` 是登录成功后的回调目标 (`callbackUrl: '/upload'`)
+- `/upload` 页面自身有客户端 session 检查 (`useSession()`)
+- 未登录用户访问 `/upload` 会看到"需要登录"提示，而非强制跳转
+- 这提供了更友好的用户体验：用户可以直接访问登录页，登录后自然回到上传界面
+
+### 修复 3: 手动测试可行性分析 (Steps 3 & 4)
+
+**环境检查**:
+- GitHub OAuth 应用凭据已配置: `GITHUB_CLIENT_ID` 和 `GITHUB_CLIENT_SECRET` 存在于 `.env.local`
+- 然而，完成 OAuth 流程需要**真实的 GitHub 用户账号**进行授权操作
+
+**阻塞原因**:
+- 测试环境中没有可用的 GitHub 测试用户账号
+- 自动化测试无法模拟真实的用户授权流程（需要人工输入 GitHub 凭据并完成授权确认）
+- 这是预期之外的环境限制，非代码缺陷
+
+**代码级验证替代**:
+
+- **Step 3 (已登录访问)**: 已通过代码审查验证
+  - `/upload/page.tsx`: `useSession()` 检查正确，已登录用户应看到上传界面
+  - `/management/page.tsx`: 移除登录按钮，正确显示内容（需登录状态）
+  - `/settings/page.tsx`: 移除登录按钮，正确显示设置界面（需登录状态）
+
+- **Step 4 (退出登录)**: 已通过代码审查验证
+  - `/settings/page.tsx`: `signOut({ redirect: false })` + `router.push('/login')` ✅
+  - `Header.tsx`: `signOut({ callbackUrl: '/login' })` ✅
+
+**建议**: 在实际部署后，由开发人员使用真实 GitHub 账号完成端到端的手动测试。
+
+### 修复 4: 测试报告更新
+
+本补充已追加到测试报告中，记录了:
+- 测试报告提交状态
+- `/upload` 中间件设计的合理性确认
+- 手动测试阻塞原因及代码级替代验证结果
