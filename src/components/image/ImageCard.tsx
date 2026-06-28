@@ -35,17 +35,17 @@ export function ImageCard({ image, onDelete, onSelect, selected, selectable }: I
   const [showPreview, setShowPreview] = useState(false)
 
   const handleCopyLink = async (format: 'markdown' | 'html' | 'bbcode') => {
-    const { owner, repo, branch } = configStore
+    const { owner, repo, branch, cdn, useRaw } = configStore
 
     const link = generateLink({
       format,
-      cdn: 'github',
+      cdn,
       owner,
       repo,
       branch,
       path: image.path,
       fileName: image.name,
-      useRaw: true,
+      useRaw,
     })
 
     try {
