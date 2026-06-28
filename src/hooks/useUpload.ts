@@ -11,7 +11,7 @@ import { useUploadStore } from '@/stores/uploadStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
 import { useOperationLogStore } from '@/stores/operationLogStore'
-import type { ImageFile, LinkOptions } from '@/types/image'
+import type { ImageFile, LinkOptions, UploadTask } from '@/types/image'
 
 export function useUpload() {
   const { data: session } = useSession()
@@ -110,13 +110,24 @@ export function useUpload() {
   // 添加文件到上传队列
   const addFiles = useCallback(
     (files: File[]) => {
-      // 添加到队列
-      addTasks(files)
+      // 为每个文件创建任务，确保 taskId 一致
+      const newTasks: UploadTask[] = files.map((file) => ({
+        id: Math.random().toString(36).substring(7),
+        file,
+        status: 'pending',
+        progress: 0,
+      }))
+
+      // 直接添加到 store，taskId 保持一致性
+      useUploadStore.setState((state) => ({
+        queue: [...state.queue, ...newTasks],
+      }))
+
+      // 触发 React 重新渲染
+      useUploadStore.getState()
 
       // 逐个上传
-      files.forEach((file) => {
-        const taskId = Math.random().toString(36).substring(7)
-
+      newTasks.forEach(({ id: taskId, file }) => {
         // 更新任务状态为上传中
         updateTask(taskId, { status: 'uploading', progress: 0 })
 
@@ -149,7 +160,7 @@ export function useUpload() {
         })
       })
     },
-    [addTasks, updateTask, uploadMutation]
+    [updateTask, uploadMutation]
   )
 
   // 获取失败任务的文件列表
