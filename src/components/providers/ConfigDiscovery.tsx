@@ -83,7 +83,8 @@ export function ConfigDiscovery() {
         }
       })
     }
-  }, [status, session, checkConfig, configStore])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, session, checkConfig])  // ✅ 移除 configStore 依赖，避免死循环
 
   return null
 }

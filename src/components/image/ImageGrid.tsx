@@ -60,21 +60,7 @@ export function ImageGrid({
               <span>加载中...</span>
             </div>
           </div>
-        ) : images.length === 0 ? (
-          <div className="text-center py-16 px-4">
-            <div className="max-w-md mx-auto space-y-4">
-              <div className="mx-auto w-24 h-24 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center">
-                <ImageCardPlaceholder />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                暂无图片
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                上传您的第一张图片开始使用
-              </p>
-            </div>
-          </div>
-        ) : viewMode === 'grid' ? (
+        ) : images.length === 0 ? null : viewMode === 'grid' ? (
           // 网格视图 - 使用错误边界包裹
           <ErrorBoundary>
             <div className="min-h-0">

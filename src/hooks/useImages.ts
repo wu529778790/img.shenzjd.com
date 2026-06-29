@@ -9,6 +9,7 @@ import { useOperationLogStore } from '@/stores/operationLogStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
 import { BULK_DELETE_CONFIG } from '@/lib/constants'
+import { debugLog, debugError } from '@/lib/debug'
 import type { GitHubFileInfo, ImageFile } from '@/types/image'
 
 export function useImages() {
@@ -20,23 +21,52 @@ export function useImages() {
 
   const { owner, repo, branch, cdn, useRaw } = configStore
 
+  // 调试：在 hook 执行时立即打印状态
+  debugLog('[Images Hook] Initialized with:', {
+    token: !!token,
+    owner,
+    repo,
+    branch,
+    configKeys: Object.keys(configStore).filter(k => !['updateConfig', 'resetConfig', 'markConfigChecked', 'needsConfigCheck', 'invalidateConfigCheck'].includes(k)),
+  })
+
   // 获取图片列表
   const { data: images = [], isLoading, error } = useQuery({
     queryKey: ['images', owner, repo, branch],
     queryFn: async () => {
-      if (!token || !owner || !repo) return []
+      debugLog('[Images Query] Query function executed!')
+      if (!token || !owner || !repo) {
+        debugLog('[Images] Missing token/owner/repo, returning empty array', { token: !!token, owner, repo })
+        return []
+      }
 
+      debugLog('[Images] Fetching images from GitHub API...', { owner, repo, branch })
       const api = new GitHubAPI(token, owner, repo, branch)
 
       // 使用 Git Trees API 一次性获取所有文件（仅需 1 次请求）
       const allFiles = await api.listAllFilesWithTree()
+      debugLog('[Images] Total files from GitHub API:', allFiles.length)
+      debugLog('[Images] Sample files:', allFiles.slice(0, 5).map(f => ({ name: f.name, path: f.path, type: f.type, size: f.size })))
 
       // 过滤出图片文件 - 使用 Set 提高性能
       const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'])
       const imageFiles = allFiles.filter((file) => {
         const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'))
+        debugLog('[Images] Checking file:', { name: file.name, ext, path: file.path, size: file.size })
         return imageExtensions.has(ext)
       })
+      debugLog('[Images] Image files found:', imageFiles.length)
+      debugLog('[Images] Sample images:', imageFiles.slice(0, 5).map(f => ({ name: f.name, path: f.path })))
+
+      // 调试：如果是空数组，显示所有文件帮助诊断
+      if (imageFiles.length === 0 && allFiles.length > 0) {
+        debugLog('[Images] ⚠️ No images found! All files:', allFiles.map(f => ({
+          name: f.name,
+          path: f.path,
+          type: f.type,
+          size: f.size,
+        })))
+      }
 
       // 转换为业务层对象（不获取提交时间，使用文件名/大小/路径排序）
       return imageFiles.map((file) => {
@@ -64,6 +94,8 @@ export function useImages() {
     staleTime: 2 * 60 * 1000, // 2 分钟
     gcTime: 5 * 60 * 1000, // 5 分钟
   })
+
+  debugLog('[Images Hook] Query enabled:', !!token && !!owner && !!repo, { token: !!token, owner, repo, branch })
 
   // 用 ref 跟踪 images 变化，供 handleDelete 使用
   // 使用 useEffect 确保只在 images 实际变化时更新 ref

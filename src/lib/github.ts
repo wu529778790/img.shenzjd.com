@@ -115,7 +115,7 @@ export class GitHubAPI {
   async listAllFilesWithTree(): Promise<GitHubFileInfo[]> {
     try {
       // 使用 Git Trees API，recursive=1 递归获取所有文件
-      const response = await this.request<any>(`/repos/${this.owner}/${this.repo}/git/trees/${this.branch}`, {
+      const response = await this.request<any>(`/repos/${this.owner}/${this.repo}/git/trees/${this.branch}?recursive=1`, {
         method: 'GET',
       })
 
@@ -133,6 +133,11 @@ export class GitHubAPI {
           download_url: `https://raw.githubusercontent.com/${this.owner}/${this.repo}/${this.branch}/${item.path}`,
           html_url: `https://github.com/${this.owner}/${this.repo}/blob/${this.branch}/${item.path}`,
         }))
+
+      debugLog('[GitHub] Tree API returned', tree.length, 'items,', files.length, 'files')
+      if (tree.length > 0) {
+        debugLog('[GitHub] Tree sample:', tree.slice(0, 10).map((item: any) => ({ path: item.path, type: item.type })))
+      }
 
       return files
     } catch (error) {
