@@ -11,9 +11,12 @@ export function generateLink(options: LinkOptions): string {
       if (useRaw) {
         // GitHub raw 链接 + WebP 格式参数
         baseUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`
-        // 添加 ?raw=1 和 &format=webp 参数
-        // GitHub 会自动将图片转换为 WebP 格式（比原格式小 25-35%）
-        baseUrl += '?raw=1&format=webp'
+
+        // GitHub Raw 支持动态 WebP 转换
+        // 添加 ?format=webp 参数，GitHub 会自动转换为 WebP
+        // 优点：不需要仓库里有 .webp 文件，动态转换
+        const hasQuery = baseUrl.includes('?')
+        baseUrl += hasQuery ? '&format=webp' : '?format=webp'
       } else {
         baseUrl = `https://github.com/${owner}/${repo}/blob/${branch}/${path}`
       }
@@ -22,6 +25,9 @@ export function generateLink(options: LinkOptions): string {
       baseUrl = `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${path}`
       break
     case 'jsdmirror':
+      // jsdmirror 不支持动态 WebP 转换
+      // 它只是镜像 GitHub 文件，需要仓库里实际有 .webp 文件
+      // 所以保持原图链接，避免 404
       baseUrl = `https://cdn.jsdmirror.com/gh/${owner}/${repo}@${branch}/${path}`
       break
     case 'github-pages':
