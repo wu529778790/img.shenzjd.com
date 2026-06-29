@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
@@ -14,12 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sparkles, Zap, UploadCloud, FolderOpen } from 'lucide-react'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
-import { AuthPrompt } from '@/components/auth/AuthPrompt'
+import { useAuthDialog } from '@/components/auth'
 import { cn } from '@/lib/utils'
 
 export default function HomePage() {
   const router = useRouter()
   const { data: session, status } = useSession()
+  const { openLoginDialog } = useAuthDialog()
   const configStore = useConfigStore()
   const { uploadQueue, addFiles, retryTask, retryAllFailed, removeTask } = useUpload()
   const { data: folders = [], isLoading: foldersLoading } = useRepoFolders()
@@ -39,6 +40,13 @@ export default function HomePage() {
     configStore.updateConfig({ directory: path })
   }
 
+  // 未登录时自动打开登录弹窗
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      openLoginDialog()
+    }
+  }, [status, openLoginDialog])
+
   // 如果正在加载
   if (status === 'loading') {
     return (
@@ -52,27 +60,6 @@ export default function HomePage() {
     )
   }
 
-  // 如果未登录，显示登录提示
-  if (!session) {
-    return (
-      <AuthPrompt
-        mode="login"
-        description="登录后才能上传图片和管理图床"
-        buttonText="立即登录"
-      />
-    )
-  }
-
-  if (!isConfigured) {
-    return (
-      <AuthPrompt
-        mode="config"
-        description="在开始上传之前，需要先配置您的 GitHub 仓库"
-        buttonText="去配置"
-      />
-    )
-  }
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <PageTransition>
@@ -81,6 +68,50 @@ export default function HomePage() {
           delay={0.1}
           className="p-8 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg"
         >
+          {/* 未登录提示横幅 */}
+          {!session && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
+              role="alert"
+            >
+              <div className="flex items-center justify-between gap-2 text-sm text-blue-900 dark:text-blue-100">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                  <span className="text-blue-800 dark:text-blue-200 font-medium">
+                    登录后才能上传图片
+                  </span>
+                </div>
+                <Button size="sm" onClick={openLoginDialog}>
+                  立即登录
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* 未配置提示横幅 */}
+          {session && !isConfigured && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800"
+              role="alert"
+            >
+              <div className="flex items-center justify-between gap-2 text-sm text-amber-900 dark:text-amber-100">
+                <div className="flex items-center gap-2">
+                  <FolderOpen className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <span className="text-amber-800 dark:text-amber-200 font-medium">
+                    请先配置图床后才能上传
+                  </span>
+                </div>
+                <Button size="sm" onClick={() => router.push('/config')}>
+                  去配置
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
           <UploadArea onFilesSelected={addFiles} />
 
           {/* 文件夹选择 */}
