@@ -596,7 +596,7 @@ function AboutSection() {
 
 // ── Config Section (moved from /config page) ────────────────────────────────────
 
-function GitHubRepoSelect({ currentUser, onRepoChange }: { currentUser: string, onRepoChange: (repo: string) => void }) {
+function GitHubRepoSelect({ currentUser, value, onRepoChange }: { currentUser: string, value: string, onRepoChange: (repo: string) => void }) {
   const [repos, setRepos] = useState<GitHubRepo[]>([])
   const [loadingRepos, setLoadingRepos] = useState(false)
   const [token, setToken] = useState<string | undefined>()
@@ -641,6 +641,7 @@ function GitHubRepoSelect({ currentUser, onRepoChange }: { currentUser: string, 
       ) : (
         <select
           id="repo"
+          value={value}
           onChange={(e) => onRepoChange(e.target.value)}
           className="mt-1 w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-800"
         >
@@ -832,7 +833,7 @@ function ConfigSection({ configStore }: { configStore: ConfigState }) {
         <div>
           <h3 className="text-lg font-semibold mb-4">手动配置</h3>
           <div className="space-y-4">
-            <GitHubRepoSelect currentUser={currentUser} onRepoChange={setRepo} />
+            <GitHubRepoSelect currentUser={currentUser} value={repo} onRepoChange={setRepo} />
 
             <div>
               <Label htmlFor="branch">分支</Label>
