@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
@@ -17,7 +17,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useSaveConfigToGitHub, useLoadConfigFromGitHub } from '@/hooks/useConfigSync'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
-import { AuthPrompt } from '@/components/auth/AuthPrompt'
+import { useAuthDialog } from '@/components/auth'
 import { cn } from '@/lib/utils'
 
 // ── Section components (defined outside SettingsPage for stable identity) ─────
@@ -597,6 +597,7 @@ function AboutSection() {
 export default function SettingsPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
+  const { openLoginDialog } = useAuthDialog()
   const configStore: ConfigState = useConfigStore()
   const { addLog: addOperationLog } = useOperationLogStore()
   const queryClient = useQueryClient()
@@ -613,6 +614,13 @@ export default function SettingsPage() {
     { id: 'about',      label: '关于',     icon: Info },
   ] as const
 
+  // 未登录时自动打开登录弹窗
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      openLoginDialog()
+    }
+  }, [status, openLoginDialog])
+
   // 如果正在加载
   if (status === 'loading') {
     return (
@@ -626,16 +634,6 @@ export default function SettingsPage() {
     )
   }
 
-  // 如果未登录，显示登录提示
-  if (!session) {
-    return (
-      <AuthPrompt
-        mode="login"
-        description="登录后才能管理设置"
-        buttonText="立即登录"
-      />
-    )
-  }
 
   const handleClearConfig = () => {
     if (!confirm('确定要清空所有配置吗？此操作不可恢复。')) return

@@ -9,7 +9,7 @@ import { useImages } from '@/hooks/useImages'
 import { ImageGrid } from '@/components/image/ImageGrid'
 import { ManagementToolbar } from '@/components/image/ManagementToolbar'
 import { ManagementSkeleton } from '@/components/loading/Skeleton'
-import { AuthPrompt } from '@/components/auth/AuthPrompt'
+import { useAuthDialog } from '@/components/auth'
 import { Image as ImageIcon } from 'lucide-react'
 import { IMAGE_GRID_CONFIG, SEARCH_CONFIG, DIRECTORY_CONFIG } from '@/lib/constants'
 
@@ -20,6 +20,7 @@ type ViewMode = 'grid' | 'list'
 export default function ManagementPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
+  const { openLoginDialog } = useAuthDialog()
   const configStore = useConfigStore()
 
   const { images, isLoading, handleDelete, handleBulkDelete, isDeleting } = useImages()
@@ -39,6 +40,13 @@ export default function ManagementPage() {
 
   // 检查配置是否完整
   const isConfigured = configStore.owner && configStore.repo && configStore.branch
+
+  // 未登录时自动打开登录弹窗
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      openLoginDialog()
+    }
+  }, [status, openLoginDialog])
 
   // 使用 useMemo 缓存过滤和排序结果
   const filteredImages = useMemo(() => {
@@ -162,33 +170,12 @@ export default function ManagementPage() {
 
   const allSelected = filteredImages.length > 0 && selectedIds.size === filteredImages.length
 
-  // 如果正在加载，显示骨架屏
-  if (status === 'loading' || (isLoading && images.length === 0)) {
+  // 如果正在加载或未登录，显示骨架屏
+  if (status === 'loading' || !session) {
     return (
       <div className="min-h-[60vh]">
         <ManagementSkeleton />
       </div>
-    )
-  }
-
-  // 如果未登录，显示登录提示
-  if (!session) {
-    return (
-      <AuthPrompt
-        mode="login"
-        description="登录后才能管理图片"
-        buttonText="立即登录"
-      />
-    )
-  }
-
-  if (!isConfigured) {
-    return (
-      <AuthPrompt
-        mode="config"
-        description="在开始之前，需要先配置您的 GitHub 仓库"
-        buttonText="去配置"
-      />
     )
   }
 
