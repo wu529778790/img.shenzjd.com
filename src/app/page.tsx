@@ -58,6 +58,14 @@ export default function HomePage() {
     addFiles(files)
   }, [session, isConfigured, openLoginDialog, openConfigDialog, addFiles])
 
+  // 未配置时自动打开配置弹窗
+  useEffect(() => {
+    if (status === 'authenticated' && !isConfigured) {
+      console.log('[HomePage] User logged in but not configured, opening config dialog')
+      openConfigDialog()
+    }
+  }, [status, isConfigured, openConfigDialog])
+
   // 如果正在加载
   if (status === 'loading') {
     return (

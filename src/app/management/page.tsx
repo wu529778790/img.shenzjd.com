@@ -53,11 +53,11 @@ export default function ManagementPage() {
 
   // 已登录但未配置时，自动打开配置弹窗
   useEffect(() => {
-    if (session && !isConfigured) {
+    if (status === 'authenticated' && !isConfigured) {
       console.log('[Management] User logged in but not configured, opening config dialog')
       openConfigDialog()
     }
-  }, [session, isConfigured, openConfigDialog])
+  }, [status, isConfigured, openConfigDialog])
 
   // 使用 useMemo 缓存过滤和排序结果
   const filteredImages = useMemo(() => {
@@ -181,8 +181,8 @@ export default function ManagementPage() {
 
   const allSelected = filteredImages.length > 0 && selectedIds.size === filteredImages.length
 
-  // 如果正在加载或未登录，显示骨架屏
-  if (status === 'loading' || !session) {
+  // 如果正在加载、未登录或未配置，显示骨架屏
+  if (status === 'loading' || !session || !isConfigured) {
     return (
       <div className="min-h-[60vh]">
         <ManagementSkeleton />
