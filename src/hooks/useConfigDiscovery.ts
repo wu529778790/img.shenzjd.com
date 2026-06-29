@@ -44,12 +44,13 @@ export function useConfigDiscovery() {
     const configPath = '.imgx-config/config.json'
 
     try {
-      // 检查配置文件是否存在
-      const configApi = new GitHubAPI(token, username, repoName)
-      await configApi.getFile(configPath)
+      // 检查配置文件是否存在（使用配置的分支）
+      const branch = configStore.branch || 'main'
+      const configApi = new GitHubAPI(token, username, repoName, branch)
+      await configApi.getFile(configPath, branch)
 
       // 文件存在，加载配置
-      const fileData = await configApi.getFile(configPath)
+      const fileData = await configApi.getFile(configPath, branch)
       const content = decodeURIComponent(escape(atob(fileData.content)))
       const config: Config = JSON.parse(content)
 
