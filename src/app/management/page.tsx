@@ -6,10 +6,12 @@ import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { useConfigStore } from '@/stores/configStore'
 import { useImages } from '@/hooks/useImages'
+import { useDetectExistingConfig } from '@/hooks/useDetectExistingConfig'
 import { ImageGrid } from '@/components/image/ImageGrid'
 import { ManagementToolbar } from '@/components/image/ManagementToolbar'
 import { ManagementSkeleton } from '@/components/loading/Skeleton'
 import { useAuthDialog, useConfigDialog } from '@/components/auth'
+import { toast } from 'sonner'
 import { Image as ImageIcon } from 'lucide-react'
 import { IMAGE_GRID_CONFIG, SEARCH_CONFIG, DIRECTORY_CONFIG } from '@/lib/constants'
 
@@ -21,7 +23,7 @@ export default function ManagementPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
   const { openLoginDialog } = useAuthDialog()
-  const { openConfigDialog } = useConfigDialog()
+  const { openConfigDialog, isConfigDismissed } = useConfigDialog()
   const configStore = useConfigStore()
 
   const { images, isLoading, handleDelete, handleBulkDelete, isDeleting } = useImages()
@@ -42,6 +44,9 @@ export default function ManagementPage() {
   // 检查配置是否完整
   const isConfigured = configStore.owner && configStore.repo && configStore.branch
 
+  // 智能检测 GitHub 仓库配置
+  const { detectExistingConfig } = useDetectExistingConfig()
+
   // 未登录时自动打开登录弹窗
   useEffect(() => {
     console.log('[Management] Status changed:', status, 'Session:', !!session)  // Debug
@@ -51,13 +56,27 @@ export default function ManagementPage() {
     }
   }, [status, openLoginDialog, session])
 
-  // 已登录但未配置时，自动打开配置弹窗
+  // 已登录但未配置时，先尝试智能检测，再打开配置弹窗
   useEffect(() => {
-    if (status === 'authenticated' && !isConfigured) {
-      console.log('[Management] User logged in but not configured, opening config dialog')
-      openConfigDialog()
+    if (status === 'authenticated' && !isConfigured && !isConfigDismissed) {
+      console.log('[Management] User logged in but not configured, trying to detect existing config')
+      // 先尝试检测是否已有配置
+      detectExistingConfig().then(config => {
+        if (config) {
+          // 检测到已有配置，自动填充
+          console.log('[Management] Detected existing config:', config)
+          configStore.updateConfig(config, () => {
+            // 配置更新后，图片列表会自动刷新
+            toast.success(`已恢复配置: ${config.owner}/${config.repo} (${config.branch})`)
+          })
+        } else {
+          // 没有检测到配置，打开配置弹窗
+          console.log('[Management] No existing config detected, opening config dialog')
+          openConfigDialog()
+        }
+      })
     }
-  }, [status, isConfigured, openConfigDialog])
+  }, [status, isConfigured, isConfigDismissed, openConfigDialog, detectExistingConfig, configStore])
 
   // 使用 useMemo 缓存过滤和排序结果
   const filteredImages = useMemo(() => {
@@ -181,8 +200,8 @@ export default function ManagementPage() {
 
   const allSelected = filteredImages.length > 0 && selectedIds.size === filteredImages.length
 
-  // 如果正在加载、未登录或未配置，显示骨架屏
-  if (status === 'loading' || !session || !isConfigured) {
+  // 如果正在加载、未登录、未配置或用户已关闭配置弹窗，显示骨架屏
+  if (status === 'loading' || !session || !isConfigured || isConfigDismissed) {
     return (
       <div className="min-h-[60vh]">
         <ManagementSkeleton />

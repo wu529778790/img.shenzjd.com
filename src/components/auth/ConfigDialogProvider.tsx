@@ -11,6 +11,8 @@ interface ConfigDialogContextType {
   closeConfigDialog: () => void
   /** 配置弹窗是否打开 */
   isConfigDialogOpen: boolean
+  /** 配置弹窗是否被用户关闭过（未配置的情况下） */
+  isConfigDismissed: boolean
 }
 
 const ConfigDialogContext = createContext<ConfigDialogContextType | null>(null)
@@ -38,13 +40,16 @@ interface ConfigDialogProviderProps {
  */
 export function ConfigDialogProvider({ children }: ConfigDialogProviderProps) {
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false)
+  const [isConfigDismissed, setIsConfigDismissed] = useState(false)
 
   const openConfigDialog = useCallback(() => {
     setIsConfigDialogOpen(true)
+    setIsConfigDismissed(false) // 打开弹窗时重置关闭状态
   }, [])
 
   const closeConfigDialog = useCallback(() => {
     setIsConfigDialogOpen(false)
+    setIsConfigDismissed(true) // 标记用户已关闭弹窗
   }, [])
 
   return (
@@ -53,10 +58,19 @@ export function ConfigDialogProvider({ children }: ConfigDialogProviderProps) {
         openConfigDialog,
         closeConfigDialog,
         isConfigDialogOpen,
+        isConfigDismissed,
       }}
     >
       {children}
-      <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
+      <Dialog
+        open={isConfigDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsConfigDismissed(true) // 用户关闭弹窗
+          }
+          setIsConfigDialogOpen(open)
+        }}
+      >
         <DialogContent
           showCloseButton={true}
           className="sm:max-w-md"

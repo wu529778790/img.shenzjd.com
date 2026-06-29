@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useMemo, useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { useUpload } from '@/hooks/useUpload'
 import { useRepoFolders, type RepoFolder } from '@/hooks/useRepoFolders'
+import { useDetectExistingConfig } from '@/hooks/useDetectExistingConfig'
 import { UploadArea } from '@/components/upload/UploadArea'
 import { UploadQueue } from '@/components/upload/UploadQueue'
 import { Button } from '@/components/ui/button'
@@ -22,7 +23,7 @@ export default function HomePage() {
   const router = useRouter()
   const { data: session, status } = useSession()
   const { openLoginDialog } = useAuthDialog()
-  const { openConfigDialog } = useConfigDialog()
+  const { openConfigDialog, isConfigDismissed } = useConfigDialog()
   const configStore = useConfigStore()
   const { uploadQueue, addFiles, retryTask, retryAllFailed, removeTask } = useUpload()
   const { data: folders = [], isLoading: foldersLoading } = useRepoFolders()
@@ -31,6 +32,9 @@ export default function HomePage() {
   // 检查配置是否完整
   const { owner, repo, branch } = configStore
   const isConfigured = owner && repo && branch
+
+  // 智能检测 GitHub 仓库配置
+  const { detectExistingConfig } = useDetectExistingConfig()
 
   // 当前选择的文件夹路径
   const [selectedFolder, setSelectedFolder] = useState(configStore.directory || '')
@@ -60,11 +64,24 @@ export default function HomePage() {
 
   // 未配置时自动打开配置弹窗
   useEffect(() => {
-    if (status === 'authenticated' && !isConfigured) {
-      console.log('[HomePage] User logged in but not configured, opening config dialog')
-      openConfigDialog()
+    if (status === 'authenticated' && !isConfigured && !isConfigDismissed) {
+      console.log('[HomePage] User logged in but not configured, trying to detect existing config')
+      // 先尝试检测是否已有配置
+      detectExistingConfig().then(config => {
+        if (config) {
+          // 检测到已有配置，自动填充
+          console.log('[HomePage] Detected existing config:', config)
+          configStore.updateConfig(config, () => {
+            toast.success(`已恢复配置: ${config.owner}/${config.repo} (${config.branch})`)
+          })
+        } else {
+          // 没有检测到配置，打开配置弹窗
+          console.log('[HomePage] No existing config detected, opening config dialog')
+          openConfigDialog()
+        }
+      })
     }
-  }, [status, isConfigured, openConfigDialog])
+  }, [status, isConfigured, isConfigDismissed, openConfigDialog, detectExistingConfig, configStore])
 
   // 如果正在加载
   if (status === 'loading') {
