@@ -633,7 +633,6 @@ export default function SettingsPage() {
         mode="login"
         description="登录后才能管理设置"
         buttonText="立即登录"
-        onButtonClick={() => router.push('/login')}
       />
     )
   }

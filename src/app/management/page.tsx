@@ -3,7 +3,6 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Lock, FolderTree, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useConfigStore } from '@/stores/configStore'
 import { useImages } from '@/hooks/useImages'
@@ -11,6 +10,7 @@ import { ImageGrid } from '@/components/image/ImageGrid'
 import { ManagementToolbar } from '@/components/image/ManagementToolbar'
 import { ManagementSkeleton } from '@/components/loading/Skeleton'
 import { AuthPrompt } from '@/components/auth/AuthPrompt'
+import { Image as ImageIcon } from 'lucide-react'
 import { IMAGE_GRID_CONFIG, SEARCH_CONFIG, DIRECTORY_CONFIG } from '@/lib/constants'
 
 type SortField = 'name' | 'size' | 'path'
@@ -178,7 +178,6 @@ export default function ManagementPage() {
         mode="login"
         description="登录后才能管理图片"
         buttonText="立即登录"
-        onButtonClick={() => router.push('/login')}
       />
     )
   }
@@ -189,7 +188,6 @@ export default function ManagementPage() {
         mode="config"
         description="在开始之前，需要先配置您的 GitHub 仓库"
         buttonText="去配置"
-        onButtonClick={() => router.push('/config')}
       />
     )
   }

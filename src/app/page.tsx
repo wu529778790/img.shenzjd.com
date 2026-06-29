@@ -59,7 +59,6 @@ export default function HomePage() {
         mode="login"
         description="登录后才能上传图片和管理图床"
         buttonText="立即登录"
-        onButtonClick={() => router.push('/login')}
       />
     )
   }
@@ -70,7 +69,6 @@ export default function HomePage() {
         mode="config"
         description="在开始上传之前，需要先配置您的 GitHub 仓库"
         buttonText="去配置"
-        onButtonClick={() => router.push('/config')}
       />
     )
   }

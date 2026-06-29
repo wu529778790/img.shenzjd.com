@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { useRouter } from 'next/navigation'
+import { useAuthDialog } from '@/components/auth/AuthDialogProvider'
 import { Lock, FolderTree } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CardAnimation } from '@/components/animations/PageAnimations'
@@ -18,7 +18,7 @@ export interface AuthPromptProps {
   description?: string
   /** 自定义按钮文本 */
   buttonText?: string
-  /** 按钮点击事件 */
+  /** 自定义点击事件（可选，不提供则使用默认行为） */
   onButtonClick?: () => void
   /** 自定义类名 */
   className?: string
@@ -30,13 +30,15 @@ export interface AuthPromptProps {
  * 用于在用户未登录或未配置时显示引导卡片
  * 确保整个应用的引导体验一致
  *
+ * 登录模式会打开全局登录弹窗（通过 AuthDialogProvider）
+ * 配置模式会跳转到配置页面
+ *
  * @example
  * // 未登录引导
  * <AuthPrompt
  *   mode="login"
  *   description="登录后才能管理图片"
  *   buttonText="立即登录"
- *   onButtonClick={() => router.push('/login')}
  * />
  *
  * @example
@@ -45,7 +47,6 @@ export interface AuthPromptProps {
  *   mode="config"
  *   description="在开始之前，需要先配置您的 GitHub 仓库"
  *   buttonText="去配置"
- *   onButtonClick={() => router.push('/config')}
  * />
  */
 export function AuthPrompt({
@@ -56,7 +57,7 @@ export function AuthPrompt({
   onButtonClick,
   className,
 }: AuthPromptProps) {
-  const router = useRouter()
+  const { openLoginDialog } = useAuthDialog()
 
   // 默认配置
   const config = {
@@ -65,19 +66,29 @@ export function AuthPrompt({
       defaultTitle: '需要登录',
       defaultDescription: '登录后才能继续操作',
       defaultButtonText: '立即登录',
-      defaultAction: () => router.push('/login'),
     },
     config: {
       icon: FolderTree,
       defaultTitle: '请先配置图床',
       defaultDescription: '在开始之前，需要先配置您的 GitHub 仓库',
       defaultButtonText: '去配置',
-      defaultAction: () => router.push('/config'),
     },
   }[mode]
 
   const Icon = config.icon
-  const handleClick = onButtonClick || config.defaultAction
+
+  // 处理按钮点击
+  const handleButtonClick = () => {
+    if (onButtonClick) {
+      onButtonClick()
+    } else if (mode === 'login') {
+      // 登录模式：打开登录弹窗
+      openLoginDialog()
+    } else {
+      // 配置模式：跳转到配置页面
+      window.location.href = '/config'
+    }
+  }
 
   return (
     <CardAnimation className={className} delay={0.1}>
@@ -104,7 +115,7 @@ export function AuthPrompt({
 
         {/* 按钮 */}
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button onClick={handleClick} size="lg" className="w-full">
+          <Button onClick={handleButtonClick} size="lg" className="w-full">
             {buttonText || config.defaultButtonText}
           </Button>
         </motion.div>

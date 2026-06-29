@@ -7,6 +7,7 @@ import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { Header } from "@/components/layout/Header";
 import { SyncGitHubTokenToLocalStorage } from "@/hooks/useSyncGitHubToken";
 import { ConfigDiscovery } from "@/components/providers/ConfigDiscovery";
+import { AuthDialogProvider } from "@/components/auth/AuthDialogProvider";
 import { SkipLink } from "@/components/layout/SkipLink";
 
 const inter = Inter({
@@ -39,27 +40,29 @@ export default function RootLayout({
           <AuthProvider>
             <SyncGitHubTokenToLocalStorage />
             <ConfigDiscovery />
-            <div className="relative flex min-h-screen flex-col">
-              <SkipLink />
-              <Header />
-              <main id="main-content" tabIndex={-1}>
-                {children}
-              </main>
-              <footer className="border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm py-4">
-                <div className="container mx-auto px-4 py-4">
-                  <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-                    <p>© 2025 ImgX. 基于 GitHub 的现代化图床服务</p>
+            <AuthDialogProvider>
+              <div className="relative flex min-h-screen flex-col">
+                <SkipLink />
+                <Header />
+                <main id="main-content" tabIndex={-1}>
+                  {children}
+                </main>
+                <footer className="border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm py-4">
+                  <div className="container mx-auto px-4 py-4">
+                    <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+                      <p>© 2025 ImgX. 基于 GitHub 的现代化图床服务</p>
+                    </div>
                   </div>
-                </div>
-              </footer>
-            </div>
-            <Toaster
-              position="top-right"
-              richColors
-              duration={3000}
-              closeButton
-              theme="system"
-            />
+                </footer>
+              </div>
+              <Toaster
+                position="top-right"
+                richColors
+                duration={3000}
+                closeButton
+                theme="system"
+              />
+            </AuthDialogProvider>
           </AuthProvider>
         </ReactQueryProvider>
       </body>
