@@ -66,6 +66,28 @@ export class GitHubAPI {
     return response.data
   }
 
+  // 获取仓库的所有分支
+  async getBranches(): Promise<string[]> {
+    try {
+      const response = await this.client.get(`/repos/${this.owner}/${this.repo}/branches`, {
+        params: {
+          per_page: 100, // 最多获取 100 个分支
+        },
+      })
+      const branches = response.data.map((branch: any) => branch.name)
+      return branches
+    } catch (error) {
+      debugError('Failed to get branches:', error)
+      // 如果失败，返回默认分支
+      try {
+        const repo = await this.getRepo()
+        return [repo.default_branch]
+      } catch {
+        return ['main', 'master'] // 最终回退
+      }
+    }
+  }
+
   // 使用 Git Trees API 一次性获取整个仓库的文件树
   // 替代递归调用 listContents，大幅减少 API 请求数
   async listAllFilesWithTree(): Promise<GitHubFileInfo[]> {

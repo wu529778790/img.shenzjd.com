@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/providers/SessionProvider";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { Header } from "@/components/layout/Header";
 import { SyncGitHubTokenToLocalStorage } from "@/hooks/useSyncGitHubToken";
+import { ConfigDiscovery } from "@/components/providers/ConfigDiscovery";
 import { SkipLink } from "@/components/layout/SkipLink";
 
 const inter = Inter({
@@ -37,6 +38,7 @@ export default function RootLayout({
         <ReactQueryProvider>
           <AuthProvider>
             <SyncGitHubTokenToLocalStorage />
+            <ConfigDiscovery />
             <div className="relative flex min-h-screen flex-col">
               <SkipLink />
               <Header />

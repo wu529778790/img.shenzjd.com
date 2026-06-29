@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSession } from 'next-auth/react'
 import { Settings, Loader2 } from 'lucide-react'
@@ -81,33 +81,39 @@ export default function ConfigPage() {
   }, [currentUser])
 
   // 当选择仓库时，获取分支列表
-  useEffect(() => {
+  const fetchBranches = useCallback(async () => {
     if (!repo || !currentUser) return
 
-    const fetchBranches = async () => {
-      setLoadingBranches(true)
-      try {
-        const session = await getSession()
-        const token = session?.accessToken as string | undefined
-        if (!token) throw new Error('Not authenticated')
+    setLoadingBranches(true)
+    try {
+      const session = await getSession()
+      const token = session?.accessToken as string | undefined
+      if (!token) throw new Error('Not authenticated')
 
-        const api = new GitHubAPI(token, currentUser, repo)
-        const data = await api.getRepo()
-        const defaultBranch = data.default_branch
+      const api = new GitHubAPI(token, currentUser, repo)
 
-        // GitHub API 默认分支通常就是 main/master，暂时用默认分支
-        setBranches([defaultBranch])
-      } catch (error) {
-        console.error('Failed to fetch branches:', error)
-        toast.error(`获取分支列表失败: ${error instanceof Error ? error.message : '未知错误'}`)
-        setBranches([])
-      } finally {
-        setLoadingBranches(false)
+      // 获取所有分支
+      const branchList = await api.getBranches()
+
+      if (branchList.length > 0) {
+        setBranches(branchList)
+      } else {
+        // 如果获取失败，使用默认分支
+        const repoInfo = await api.getRepo()
+        setBranches([repoInfo.default_branch])
       }
+    } catch (error) {
+      console.error('Failed to fetch branches:', error)
+      toast.error(`获取分支列表失败: ${error instanceof Error ? error.message : '未知错误'}`)
+      setBranches([])
+    } finally {
+      setLoadingBranches(false)
     }
-
-    fetchBranches()
   }, [repo, currentUser])
+
+  useEffect(() => {
+    fetchBranches()
+  }, [fetchBranches])
 
   const handleAutoConfig = async () => {
     if (!currentUser) {
@@ -117,7 +123,8 @@ export default function ConfigPage() {
 
     setLoading(true)
     try {
-      const repoName = `${currentUser.toLowerCase()}-imgx`
+      // 使用固定仓库名
+      const repoName = 'img.shenzjd.com'
 
       // 创建新仓库
       const session = await getSession()
