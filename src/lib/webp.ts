@@ -3,21 +3,42 @@
  */
 
 /**
+ * 识别 CDN 类型
+ */
+function getCDNType(url: string): string {
+  if (url.includes('raw.githubusercontent.com')) return 'github-raw'
+  if (url.includes('cdn.jsdelivr.net/gh')) return 'jsdelivr'
+  if (url.includes('cdn.jsdmirror.com/gh')) return 'jsdmirror'
+  if (url.includes('.github.io')) return 'github-pages'
+  return 'unknown'
+}
+
+/**
  * 将图片 URL 转换为 WebP 格式
- * 只对 GitHub raw 链接添加 WebP 参数
+ * 支持多种 CDN 和 GitHub raw 链接
  *
  * @param url 原始图片 URL
  * @returns WebP URL（如果支持）
  */
 export function getWebPUrl(url: string): string {
-  // 只对 GitHub raw 链接添加 WebP 参数
-  if (url.includes('raw.githubusercontent.com')) {
-    // 检查 URL 是否已有查询参数
+  const cdnType = getCDNType(url)
+
+  // GitHub raw 链接：添加 ?format=webp 参数
+  if (cdnType === 'github-raw') {
     const separator = url.includes('?') ? '&' : '?'
     return `${url}${separator}format=webp`
   }
 
-  // 其他 CDN 或链接保持不变
+  // jsDelivr 和 jsdmirror：替换文件扩展名为 .webp
+  if (cdnType === 'jsdelivr' || cdnType === 'jsdmirror') {
+    // 只对图片文件进行转换
+    if (/\.(png|jpg|jpeg|gif|bmp|tiff?)$/i.test(url)) {
+      return url.replace(/\.(png|jpg|jpeg|gif|bmp|tiff?)$/i, '.webp')
+    }
+    return url
+  }
+
+  // GitHub Pages 和其他链接：保持不变
   return url
 }
 
