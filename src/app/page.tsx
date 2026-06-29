@@ -49,9 +49,9 @@ export default function HomePage() {
       return
     }
     if (!isConfigured) {
-      // 未配置，提示去配置
+      // 未配置，打开配置引导
       toast.error('请先配置图床后再上传图片')
-      router.push('/config')
+      router.push('/settings?section=config')
       return
     }
     // 已登录已配置，正常上传

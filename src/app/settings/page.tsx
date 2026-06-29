@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useSession, getSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
-import { Settings, Trash2, Link2, Globe, Image, ShieldAlert, User, Info, FileText, Code, RefreshCw, Check, Copy } from 'lucide-react'
+import { Settings, Trash2, Link2, Globe, Image, ShieldAlert, User, Info, FileText, Code, RefreshCw, Check, Copy, FolderGit, Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { useConfigStore, type ConfigState } from '@/stores/configStore'
 import { useOperationLogStore } from '@/stores/operationLogStore'
@@ -19,6 +20,7 @@ import { PageTransition, CardAnimation } from '@/components/animations/PageAnima
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthDialog } from '@/components/auth'
 import { cn } from '@/lib/utils'
+import { GitHubAPI, GitHubRepo } from '@/lib/github'
 
 // ── Section components (defined outside SettingsPage for stable identity) ─────
 
@@ -592,7 +594,283 @@ function AboutSection() {
   )
 }
 
-// ── Main page component ───────────────────────────────────────────────────────
+// ── Config Section (moved from /config page) ────────────────────────────────────
+
+function GitHubRepoSelect({ currentUser, onRepoChange }: { currentUser: string, onRepoChange: (repo: string) => void }) {
+  const [repos, setRepos] = useState<GitHubRepo[]>([])
+  const [loadingRepos, setLoadingRepos] = useState(false)
+  const [token, setToken] = useState<string | undefined>()
+
+  useEffect(() => {
+    const getToken = async () => {
+      const session = await getSession()
+      setToken(session?.accessToken as string | undefined)
+    }
+    getToken()
+  }, [])
+
+  useEffect(() => {
+    if (!currentUser || !token) return
+
+    const fetchRepos = async () => {
+      setLoadingRepos(true)
+      try {
+        const api = new GitHubAPI(token, currentUser, '')
+        const data = await api.listRepos()
+        setRepos(Array.isArray(data) ? data : [])
+      } catch (error) {
+        console.error('Failed to fetch repos:', error)
+        toast.error('获取仓库列表失败')
+        setRepos([])
+      } finally {
+        setLoadingRepos(false)
+      }
+    }
+
+    fetchRepos()
+  }, [currentUser, token])
+
+  return (
+    <div>
+      <Label htmlFor="repo">仓库名</Label>
+      {loadingRepos ? (
+        <div className="flex items-center mt-1">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span className="ml-2 text-sm text-gray-500">加载中...</span>
+        </div>
+      ) : (
+        <select
+          id="repo"
+          onChange={(e) => onRepoChange(e.target.value)}
+          className="mt-1 w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-800"
+        >
+          <option value="">选择仓库</option>
+          {repos.map((repo) => (
+            <option key={repo.full_name} value={repo.name}>
+              {repo.full_name}
+            </option>
+          ))}
+        </select>
+      )}
+    </div>
+  )
+}
+
+function ConfigSection({ configStore }: { configStore: ConfigState }) {
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  const [loading, setLoading] = useState(false)
+  const [currentUser, setCurrentUser] = useState('')
+  const [repo, setRepo] = useState('')
+  const [branch, setBranch] = useState('main')
+  const [directory, setDirectory] = useState('')
+  const [branches, setBranches] = useState<string[]>([])
+  const [loadingBranches, setLoadingBranches] = useState(false)
+  const [token, setToken] = useState<string | undefined>()
+
+  const { updateConfig } = configStore
+
+  // 获取 token
+  useEffect(() => {
+    const getToken = async () => {
+      const session = await getSession()
+      setToken(session?.accessToken as string | undefined)
+    }
+    getToken()
+  }, [])
+
+  // 获取当前登录用户的 GitHub username
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const session = await getSession()
+        if (session?.user) {
+          const username = (session.user as any).githubUsername || session.user.name || session.user.email
+          const cleanUsername = username.includes('@') ? username.split('@')[0] : username
+          setCurrentUser(cleanUsername)
+        }
+      } catch (error) {
+        console.error('Failed to fetch user:', error)
+      }
+    }
+    fetchUser()
+  }, [])
+
+  // 当选择仓库时，获取分支列表
+  useEffect(() => {
+    if (!repo || !currentUser || !token) return
+
+    const fetchBranches = async () => {
+      setLoadingBranches(true)
+      try {
+        const api = new GitHubAPI(token, currentUser, repo)
+        const branchList = await api.getBranches()
+
+        if (branchList.length > 0) {
+          setBranches(branchList)
+        } else {
+          const repoInfo = await api.getRepo()
+          setBranches([repoInfo.default_branch])
+        }
+      } catch (error) {
+        console.error('Failed to fetch branches:', error)
+        toast.error(`获取分支列表失败: ${error instanceof Error ? error.message : '未知错误'}`)
+        setBranches([])
+      } finally {
+        setLoadingBranches(false)
+      }
+    }
+
+    fetchBranches()
+  }, [repo, currentUser, token])
+
+  const handleAutoConfig = async () => {
+    if (!currentUser) {
+      toast.error('请先登录')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const repoName = 'img.shenzjd.com'
+
+      if (!token) throw new Error('Not authenticated')
+
+      const api = new GitHubAPI(token, currentUser, '')
+      await api.createRepo(repoName, 'ImgX image host', false)
+
+      updateConfig(
+        {
+          owner: currentUser,
+          repo: repoName,
+          branch: 'main',
+          directory: 'images',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['images'] })
+          queryClient.invalidateQueries({ queryKey: ['repo-folders'] })
+        }
+      )
+
+      toast.success('图床配置成功！')
+      router.push('/')
+    } catch (error) {
+      console.error('Auto config failed:', error)
+      toast.error('配置失败，请重试')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleManualConfig = () => {
+    if (!currentUser || !repo || !branch) {
+      toast.error('请填写完整的配置信息')
+      return
+    }
+
+    updateConfig(
+      {
+        owner: currentUser,
+        repo,
+        branch,
+        directory,
+      },
+      () => {
+        queryClient.invalidateQueries({ queryKey: ['images'] })
+        queryClient.invalidateQueries({ queryKey: ['repo-folders'] })
+      }
+    )
+
+    toast.success('配置已保存')
+    router.push('/')
+  }
+
+  return (
+    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
+        <FolderGit className="h-5 w-5 text-primary" />
+        <h2 className="text-xl font-semibold">图床配置</h2>
+      </div>
+
+      <div className="space-y-6">
+        {/* 一键配置 */}
+        <div>
+          <h3 className="text-lg font-semibold mb-2">一键配置</h3>
+          <p className="text-gray-500 mb-4 text-sm">
+            自动创建图床仓库并完成基础配置
+          </p>
+          <Button onClick={handleAutoConfig} disabled={loading} className="w-full sm:w-auto">
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                配置中...
+              </>
+            ) : (
+              <>
+                <Plus className="mr-2 h-4 w-4" />
+                一键配置
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* 手动配置 */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4">手动配置</h3>
+          <div className="space-y-4">
+            <GitHubRepoSelect currentUser={currentUser} onRepoChange={setRepo} />
+
+            <div>
+              <Label htmlFor="branch">分支</Label>
+              {loadingBranches ? (
+                <div className="flex items-center mt-1">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="ml-2 text-sm text-gray-500">加载中...</span>
+                </div>
+              ) : (
+                <select
+                  id="branch"
+                  value={branch}
+                  onChange={(e) => setBranch(e.target.value)}
+                  className="mt-1 w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-800"
+                >
+                  {branches.length > 0 ? (
+                    branches.map((branchItem) => (
+                      <option key={branchItem} value={branchItem}>
+                        {branchItem}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="main">main</option>
+                  )}
+                </select>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="directory">图片目录</Label>
+              <Input
+                id="directory"
+                value={directory}
+                onChange={(e) => setDirectory(e.target.value)}
+                placeholder="images"
+                className="mt-1"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                留空表示上传到仓库根目录
+              </p>
+            </div>
+          </div>
+
+          <Button onClick={handleManualConfig} className="w-full mt-6">
+            保存配置
+          </Button>
+        </div>
+      </div>
+    </CardAnimation>
+  )
+}
+
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -605,13 +883,14 @@ export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState(0)
 
   const sections = [
-    { id: 'image',      label: '图片处理', icon: Image },
-    { id: 'network',    label: '网络',     icon: Globe },
-    { id: 'config-sync', label: '配置同步', icon: RefreshCw },
-    { id: 'operation',  label: '操作日志', icon: FileText },
-    { id: 'danger',     label: '危险操作', icon: ShieldAlert },
-    { id: 'account',    label: '账户',     icon: User },
-    { id: 'about',      label: '关于',     icon: Info },
+    { id: 'image',        label: '图片处理', icon: Image },
+    { id: 'github-config', label: '图床配置', icon: FolderGit },
+    { id: 'network',      label: '网络',     icon: Globe },
+    { id: 'config-sync',  label: '配置同步', icon: RefreshCw },
+    { id: 'operation',    label: '操作日志', icon: FileText },
+    { id: 'danger',       label: '危险操作', icon: ShieldAlert },
+    { id: 'account',      label: '账户',     icon: User },
+    { id: 'about',        label: '关于',     icon: Info },
   ] as const
 
   // 未登录时自动打开登录弹窗
@@ -740,20 +1019,21 @@ export default function SettingsPage() {
                 </div>
 
                 {activeSection === 0 && <ImageProcessingSection configStore={configStore} />}
-                {activeSection === 1 && (
+                {activeSection === 1 && <ConfigSection configStore={configStore} />}
+                {activeSection === 2 && (
                   <NetworkSection configStore={configStore} onCdnChange={handleCdnChange} />
                 )}
-                {activeSection === 2 && (
+                {activeSection === 3 && (
                   <ConfigSyncSection configStore={configStore} />
                 )}
-                {activeSection === 3 && (
+                {activeSection === 4 && (
                   <OperationLogPanel />
                 )}
-                {activeSection === 4 && (
+                {activeSection === 5 && (
                   <DangerSection onClearConfig={handleClearConfig} onClearAuth={handleClearAuth} />
                 )}
-                {activeSection === 5 && <AccountSection session={session} />}
-                {activeSection === 6 && <AboutSection />}
+                {activeSection === 6 && <AccountSection session={session} />}
+                {activeSection === 7 && <AboutSection />}
               </motion.div>
             </AnimatePresence>
           </main>
