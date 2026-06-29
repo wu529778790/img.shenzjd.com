@@ -61,7 +61,15 @@ export function Header() {
   const queryClient = useQueryClient()
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: '/login' })
+    // 真正的退出登录：清除 session 和本地 token
+    // 不指定 callbackUrl，让用户停留在当前页面
+    await signOut({ redirect: false })
+
+    // 手动清除本地存储的 token（虽然 SyncGitHubTokenToLocalStorage 会自动处理）
+    localStorage.removeItem('github_token')
+
+    // 刷新页面以更新状态
+    window.location.href = '/'
   }
 
   // 预加载管理页面数据

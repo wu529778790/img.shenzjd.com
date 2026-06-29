@@ -41,10 +41,12 @@ export const authOptions = {
       return session
     },
   },
-  pages: {
-    signIn: '/login',
-    error: '/login',
-  },
+  // 使用默认的登录页面（NextAuth 内置的 /api/auth/signin）
+  // 不再需要独立的 /login 页面
+  // pages: {
+  //   signIn: '/login',
+  //   error: '/login',
+  // },
 }
 
 export const handler = NextAuth(authOptions)
