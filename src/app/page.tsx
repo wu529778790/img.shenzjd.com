@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sparkles, Zap, UploadCloud, FolderOpen } from 'lucide-react'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useAuthDialog } from '@/components/auth'
+import { useAuthDialog, useConfigDialog } from '@/components/auth'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -22,6 +22,7 @@ export default function HomePage() {
   const router = useRouter()
   const { data: session, status } = useSession()
   const { openLoginDialog } = useAuthDialog()
+  const { openConfigDialog } = useConfigDialog()
   const configStore = useConfigStore()
   const { uploadQueue, addFiles, retryTask, retryAllFailed, removeTask } = useUpload()
   const { data: folders = [], isLoading: foldersLoading } = useRepoFolders()
@@ -49,14 +50,13 @@ export default function HomePage() {
       return
     }
     if (!isConfigured) {
-      // 未配置，打开配置引导
-      toast.error('请先配置图床后再上传图片')
-      router.push('/settings?section=config')
+      // 未配置，打开配置引导弹窗
+      openConfigDialog()
       return
     }
     // 已登录已配置，正常上传
     addFiles(files)
-  }, [session, isConfigured, openLoginDialog, addFiles, router])
+  }, [session, isConfigured, openLoginDialog, openConfigDialog, addFiles])
 
   // 如果正在加载
   if (status === 'loading') {

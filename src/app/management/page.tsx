@@ -9,7 +9,7 @@ import { useImages } from '@/hooks/useImages'
 import { ImageGrid } from '@/components/image/ImageGrid'
 import { ManagementToolbar } from '@/components/image/ManagementToolbar'
 import { ManagementSkeleton } from '@/components/loading/Skeleton'
-import { useAuthDialog } from '@/components/auth'
+import { useAuthDialog, useConfigDialog } from '@/components/auth'
 import { Image as ImageIcon } from 'lucide-react'
 import { IMAGE_GRID_CONFIG, SEARCH_CONFIG, DIRECTORY_CONFIG } from '@/lib/constants'
 
@@ -21,6 +21,7 @@ export default function ManagementPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
   const { openLoginDialog } = useAuthDialog()
+  const { openConfigDialog } = useConfigDialog()
   const configStore = useConfigStore()
 
   const { images, isLoading, handleDelete, handleBulkDelete, isDeleting } = useImages()
@@ -49,6 +50,14 @@ export default function ManagementPage() {
       openLoginDialog()
     }
   }, [status, openLoginDialog, session])
+
+  // 已登录但未配置时，自动打开配置弹窗
+  useEffect(() => {
+    if (session && !isConfigured) {
+      console.log('[Management] User logged in but not configured, opening config dialog')
+      openConfigDialog()
+    }
+  }, [session, isConfigured, openConfigDialog])
 
   // 使用 useMemo 缓存过滤和排序结果
   const filteredImages = useMemo(() => {
@@ -241,16 +250,22 @@ export default function ManagementPage() {
                 <ImageIcon className="h-12 w-12 text-gray-400" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {searchQuery || selectedDirectory ? '没有找到图片' : '暂无图片'}
+                {!isConfigured ? '请先配置图床' : (searchQuery || selectedDirectory ? '没有找到图片' : '暂无图片')}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {searchQuery
+                {!isConfigured
+                  ? '在开始管理图片之前，需要先配置您的 GitHub 仓库'
+                  : searchQuery
                   ? '没有找到匹配 "' + searchQuery + '" 的图片'
                   : selectedDirectory
                   ? '"' + selectedDirectory + '" 目录下没有图片'
                   : '上传您的第一张图片开始使用'}
               </p>
-              {!searchQuery && !selectedDirectory && (
+              {!isConfigured ? (
+                <Button onClick={openConfigDialog} className="mt-4">
+                  去配置
+                </Button>
+              ) : !searchQuery && !selectedDirectory && (
                 <Button onClick={() => router.push('/')} className="mt-4">
                   上传图片
                 </Button>
