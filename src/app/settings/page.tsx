@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSession, getSession } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
 import { Settings, Trash2, Link2, Globe, Image, ShieldAlert, User, Info, FileText, Code, RefreshCw, Check, Copy, FolderGit, Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -602,13 +602,16 @@ function GitHubRepoSelect({ currentUser, value, onRepoChange }: { currentUser: s
   const [loadingRepos, setLoadingRepos] = useState(false)
   const [token, setToken] = useState<string | undefined>()
 
+  // ✅ 修复：使用 useSession() 代替 getSession()（getSession 只能在服务端使用）
+  const { data: session, status } = useSession()
+
   useEffect(() => {
-    const getToken = async () => {
-      const session = await getSession()
-      setToken(session?.accessToken as string | undefined)
+    if (status === 'authenticated' && session?.accessToken) {
+      setToken(session.accessToken)
+    } else if (status === 'unauthenticated') {
+      setToken(undefined)
     }
-    getToken()
-  }, [])
+  }, [session, status])
 
   useEffect(() => {
     if (!currentUser || !token) return
@@ -661,6 +664,7 @@ function GitHubRepoSelect({ currentUser, value, onRepoChange }: { currentUser: s
 function ConfigSection({ configStore }: { configStore: ConfigState }) {
   const router = useRouter()
   const queryClient = useQueryClient()
+  const { data: session } = useSession() // ✅ 使用 useSession
   const [loading, setLoading] = useState(false)
   const [currentUser, setCurrentUser] = useState('')
   const [repo, setRepo] = useState('')
@@ -686,31 +690,23 @@ function ConfigSection({ configStore }: { configStore: ConfigState }) {
     }
   }, [configStore.owner, configStore.repo, configStore.branch, configStore.directory])
 
-  // 获取 token
+  // ✅ 修复：从 session 获取 token（替代 getSession）
   useEffect(() => {
-    const getToken = async () => {
-      const session = await getSession()
-      setToken(session?.accessToken as string | undefined)
+    if (session?.accessToken) {
+      setToken(session.accessToken)
+    } else {
+      setToken(undefined)
     }
-    getToken()
-  }, [])
+  }, [session])
 
-  // 获取当前登录用户的 GitHub username
+  // ✅ 修复：从 session 获取用户信息（替代 getSession）
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const session = await getSession()
-        if (session?.user) {
-          const username = (session.user as any).githubUsername || session.user.name || session.user.email
-          const cleanUsername = username.includes('@') ? username.split('@')[0] : username
-          setCurrentUser(cleanUsername)
-        }
-      } catch (error) {
-        debugError('Failed to fetch user:', error)
-      }
+    if (session?.user) {
+      const username = (session.user as any).githubUsername || session.user.name || session.user.email
+      const cleanUsername = username.includes('@') ? username.split('@')[0] : username
+      setCurrentUser(cleanUsername)
     }
-    fetchUser()
-  }, [])
+  }, [session])
 
   // 当选择仓库时，获取分支列表
   useEffect(() => {
