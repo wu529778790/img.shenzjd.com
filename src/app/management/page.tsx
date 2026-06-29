@@ -10,6 +10,7 @@ import { useImages } from '@/hooks/useImages'
 import { ImageGrid } from '@/components/image/ImageGrid'
 import { ManagementToolbar } from '@/components/image/ManagementToolbar'
 import { ManagementSkeleton } from '@/components/loading/Skeleton'
+import { AuthPrompt } from '@/components/auth/AuthPrompt'
 import { IMAGE_GRID_CONFIG, SEARCH_CONFIG, DIRECTORY_CONFIG } from '@/lib/constants'
 
 type SortField = 'name' | 'size' | 'path'
@@ -173,43 +174,23 @@ export default function ManagementPage() {
   // 如果未登录，显示登录提示
   if (!session) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center py-12 px-4">
-        <div className="max-w-md w-full mx-4 p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-          <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center mb-6">
-            <Lock className="h-10 w-10 text-gray-400" />
-          </div>
-          <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">
-            需要登录
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
-            登录后才能管理图片
-          </p>
-          <Button onClick={() => router.push('/login')} size="lg" className="w-full">
-            立即登录
-          </Button>
-        </div>
-      </div>
+      <AuthPrompt
+        mode="login"
+        description="登录后才能管理图片"
+        buttonText="立即登录"
+        onButtonClick={() => router.push('/login')}
+      />
     )
   }
 
   if (!isConfigured) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center py-12 px-4">
-        <div className="max-w-md w-full mx-4 p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-          <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center mb-6">
-            <FolderTree className="h-10 w-10 text-gray-400" />
-          </div>
-          <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">
-            请先配置图床
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
-            在开始之前，需要先配置您的 GitHub 仓库
-          </p>
-          <Button onClick={() => router.push('/config')} size="lg" className="w-full">
-            去配置
-          </Button>
-        </div>
-      </div>
+      <AuthPrompt
+        mode="config"
+        description="在开始之前，需要先配置您的 GitHub 仓库"
+        buttonText="去配置"
+        onButtonClick={() => router.push('/config')}
+      />
     )
   }
 

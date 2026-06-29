@@ -11,9 +11,10 @@ import { UploadQueue } from '@/components/upload/UploadQueue'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Image as ImageIcon, Sparkles, Zap, UploadCloud, FolderOpen } from 'lucide-react'
+import { Sparkles, Zap, UploadCloud, FolderOpen } from 'lucide-react'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
+import { AuthPrompt } from '@/components/auth/AuthPrompt'
 import { cn } from '@/lib/utils'
 
 export default function HomePage() {
@@ -54,59 +55,23 @@ export default function HomePage() {
   // 如果未登录，显示登录提示
   if (!session) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <PageTransition>
-          <CardAnimation className="max-w-md mx-auto p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-              className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center mb-6"
-            >
-              <ImageIcon className="h-10 w-10 text-primary" />
-            </motion.div>
-            <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">
-              需要登录
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">
-              登录后才能上传图片和管理图床
-            </p>
-            <p className="text-sm text-gray-400">
-              请先登录以继续
-            </p>
-          </CardAnimation>
-        </PageTransition>
-      </div>
+      <AuthPrompt
+        mode="login"
+        description="登录后才能上传图片和管理图床"
+        buttonText="立即登录"
+        onButtonClick={() => router.push('/login')}
+      />
     )
   }
 
   if (!isConfigured) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <PageTransition>
-          <CardAnimation className="max-w-md mx-auto p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-              className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center mb-6"
-            >
-              <UploadCloud className="h-10 w-10 text-primary" />
-            </motion.div>
-            <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">
-              请先配置图床
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">
-              在开始上传之前，需要先配置您的 GitHub 仓库
-            </p>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button onClick={() => router.push('/config')} size="lg">
-                去配置
-              </Button>
-            </motion.div>
-          </CardAnimation>
-        </PageTransition>
-      </div>
+      <AuthPrompt
+        mode="config"
+        description="在开始上传之前，需要先配置您的 GitHub 仓库"
+        buttonText="去配置"
+        onButtonClick={() => router.push('/config')}
+      />
     )
   }
 

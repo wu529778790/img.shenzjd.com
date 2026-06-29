@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
-import { Settings, Trash2, Lock, Link2, Globe, Image, ShieldAlert, User, Info, FileText, Code, RefreshCw, Check, Copy } from 'lucide-react'
+import { Settings, Trash2, Link2, Globe, Image, ShieldAlert, User, Info, FileText, Code, RefreshCw, Check, Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
@@ -17,6 +17,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useSaveConfigToGitHub, useLoadConfigFromGitHub } from '@/hooks/useConfigSync'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
+import { AuthPrompt } from '@/components/auth/AuthPrompt'
 import { cn } from '@/lib/utils'
 
 // ── Section components (defined outside SettingsPage for stable identity) ─────
@@ -628,29 +629,12 @@ export default function SettingsPage() {
   // 如果未登录，显示登录提示
   if (!session) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <PageTransition>
-          <CardAnimation className="max-w-md mx-auto p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-              className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center mb-6"
-            >
-              <Lock className="h-10 w-10 text-gray-400" />
-            </motion.div>
-            <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">
-              需要登录
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">
-              登录后才能管理设置
-            </p>
-            <p className="text-sm text-gray-400">
-              请先登录以继续
-            </p>
-          </CardAnimation>
-        </PageTransition>
-      </div>
+      <AuthPrompt
+        mode="login"
+        description="登录后才能管理设置"
+        buttonText="立即登录"
+        onButtonClick={() => router.push('/login')}
+      />
     )
   }
 
