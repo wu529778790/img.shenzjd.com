@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { MoreVertical, Trash2, Link2 } from 'lucide-react'
 import { formatFileSize } from '@/lib/utils'
 import { generateLink } from '@/lib/link'
+import { getWebPUrl } from '@/lib/webp'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -128,7 +129,7 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
         {/* 图片预览区域 */}
         <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-900">
           <Image
-            src={image.cdnUrl || image.download_url}
+            src={getWebPUrl(image.cdnUrl || image.download_url)}
             alt={image.name}
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
