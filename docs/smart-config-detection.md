@@ -4,6 +4,12 @@
 
 当用户登录后，系统会自动检测 GitHub 仓库是否已有配置文件（`.imgx-config/config.json`），即使 localStorage 中的配置丢失也能自动恢复完整配置。
 
+## 分支策略
+
+- **新用户**：使用 `main` 分支（GitHub 默认分支）
+- **老用户**：保留 `master` 分支的使用习惯
+- **检测优先级**：先检查 `master`，再检查 `main`
+
 ## 检测逻辑
 
 ### 1. 本地配置优先
@@ -91,11 +97,24 @@ const isConfigured = configStore.owner && configStore.repo && configStore.branch
 
 ## 检测的分支优先级
 
-1. `data`（推荐给新用户的分支）
-2. `master`（常用分支）
-3. `main`（GitHub 默认分支）
+1. **`master`**（推荐，你的使用习惯）
+2. **`main`**（GitHub 默认分支，新用户）
 
-系统会按这个顺序检查每个分支的 `.imgx-config/config.json` 文件。
+系统会按这个顺序检查每个分支的 `.imgx-config/config.json` 文件，优先使用 master 分支的配置。
+
+### 新用户自动配置
+
+新用户使用"自动配置"功能时，会：
+- 创建仓库 `img.shenzjd.com`
+- 默认使用 **`main`** 分支（GitHub 标准）
+- 配置文件路径 `.imgx-config/config.json`
+
+### 老用户检测
+
+老用户（比如你）使用 **`master`** 分支：
+- 系统会优先检测 master 分支
+- 找到配置文件后自动恢复
+- 无需切换到 main 分支
 
 ## 优势
 
@@ -153,16 +172,13 @@ graph TD
     E --> F[查找 img.shenzjd.com/imgx 仓库]
     F --> G{仓库存在?}
     G -->|否| H[返回 null]
-    G -->|是| I[检查 data 分支]
+    G -->|是| I[检查 master 分支]
     I --> J{有 config.json?}
     J -->|是| K[读取并解析配置]
-    J -->|否| L[检查 master 分支]
+    J -->|否| L[检查 main 分支]
     L --> M{有 config.json?}
     M -->|是| K
-    M -->|否| N[检查 main 分支]
-    N --> O{有 config.json?}
-    O -->|是| K
-    O -->|否| H
+    M -->|否| H
     K --> P[自动填充所有配置]
     H --> Q[打开配置弹窗]
     P --> R[用户可以直接使用]

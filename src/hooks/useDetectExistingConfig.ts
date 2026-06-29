@@ -56,7 +56,9 @@ export function useDetectExistingConfig() {
       }
 
       // 3. 优先检查的分支列表
-      const priorityBranches = ['data', 'master', 'main']
+      // master: 老用户使用习惯
+      // main: GitHub 默认分支（新用户）
+      const priorityBranches = ['master', 'main']
 
       // 4. 检查每个分支是否有配置文件
       for (const branch of priorityBranches) {
