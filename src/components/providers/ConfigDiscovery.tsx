@@ -4,7 +4,6 @@ import { useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { useConfigCheck } from '@/hooks/useConfigCheck'
-import { useAuthDialog, useConfigDialog } from '@/components/auth'
 import { toast } from 'sonner'
 
 /**
@@ -16,16 +15,7 @@ import { toast } from 'sonner'
 export function ConfigDiscovery() {
   const { data: session, status } = useSession()
   const configStore = useConfigStore()
-  const { openLoginDialog } = useAuthDialog()
-  const { openConfigDialog, isConfigDismissed } = useConfigDialog()
   const { checkConfig } = useConfigCheck()
-
-  // 未登录时自动打开登录弹窗
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      openLoginDialog()
-    }
-  }, [status, openLoginDialog])
 
   // 已登录时检测配置（只检测一次，结果缓存）
   useEffect(() => {
@@ -83,15 +73,12 @@ export function ConfigDiscovery() {
           } else {
             toast.success(`已发现并加载配置: ${config.owner}/${config.repo}`)
           }
-        } else {
-          // 没有检测到配置，打开配置弹窗（仅当用户未关闭过）
-          if (!isConfigDismissed) {
-            openConfigDialog()
-          }
         }
+        // 如果没有检测到配置，不自动打开弹窗
+        // 让各页面自己处理未配置的情况
       })
     }
-  }, [status, session, checkConfig, configStore, openConfigDialog, isConfigDismissed])
+  }, [status, session, checkConfig, configStore])
 
   return null
 }

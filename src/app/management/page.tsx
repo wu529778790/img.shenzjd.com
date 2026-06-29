@@ -174,8 +174,9 @@ export default function ManagementPage() {
 
   const allSelected = filteredImages.length > 0 && selectedIds.size === filteredImages.length
 
-  // 如果正在加载、未登录、未配置或用户已关闭配置弹窗，显示骨架屏
-  if (status === 'loading' || !session || !isConfigured || isConfigDismissed) {
+  // 如果正在加载或未登录，显示骨架屏
+  // 注意：未配置时不显示骨架屏，而是显示"去配置"按钮
+  if (status === 'loading' || !session) {
     return (
       <div className="min-h-[60vh]">
         <ManagementSkeleton />

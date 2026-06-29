@@ -36,10 +36,10 @@ export function useConfigCheck() {
    */
   const checkConfig = useCallback(
     async (force: boolean = false): Promise<ConfigCheckResult | null> => {
-      // 如果配置已完整，不需要检测
-      if (configStore.owner && configStore.repo && configStore.branch) {
-        // 如果缓存有效且不强制刷新，直接返回
-        if (!force && !configStore.needsConfigCheck(5 * 60 * 1000)) {
+      // 如果配置已完整，不需要检测（除非强制刷新）
+      if (!force && configStore.owner && configStore.repo && configStore.branch) {
+        // 如果缓存有效，直接返回
+        if (!configStore.needsConfigCheck(5 * 60 * 1000)) {
           return null
         }
       }
