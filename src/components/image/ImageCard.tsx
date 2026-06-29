@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, memo, useCallback, useMemo } from 'react'
+import { useState, memo, useCallback, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import { MoreVertical, Trash2, Link2 } from 'lucide-react'
 import { formatFileSize } from '@/lib/utils'
@@ -40,6 +40,8 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
   const { addLog: addOperationLog } = useOperationLogStore()
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  // 使用 ref 跟踪删除操作状态，防止删除确认关闭时触发预览
+  const isDeletingRef = useRef(false)
 
   // 使用 useCallback 优化函数稳定性
   const handleCopyLink = useCallback(async (format: 'markdown' | 'html' | 'bbcode' | 'url') => {
@@ -78,6 +80,11 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
 
   // 使用 useCallback 优化事件处理函数
   const handleClick = useCallback(() => {
+    // 如果正在删除，不触发预览
+    if (isDeletingRef.current) {
+      isDeletingRef.current = false
+      return
+    }
     if (selectable) {
       onSelect?.(image.id, !selected)
     } else {
@@ -203,7 +210,10 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => setShowDeleteConfirm(true)}
+                  onClick={() => {
+                    isDeletingRef.current = true
+                    setShowDeleteConfirm(true)
+                  }}
                   className="text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/20 cursor-pointer"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
@@ -218,7 +228,13 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
       {/* 单张删除确认弹窗 */}
       <ImageCardDeleteConfirm
         open={showDeleteConfirm}
-        onOpenChange={setShowDeleteConfirm}
+        onOpenChange={(open) => {
+          setShowDeleteConfirm(open)
+          // 如果对话框关闭且不是因为删除成功而关闭，重置删除状态标记
+          if (!open && !isDeletingRef.current) {
+            isDeletingRef.current = false
+          }
+        }}
         image={image}
         token={token}
         owner={configStore.owner}
