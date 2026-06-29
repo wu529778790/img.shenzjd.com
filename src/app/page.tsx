@@ -46,11 +46,19 @@ export default function HomePage() {
   const handleFilesSelected = useCallback((files: File[]) => {
     if (!session) {
       // 未登录，打开登录弹窗
+      toast.info('请先登录', {
+        description: '登录后即可上传图片到 GitHub',
+        duration: 3000,
+      })
       openLoginDialog()
       return
     }
     if (!isConfigured) {
       // 未配置，打开配置引导弹窗
+      toast.warning('请先配置 GitHub 仓库', {
+        description: '需要配置仓库信息后才能上传图片',
+        duration: 4000,
+      })
       openConfigDialog()
       return
     }
@@ -64,7 +72,10 @@ export default function HomePage() {
       <div className="container mx-auto px-4 py-8">
         <PageTransition>
           <CardAnimation className="p-12 text-center rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 shadow-modern-md backdrop-blur-sm">
-            <div className="text-gray-500">加载中...</div>
+            <div className="flex items-center justify-center gap-3">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" aria-hidden="true" />
+              <span className="text-gray-500" role="status">加载中...</span>
+            </div>
           </CardAnimation>
         </PageTransition>
       </div>
@@ -88,36 +99,42 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
               className="mt-6"
+              aria-label="上传目标文件夹选择"
             >
               <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-800/30 border border-gray-200/80 dark:border-gray-700/50 backdrop-blur-sm">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <FolderOpen className="h-4 w-4 text-gray-600 dark:text-gray-400 shrink-0" />
+                  <FolderOpen className="h-4 w-4 text-gray-600 dark:text-gray-400 shrink-0" aria-hidden="true" />
                   <span className="text-sm text-gray-600 dark:text-gray-400">上传到</span>
-                  <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
+                  <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded" aria-label="当前仓库">
                     {owner}/{repo}
                   </span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">/</span>
-                  <Select
-                    value={selectedFolder}
-                    onValueChange={handleFolderChange}
-                  >
-                    <SelectTrigger className="w-[140px] h-8">
-                      <SelectValue placeholder="根目录" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">
-                        <span className="text-gray-500">根目录</span>
-                      </SelectItem>
-                      {foldersList.map((folder) => (
-                        <SelectItem key={folder.path} value={folder.path}>
-                          <span className="font-mono text-sm">{folder.name}</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400" aria-hidden="true">/</span>
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="folder-select" className="text-sm text-gray-600 dark:text-gray-400">
+                      目标文件夹
+                    </label>
+                    <Select
+                      value={selectedFolder}
+                      onValueChange={handleFolderChange}
+                    >
+                      <SelectTrigger id="folder-select" className="w-[140px] h-9">
+                        <SelectValue placeholder="根目录" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">
+                          <span className="text-gray-500">根目录</span>
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        {foldersList.map((folder) => (
+                          <SelectItem key={folder.path} value={folder.path}>
+                            <span className="font-mono text-sm">{folder.name}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   {selectedFolder && (
                     <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
-                      当前: <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">{selectedFolder}</code>
+                      当前: <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded font-mono" title={selectedFolder}>{selectedFolder}</code>
                     </span>
                   )}
                 </div>

@@ -68,7 +68,7 @@
   --secondary-foreground: oklch(0.25 0.02 250);
 
   --muted: oklch(0.96 0.005 250);
-  --muted-foreground: oklch(0.45 0.02 250);
+  --muted-foreground: oklch(0.5 0.02 250);  /* 提升对比度到 4.5:1+ */
 
   /* 强调色 - 渐变辅助 */
   --accent: oklch(0.55 0.22 280);
@@ -126,7 +126,7 @@
   --secondary-foreground: oklch(0.95 0.01 250);
 
   --muted: oklch(0.22 0.02 250);
-  --muted-foreground: oklch(0.65 0.01 250);
+  --muted-foreground: oklch(0.75 0.01 250);  /* 提升深色模式对比度到 4.5:1+ */
 
   /* 强调色 - Violet 深色模式 */
   --accent: oklch(0.65 0.22 280);
@@ -234,10 +234,22 @@
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: rgb(var(--color-muted-foreground) / 0.3);
     border-radius: 3px;
+    transition: background-color 150ms ease-out;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background-color: rgb(var(--color-muted-foreground) / 0.5);
+  }
+
+  /* Dark mode scrollbar - 确保对比度足够 */
+  @media (prefers-color-scheme: dark) {
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background-color: rgb(var(--color-muted-foreground) / 0.4);
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+      background-color: rgb(var(--color-muted-foreground) / 0.6);
+    }
   }
 
   /* 渐变文字 - 使用 Indigo → Violet */
@@ -388,7 +400,7 @@
       0 4px 12px -2px rgb(248 113 113 / 0.45);
   }
 
-  /* Animations */
+  /* Animations - 统一使用动画时长变量 */
   @keyframes shimmer-skeleton {
     0% {
       background-position: -200% 0;
@@ -428,7 +440,7 @@
   }
 
   .animate-shimmer {
-    animation: shimmer-wide 3s infinite linear;
+    animation: shimmer-wide var(--duration-slow) infinite linear;
     background: linear-gradient(
       to right,
       transparent 0%,
@@ -453,7 +465,7 @@
       rgb(243 244 246) 100%
     );
     background-size: 200% 100%;
-    animation: shimmer-skeleton 1.5s infinite;
+    animation: shimmer-skeleton var(--duration-normal) infinite;
     border-radius: 0.5rem;
   }
 
@@ -465,7 +477,7 @@
       rgb(55 65 81) 100%
     );
     background-size: 200% 100%;
-    animation: shimmer-skeleton 1.5s infinite;
+    animation: shimmer-skeleton var(--duration-normal) infinite;
   }
 
   .skeleton::after {
@@ -482,7 +494,7 @@
       transparent 100%
     );
     background-size: 200% 100%;
-    animation: shimmer-skeleton 2s infinite;
+    animation: shimmer-skeleton var(--duration-slow) infinite;
   }
 
   .dark .skeleton::after {
@@ -493,7 +505,7 @@
       transparent 100%
     );
     background-size: 200% 100%;
-    animation: shimmer-skeleton 2s infinite;
+    animation: shimmer-skeleton var(--duration-slow) infinite;
   }
 
   .skeleton-text {
@@ -638,8 +650,103 @@
   .no-print {
     display: none !important;
   }
-  
+
   body {
     @apply bg-white text-black;
+  }
+}
+
+/* ========================================
+   Accessibility & Animation System
+   ======================================== */
+
+/* 1. Reduced Motion - 尊重用户的动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* 保持必要的内容变化（如焦点指示器） */
+  :focus-visible {
+    transition-duration: 0ms !important;
+  }
+}
+
+/* 2. High Contrast Mode - 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  :root {
+    --border: oklch(0 0 0 / 0.8);
+    --input: oklch(0 0 0 / 0.8);
+    --muted-foreground: oklch(0.3 0 0);
+  }
+
+  .dark {
+    --border: oklch(1 0 0 / 0.8);
+    --input: oklch(1 0 0 / 0.8);
+    --muted-foreground: oklch(0.85 0 0);
+  }
+
+  :focus-visible {
+    @apply ring-4 ring-ring ring-offset-4;
+  }
+}
+
+/* 3. Z-Index 层级系统 - 确保 z-index 一致性 */
+:root {
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal-backdrop: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
+  --z-popover: 1000;
+}
+
+/* 4. 动画时长系统 - 统一动画节奏 */
+:root {
+  --duration-instant: 0ms;
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 400ms;
+
+  --easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --easing-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --easing-accelerate: cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* 5. 触摸反馈增强 */
+@media (hover: hover) and (pointer: fine) {
+  .btn-interactive {
+    @apply transition-all duration-[var(--duration-fast)] ease-[var(--easing-default)];
+  }
+}
+
+/* 6. 确保所有可点击元素有 cursor-pointer */
+a, button, [role="button"], [role="link"], input[type="submit"], input[type="button"], label[for] {
+  cursor: pointer;
+}
+
+/* 禁用状态保持可访问性 */
+button:disabled, input:disabled, select:disabled, textarea:disabled {
+  cursor: not-allowed;
+}
+
+/* 7. 焦点管理 - 防止焦点丢失 */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* 8. 打印时隐藏交互元素 */
+@media print {
+  button, .no-print, [role="button"] {
+    display: none !important;
   }
 }
