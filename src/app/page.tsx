@@ -101,8 +101,8 @@ export default function HomePage() {
                     value={selectedFolder}
                     onValueChange={handleFolderChange}
                   >
-                    <SelectTrigger className="w-[200px] h-8">
-                      <SelectValue placeholder="选择文件夹" />
+                    <SelectTrigger className="w-[140px] h-8">
+                      <SelectValue placeholder="根目录" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">
