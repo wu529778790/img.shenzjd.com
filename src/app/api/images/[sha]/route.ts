@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
+import { debugLog, debugError, debugWarn } from '@/lib/debug'
 
 export async function DELETE(
   request: NextRequest,
@@ -10,7 +11,7 @@ export async function DELETE(
     const session = await getServerSession(authOptions)
 
     if (!session || !session.accessToken) {
-      console.error('Delete failed: No session or access token')
+      debugError('Delete failed: No session or access token')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -19,7 +20,7 @@ export async function DELETE(
     const body = await request.json()
     const { owner, repo, filePath, branch } = body
 
-    console.log('Delete request:', { owner, repo, filePath, branch, pathSha: pathSha.slice(0, 8) + '...' })
+    debugLog('Delete request:', { owner, repo, filePath, branch, pathSha: pathSha.slice(0, 8) + '...' })
 
     if (!owner || !repo || !filePath || !branch) {
       return NextResponse.json(
@@ -43,16 +44,16 @@ export async function DELETE(
       if (fileResponse.ok) {
         const fileData = await fileResponse.json()
         currentSha = fileData.sha
-        console.log('Fetched current file SHA:', currentSha.slice(0, 8) + '...')
+        debugLog('Fetched current file SHA:', currentSha.slice(0, 8) + '...')
       } else {
-        console.warn('Could not fetch file for SHA refresh, using provided SHA')
+        debugWarn('Could not fetch file for SHA refresh, using provided SHA')
       }
     } catch (e) {
-      console.warn('Error fetching file SHA, using provided SHA:', e)
+      debugWarn('Error fetching file SHA, using provided SHA:', e)
     }
 
     // 删除文件
-    console.log('Deleting file with:', { filePath, branch, currentSha: currentSha.slice(0, 8) + '...' })
+    debugLog('Deleting file with:', { filePath, branch, currentSha: currentSha.slice(0, 8) + '...' })
     const deleteResponse = await fetch(
       `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(filePath)}`,
       {
@@ -72,7 +73,7 @@ export async function DELETE(
 
     if (!deleteResponse.ok) {
       const errorText = await deleteResponse.text()
-      console.error('GitHub API delete error:', {
+      debugError('GitHub API delete error:', {
         status: deleteResponse.status,
         statusText: deleteResponse.statusText,
         body: errorText.slice(0, 500),
@@ -82,7 +83,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Delete error:', error)
+    debugError('Delete error:', error)
     return NextResponse.json(
       { error: 'Failed to delete file' },
       { status: 500 }

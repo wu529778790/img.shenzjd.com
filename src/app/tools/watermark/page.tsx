@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, Download, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import { Slider } from '@/components/ui/slider'
 import { toast } from 'sonner'
 import { addWatermark } from '@/lib/watermark'
 import { formatFileSize } from '@/lib/utils'
+import { debugError } from '@/lib/debug'
 
 export default function WatermarkPage() {
   const [originalFile, setOriginalFile] = useState<File | null>(null)
@@ -77,7 +78,7 @@ export default function WatermarkPage() {
 
       toast.success('水印添加成功')
     } catch (error) {
-      console.error('Watermark failed:', error)
+      debugError('Watermark failed:', error)
       toast.error('水印添加失败')
     } finally {
       setProcessing(false)

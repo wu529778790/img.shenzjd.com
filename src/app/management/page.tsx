@@ -13,6 +13,7 @@ import { useAuthDialog, useConfigDialog } from '@/components/auth'
 import { toast } from 'sonner'
 import { Image as ImageIcon } from 'lucide-react'
 import { IMAGE_GRID_CONFIG, SEARCH_CONFIG, DIRECTORY_CONFIG } from '@/lib/constants'
+import { debugLog, debugError, debugWarn } from '@/lib/debug'
 
 type SortField = 'name' | 'size' | 'path'
 type SortOrder = 'asc' | 'desc'
@@ -45,9 +46,9 @@ export default function ManagementPage() {
 
   // 未登录时自动打开登录弹窗
   useEffect(() => {
-    console.log('[Management] Status changed:', status, 'Session:', !!session)  // Debug
+    debugLog('[Management] Status changed:', status, 'Session:', !!session)  // Debug
     if (status === 'unauthenticated') {
-      console.log('[Management] Opening login dialog')  // Debug
+      debugLog('[Management] Opening login dialog')  // Debug
       openLoginDialog()
     }
   }, [status, openLoginDialog, session])

@@ -13,10 +13,10 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sparkles, Zap, UploadCloud, FolderOpen } from 'lucide-react'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthDialog, useConfigDialog } from '@/components/auth'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useFramerMotion } from '@/hooks/useFramerMotion'
 
 export default function HomePage() {
   const router = useRouter()
@@ -27,6 +27,11 @@ export default function HomePage() {
   const { uploadQueue, addFiles, retryTask, retryAllFailed, removeTask } = useUpload()
   const { data: folders = [], isLoading: foldersLoading } = useRepoFolders()
   const foldersList = folders as RepoFolder[]
+
+  // ✅ 动态导入 framer-motion，减少首屏 JS 体积
+  const Framer = useFramerMotion()
+  const motion = Framer?.motion
+  const AnimatePresence = Framer?.AnimatePresence
 
   // 检查配置是否完整
   const { owner, repo, branch } = configStore
@@ -93,7 +98,7 @@ export default function HomePage() {
           <UploadArea onFilesSelected={handleFilesSelected} />
 
           {/* 文件夹选择 - 仅登录后显示 */}
-          {session && (
+          {session && motion && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -143,8 +148,8 @@ export default function HomePage() {
           )}
 
           {/* 上传队列 */}
-          <AnimatePresence>
-            {uploadQueue.length > 0 && (
+          {AnimatePresence && uploadQueue.length > 0 && (
+            <AnimatePresence>
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
@@ -180,18 +185,19 @@ export default function HomePage() {
                   onRemove={removeTask}
                 />
               </motion.div>
-            )}
-          </AnimatePresence>
+            </AnimatePresence>
+          )}
         </CardAnimation>
 
         {/* 提示信息 - 优化为单行布局 */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="mt-6 px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-950/40 dark:to-violet-950/40 border border-indigo-200/60 dark:border-indigo-800/60 shadow-modern-sm backdrop-blur-sm"
-          role="note"
-        >
+        {motion && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mt-6 px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-950/40 dark:to-violet-950/40 border border-indigo-200/60 dark:border-indigo-800/60 shadow-modern-sm backdrop-blur-sm"
+            role="note"
+          >
           <div className="flex items-center gap-2 text-sm text-indigo-900 dark:text-indigo-100">
             <Sparkles className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0" aria-hidden="true" />
             <span className="text-indigo-800 dark:text-indigo-200 font-medium">
@@ -199,6 +205,7 @@ export default function HomePage() {
             </span>
           </div>
         </motion.div>
+        )}
       </PageTransition>
     </div>
   )

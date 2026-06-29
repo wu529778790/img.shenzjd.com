@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
 import { motion, AnimatePresence } from 'framer-motion'
+import { debugLog, debugError, debugWarn } from '@/lib/debug'
 
 
 interface ImagePreviewProps {
@@ -332,7 +333,7 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
               unoptimized={!!image.cdnUrl}
               onLoad={() => setImageLoaded(true)}
               onError={() => {
-                console.error('Failed to load image:', image.cdnUrl || image.download_url)
+                debugError('Failed to load image:', image.cdnUrl || image.download_url)
                 setImageLoaded(true) // 即使失败也隐藏加载状态
               }}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"

@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useConfigStore } from '@/stores/configStore'
 import type { Config } from '@/types/config'
+import { debugLog, debugError, debugWarn } from '@/lib/debug'
 
 interface SaveConfigResponse {
   success: boolean
@@ -74,7 +75,7 @@ async function saveConfigToGitHub(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: `HTTP ${response.status}` }))
-    console.error('[ConfigSync] Save failed:', response.status, error)
+    debugError('[ConfigSync] Save failed:', response.status, error)
     return {
       success: false,
       message: error.message || `保存配置失败 (${response.status})`

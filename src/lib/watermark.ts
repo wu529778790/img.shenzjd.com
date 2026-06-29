@@ -3,12 +3,29 @@ export interface WatermarkOptions {
   color?: string
   size?: number
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+  useWorker?: boolean // ✅ 新增：是否使用 Web Worker
 }
 
+import { debugWarn } from './debug'
+
+/**
+ * 添加水印（主线程版本 - 保留作为回退）
+ */
 export async function addWatermark(
   file: File,
   options: WatermarkOptions
 ): Promise<Blob> {
+  // 如果启用了 Worker，使用 Worker 版本
+  if (options.useWorker !== false) {
+    try {
+      return await addWatermarkWithWorker(file, options)
+    } catch (error) {
+      debugWarn('Worker failed, falling back to main thread:', error)
+      // Worker 失败时回退到主线程版本
+    }
+  }
+
+  // 主线程实现（回退方案）
   const {
     text,
     color = '#ffffff',
@@ -87,3 +104,54 @@ export async function addWatermark(
     img.src = URL.createObjectURL(file)
   })
 }
+
+/**
+ * 使用 Web Worker 处理水印（不阻塞主线程）
+ */
+async function addWatermarkWithWorker(
+  file: File,
+  options: WatermarkOptions
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    // 创建 Worker
+    const worker = new Worker('/workers/watermark.worker.ts', {
+      type: 'module',
+    })
+
+    // 设置超时（30秒）
+    const timeout = setTimeout(() => {
+      worker.terminate()
+      reject(new Error('Watermark processing timeout'))
+    }, 30000)
+
+    // 监听消息
+    worker.onmessage = (e: MessageEvent) => {
+      const { type, blob, error } = e.data
+
+      if (type === 'success' && blob) {
+        clearTimeout(timeout)
+        worker.terminate()
+        resolve(blob)
+      } else if (type === 'error') {
+        clearTimeout(timeout)
+        worker.terminate()
+        reject(new Error(error || 'Watermark processing failed'))
+      }
+    }
+
+    // 监听错误
+    worker.onerror = (error) => {
+      clearTimeout(timeout)
+      worker.terminate()
+      reject(new Error(`Worker error: ${error.message}`))
+    }
+
+    // 发送任务到 Worker
+    worker.postMessage({
+      type: 'watermark',
+      file,
+      options,
+    })
+  })
+}
+

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { GitHubAPI } from '@/lib/github'
 import { useConfigStore } from '@/stores/configStore'
 import type { Config } from '@/types/config'
+import { debugLog, debugError, debugWarn } from '@/lib/debug'
 
 /**
  * 从 GitHub 文件信息中提取最后修改时间
@@ -104,7 +105,7 @@ export function useDetectExistingConfig() {
 
                 // 如果本地配置更新，跳过远程配置
                 if (localTime >= remoteTime) {
-                  console.log('[ConfigDetection] Local config is up-to-date, skipping remote')
+                  debugLog('[ConfigDetection] Local config is up-to-date, skipping remote')
                   return null
                 }
               }
@@ -118,7 +119,7 @@ export function useDetectExistingConfig() {
                 _remoteUpdatedAt: remoteUpdatedAt, // 内部字段，不保存到 store
               } as Partial<Config> & { _remoteUpdatedAt?: string }
             } catch (parseError) {
-              console.error('Failed to parse config file:', parseError)
+              debugError('Failed to parse config file:', parseError)
               continue
             }
           }
@@ -130,7 +131,7 @@ export function useDetectExistingConfig() {
 
       return null
     } catch (error) {
-      console.error('Failed to detect existing config:', error)
+      debugError('Failed to detect existing config:', error)
       return null
     } finally {
       setIsDetecting(false)

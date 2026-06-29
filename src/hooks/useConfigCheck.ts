@@ -5,6 +5,7 @@ import { GitHubAPI } from '@/lib/github'
 import { useConfigStore } from '@/stores/configStore'
 import { toast } from 'sonner'
 import type { Config } from '@/types/config'
+import { debugLog, debugError, debugWarn } from '@/lib/debug'
 
 interface ConfigCheckResult {
   owner: string
@@ -80,7 +81,7 @@ export function useConfigCheck() {
             const fileTime = new Date(fileUpdatedAt).getTime()
             const localTime = new Date(localUpdatedAt).getTime()
             shouldUseGitHub = fileTime > localTime
-            console.log('[ConfigCheck] Timestamp comparison:', {
+            debugLog('[ConfigCheck] Timestamp comparison:', {
               fileUpdatedAt,
               localUpdatedAt,
               shouldUseGitHub,
@@ -99,21 +100,21 @@ export function useConfigCheck() {
               branch: config.branch || branch,
             }
 
-            console.log('[ConfigCheck] Using GitHub config')
+            debugLog('[ConfigCheck] Using GitHub config')
             return result
           } else {
             // 使用本地配置
-            console.log('[ConfigCheck] Using local config')
+            debugLog('[ConfigCheck] Using local config')
             return null
           }
         } catch {
           // 配置文件不存在或读取失败
-          console.log('[ConfigCheck] Config file not found on branch:', branch)
+          debugLog('[ConfigCheck] Config file not found on branch:', branch)
           configStore.markConfigChecked(repoName, branch)
           return null
         }
       } catch (error) {
-        console.error('[ConfigCheck] Failed:', error)
+        debugError('[ConfigCheck] Failed:', error)
         return null
       }
     },

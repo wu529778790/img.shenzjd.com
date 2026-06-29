@@ -18,6 +18,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useSaveConfigToGitHub, useLoadConfigFromGitHub } from '@/hooks/useConfigSync'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
+import { debugLog, debugError } from '@/lib/debug'
 import { useAuthDialog } from '@/components/auth'
 import { cn } from '@/lib/utils'
 import { GitHubAPI, GitHubRepo } from '@/lib/github'
@@ -619,7 +620,7 @@ function GitHubRepoSelect({ currentUser, value, onRepoChange }: { currentUser: s
         const data = await api.listRepos()
         setRepos(Array.isArray(data) ? data : [])
       } catch (error) {
-        console.error('Failed to fetch repos:', error)
+        debugError('Failed to fetch repos:', error)
         toast.error('获取仓库列表失败')
         setRepos([])
       } finally {
@@ -705,7 +706,7 @@ function ConfigSection({ configStore }: { configStore: ConfigState }) {
           setCurrentUser(cleanUsername)
         }
       } catch (error) {
-        console.error('Failed to fetch user:', error)
+        debugError('Failed to fetch user:', error)
       }
     }
     fetchUser()
@@ -728,7 +729,7 @@ function ConfigSection({ configStore }: { configStore: ConfigState }) {
           setBranches([repoInfo.default_branch])
         }
       } catch (error) {
-        console.error('Failed to fetch branches:', error)
+        debugError('Failed to fetch branches:', error)
         toast.error(`获取分支列表失败: ${error instanceof Error ? error.message : '未知错误'}`)
         setBranches([])
       } finally {
@@ -770,7 +771,7 @@ function ConfigSection({ configStore }: { configStore: ConfigState }) {
       toast.success('图床配置成功！')
       router.push('/')
     } catch (error) {
-      console.error('Auto config failed:', error)
+      debugError('Auto config failed:', error)
       toast.error('配置失败，请重试')
     } finally {
       setLoading(false)
@@ -910,9 +911,9 @@ export default function SettingsPage() {
 
   // 未登录时自动打开登录弹窗
   useEffect(() => {
-    console.log('[Settings] Status changed:', status, 'Session:', !!session)  // Debug
+    debugLog('[Settings] Status changed:', status, 'Session:', !!session)  // Debug
     if (status === 'unauthenticated') {
-      console.log('[Settings] Opening login dialog')  // Debug
+      debugLog('[Settings] Opening login dialog')  // Debug
       openLoginDialog()
     }
   }, [status, openLoginDialog, session])

@@ -1,6 +1,7 @@
 'use client'
 
 import { Component, ErrorInfo, ReactNode } from 'react'
+import { debugLog, debugError, debugWarn } from '@/lib/debug'
 
 interface ErrorBoundaryProps {
   children: ReactNode
@@ -36,7 +37,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // 可以在这里记录错误到日志服务
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    debugError('ErrorBoundary caught an error:', error, errorInfo)
 
     // 调用自定义错误处理函数
     this.props.onError?.(error, errorInfo)
