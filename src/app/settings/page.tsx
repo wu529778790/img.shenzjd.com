@@ -428,6 +428,7 @@ function NetworkSection({
             exit={{ opacity: 0, height: 0 }}
             whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
             className="flex items-center justify-between p-4 rounded-xl -mx-2 transition-colors"
+            style={{ minHeight: 80 }} // ✅ 预留空间防止 CLS
           >
             <div className="flex-1">
               <p className="font-medium">使用 Raw 链接</p>

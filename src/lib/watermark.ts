@@ -39,6 +39,9 @@ export async function addWatermark(
     const ctx = canvas.getContext('2d')!
 
     img.onload = () => {
+      // ✅ 释放 ObjectURL 防止内存泄漏
+      URL.revokeObjectURL(img.src)
+
       canvas.width = img.width
       canvas.height = img.height
 
@@ -100,7 +103,11 @@ export async function addWatermark(
       )
     }
 
-    img.onerror = () => reject(new Error('Failed to load image'))
+    img.onerror = () => {
+      // ✅ 即使失败也要释放 ObjectURL
+      URL.revokeObjectURL(img.src)
+      reject(new Error('Failed to load image'))
+    }
     img.src = URL.createObjectURL(file)
   })
 }

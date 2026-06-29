@@ -155,6 +155,7 @@ export default function HomePage() {
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 className="mt-8"
+                style={{ minHeight: 200 }} // ✅ 预留空间防止 CLS
               >
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
