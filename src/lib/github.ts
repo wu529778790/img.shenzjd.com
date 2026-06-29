@@ -175,7 +175,7 @@ export class GitHubAPI {
     let sha: string | undefined
     let fileExists = false
     try {
-      const existing = await this.getFile(filePath)
+      const existing = await this.getFile(filePath, branch)
       sha = existing.sha
       fileExists = true
       debugLog(`[GitHub] File exists, will update: ${filePath} on branch ${branch}`)
