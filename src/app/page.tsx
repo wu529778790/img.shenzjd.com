@@ -74,10 +74,10 @@ export default function HomePage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <PageTransition>
-        {/* 上传区域 */}
+        {/* 上传区域 - 设置最小高度保持页面平衡 */}
         <CardAnimation
           delay={0.1}
-          className="p-8 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg"
+          className="p-8 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg min-h-[400px]"
         >
           <UploadArea onFilesSelected={handleFilesSelected} />
 

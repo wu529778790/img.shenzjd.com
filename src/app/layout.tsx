@@ -44,7 +44,7 @@ export default function RootLayout({
               <div className="relative flex min-h-screen flex-col">
                 <SkipLink />
                 <Header />
-                <main id="main-content" tabIndex={-1}>
+                <main id="main-content" tabIndex={-1} className="flex-1">
                   {children}
                 </main>
                 <footer className="border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm py-4">
