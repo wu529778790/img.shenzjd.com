@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
-import { useOperationLogStore } from '@/stores/operationLogStore'
 import { toast } from 'sonner'
 import { ImageCardDeleteConfirm } from './ImageCardDeleteConfirm'
 import type { ImageFile } from '@/types/image'
@@ -37,7 +36,6 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
   const { data: session } = useSession()
   const token = session?.accessToken || ''
   const configStore = useConfigStore()
-  const { addLog: addOperationLog } = useOperationLogStore()
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   // 使用 ref 跟踪删除操作状态，防止删除确认关闭时触发预览
@@ -67,16 +65,10 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
         url: '链接',
       }
       toast.success(`${formatNames[format]}已复制`)
-      addOperationLog({
-        type: 'copy',
-        action: '复制链接',
-        status: 'success',
-        detail: `${formatNames[format]}: ${link}`,
-      })
     } catch {
       toast.error('复制失败')
     }
-  }, [configStore, image.path, image.name, addOperationLog])
+  }, [configStore, image.path, image.name])
 
   // 使用 useCallback 优化事件处理函数
   const handleClick = useCallback(() => {

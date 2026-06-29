@@ -10,7 +10,6 @@ import { useConfigStore } from '@/stores/configStore'
 import { useUploadStore } from '@/stores/uploadStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
-import { useOperationLogStore } from '@/stores/operationLogStore'
 import { debugLog, debugError, debugWarn } from '@/lib/debug'  // ✅ 使用调试工具
 import type { ImageFile, LinkOptions, UploadTask } from '@/types/image'
 
@@ -19,7 +18,6 @@ export function useUpload() {
   const token = session?.accessToken || ''
   const config = useConfigStore()
   const queryClient = useQueryClient()
-  const { addLog: addOperationLog } = useOperationLogStore()
   const { updateTask, removeTask: removeTaskStore, clearQueue, retryTask: retryTaskFn, retryFailed: retryFailedFn } = useUploadStore()
 
   // 上传单个文件的函数
@@ -165,12 +163,6 @@ export function useUpload() {
         status: 'success',
         progress: 100,
       })
-      addOperationLog({
-        type: 'upload',
-        action: '上传成功',
-        status: 'success',
-        detail: file.name,
-      })
 
       // 生成链接并自动复制到剪贴板
       const linkOptions: LinkOptions = {
@@ -215,14 +207,8 @@ export function useUpload() {
         progress: 0,
         error: error.message,
       })
-      addOperationLog({
-        type: 'upload',
-        action: '上传失败',
-        status: 'error',
-        detail: error.message,
-      })
     }
-  }, [token, config, updateTask, queryClient, addOperationLog])
+  }, [token, config, updateTask, queryClient])
 
   // 添加文件到上传队列
   const addFiles = useCallback(

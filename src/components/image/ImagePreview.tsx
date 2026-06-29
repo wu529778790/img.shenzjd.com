@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { generateLink } from '@/lib/link'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
-import { useOperationLogStore } from '@/stores/operationLogStore'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
@@ -26,7 +25,6 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
   const { data: session } = useSession()
   const token = session?.accessToken || ''
   const configStore = useConfigStore()
-  const { addLog: addOperationLog } = useOperationLogStore()
 
   const modalRef = useRef<HTMLDivElement>(null)
   const [imageLoaded, setImageLoaded] = useState(false)
@@ -138,12 +136,6 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
       await navigator.clipboard.writeText(link)
       setCopiedFormat(format)
       toast.success(`${format.toUpperCase()} 链接已复制`)
-      addOperationLog({
-        type: 'copy',
-        action: '复制链接',
-        status: 'success',
-        detail: `${format}: ${link}`,
-      })
       setTimeout(() => setCopiedFormat(null), 2000)
     } catch (error) {
       toast.error('复制失败')
@@ -158,22 +150,10 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    addOperationLog({
-      type: 'download',
-      action: '下载图片',
-      status: 'success',
-      detail: image.name,
-    })
   }
 
   const handleOpenInNewTab = () => {
     window.open(image.download_url, '_blank', 'noopener,noreferrer')
-    addOperationLog({
-      type: 'view',
-      action: '新标签页查看',
-      status: 'success',
-      detail: image.name,
-    })
   }
 
   // 格式化文件大小

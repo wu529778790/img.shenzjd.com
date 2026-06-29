@@ -12,8 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { useConfigStore, type ConfigState } from '@/stores/configStore'
-import { useOperationLogStore } from '@/stores/operationLogStore'
-import { OperationLogPanel } from '@/components/management/OperationLogPanel'
 import { useQueryClient } from '@tanstack/react-query'
 import { useQuery, useMutation, useQueryClient as useTanStackQueryClient } from '@tanstack/react-query'
 import { useSaveConfigToGitHub, useLoadConfigFromGitHub } from '@/hooks/useConfigSync'
@@ -879,7 +877,6 @@ export default function SettingsPage() {
   const { data: session, status } = useSession()
   const { openLoginDialog } = useAuthDialog()
   const configStore: ConfigState = useConfigStore()
-  const { addLog: addOperationLog } = useOperationLogStore()
   const queryClient = useQueryClient()
 
   const [activeSection, setActiveSection] = useState(0)
@@ -889,10 +886,9 @@ export default function SettingsPage() {
     { id: 'image',        label: '图片处理', icon: Image },        // 第二步：处理图片
     { id: 'network',      label: '网络',     icon: Globe },        // 第三步：网络设置
     { id: 'config-sync',  label: '配置同步', icon: RefreshCw },   // 第四步：同步配置
-    { id: 'operation',    label: '操作日志', icon: FileText },     // 第五步：查看日志
-    { id: 'danger',       label: '危险操作', icon: ShieldAlert },  // 第六步：危险操作
-    { id: 'account',      label: '账户',     icon: User },         // 第七步：账户管理
-    { id: 'about',        label: '关于',     icon: Info },         // 第八步：关于
+    { id: 'danger',       label: '危险操作', icon: ShieldAlert },  // 第五步：危险操作
+    { id: 'account',      label: '账户',     icon: User },         // 第六步：账户管理
+    { id: 'about',        label: '关于',     icon: Info },         // 第七步：关于
   ] as const
 
   // 未登录时自动打开登录弹窗
@@ -947,13 +943,6 @@ export default function SettingsPage() {
         }
       )
       toast.success('CDN 已更新')
-      const cdnNames: Record<string, string> = { github: 'GitHub', jsdelivr: 'jsDelivr', 'jsdmirror': 'jsDMirror', 'github-pages': 'GitHub Pages' }
-      addOperationLog({
-        type: 'settings',
-        action: '切换 CDN',
-        status: 'success',
-        detail: cdnNames[value],
-      })
     }
   }
 
@@ -1029,13 +1018,10 @@ export default function SettingsPage() {
                   <ConfigSyncSection configStore={configStore} />
                 )}
                 {activeSection === 4 && (
-                  <OperationLogPanel />
-                )}
-                {activeSection === 5 && (
                   <DangerSection onClearConfig={handleClearConfig} onClearAuth={handleClearAuth} />
                 )}
-                {activeSection === 6 && <AccountSection session={session} />}
-                {activeSection === 7 && <AboutSection />}
+                {activeSection === 5 && <AccountSection session={session} />}
+                {activeSection === 6 && <AboutSection />}
               </motion.div>
             </AnimatePresence>
           </main>

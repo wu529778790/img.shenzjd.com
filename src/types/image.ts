@@ -46,12 +46,3 @@ export interface LinkOptions {
   fileName: string
   useRaw?: boolean
 }
-
-export interface OperationLog {
-  id: string
-  type: 'upload' | 'delete' | 'copy' | 'settings' | 'download' | 'view'
-  action: string
-  status: 'success' | 'error' | 'pending'
-  timestamp: Date
-  detail?: string
-}
