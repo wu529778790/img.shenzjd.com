@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Settings, Trash2, Link2, Globe, Image, User, Info, FileText, Code, RefreshCw, Check, Copy, FolderGit, Loader2, Plus } from 'lucide-react'
+import { Settings, Trash2, Link2, Globe, Image, Info, FileText, Code, RefreshCw, Check, Copy, FolderGit, Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
@@ -20,7 +20,6 @@ import { debugLog, debugError } from '@/lib/debug'
 import { useAuthDialog } from '@/components/auth'
 import { cn } from '@/lib/utils'
 import { GitHubAPI, GitHubRepo } from '@/lib/github'
-import NextImage from 'next/image'
 
 // ── Section components (defined outside SettingsPage for stable identity) ─────
 
@@ -453,42 +452,6 @@ function NetworkSection({
   )
 }
 
-function AccountSection({ session }: { session: any }) {
-  const user = session?.user
-  if (!user) return null
-
-  return (
-    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-modern-sm">
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200/80 dark:border-gray-700/50">
-        <User className="h-5 w-5 text-primary" />
-        <h2 className="text-xl font-semibold">账户</h2>
-      </div>
-      <div className="flex items-center gap-4">
-        {user.image ? (
-          <NextImage
-            src={user.image}
-            alt={user.name || ''}
-            width={56}
-            height={56}
-            className="h-14 w-14 rounded-full ring-2 ring-gray-200 dark:ring-gray-700"
-          />
-        ) : (
-          <div className="h-14 w-14 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
-            {(user.name || user.email || '?')[0].toUpperCase()}
-          </div>
-        )}
-        <div className="flex-1 min-w-0 space-y-1">
-          <p className="font-semibold text-lg truncate">{user.name || '未设置姓名'}</p>
-          {user.email && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-          )}
-          <p className="text-xs text-gray-400">GitHub 账户</p>
-        </div>
-      </div>
-    </CardAnimation>
-  )
-}
-
 function AboutSection() {
   return (
     <CardAnimation delay={0} className="p-6 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-modern-sm">
@@ -847,8 +810,7 @@ export default function SettingsPage() {
     { id: 'image',        label: '图片处理', icon: Image },        // 第二步：处理图片
     { id: 'network',      label: '网络',     icon: Globe },        // 第三步：网络设置
     { id: 'config-sync',  label: '配置同步', icon: RefreshCw },   // 第四步：同步配置
-    { id: 'account',      label: '账户',     icon: User },         // 第五步：账户管理
-    { id: 'about',        label: '关于',     icon: Info },         // 第六步：关于
+    { id: 'about',        label: '关于',     icon: Info },         // 第五步：关于
   ] as const
 
   // 未登录时自动打开登录弹窗
@@ -969,8 +931,7 @@ export default function SettingsPage() {
                 {activeSection === 3 && (
                   <ConfigSyncSection configStore={configStore} />
                 )}
-                {activeSection === 4 && <AccountSection session={session} />}
-                {activeSection === 5 && <AboutSection />}
+                {activeSection === 4 && <AboutSection />}
               </motion.div>
             </AnimatePresence>
           </main>
