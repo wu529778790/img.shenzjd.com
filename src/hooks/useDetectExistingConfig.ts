@@ -4,20 +4,17 @@ import { useCallback, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { GitHubAPI } from '@/lib/github'
 import { useConfigStore } from '@/stores/configStore'
+import type { Config } from '@/types/config'
 
 /**
- * 检测 GitHub 仓库是否已被使用
- * 检查常见分支（data、master、main）是否有图片
+ * 检测 GitHub 仓库是否已有配置文件
+ * 检查 .imgx-config/config.json 是否存在并读取配置
  */
 export function useDetectExistingConfig() {
   const { data: session } = useSession()
   const configStore = useConfigStore()
   const [isDetecting, setIsDetecting] = useState(false)
-  const [detectedConfig, setDetectedConfig] = useState<{
-    owner: string
-    repo: string
-    branch: string
-  } | null>(null)
+  const [detectedConfig, setDetectedConfig] = useState<Partial<Config> | null>(null)
 
   const detectExistingConfig = useCallback(async () => {
     // 如果已有本地配置，无需检测
@@ -35,97 +32,62 @@ export function useDetectExistingConfig() {
       const token = session.accessToken
       const api = new GitHubAPI(token, '', '')
 
-      // 1. 获取当前用户的仓库列表
+      // 1. 获取当前用户信息
       const user = await api.getCurrentUser()
       const username = user.login
 
-      // 2. 查找 img.shenzjd.com 仓库
-      let repoName = 'img.shenzjd.com'
-      let repoExists = false
+      // 2. 查找可能的仓库
+      const possibleRepos = ['img.shenzjd.com', 'imgx']
+      let foundRepo: string | null = null
 
-      try {
-        await api.getRepo()
-        repoExists = true
-      } catch (error) {
-        // 仓库不存在，尝试用 imgx 作为默认仓库名
+      for (const repoName of possibleRepos) {
         try {
-          await new GitHubAPI(token, username, 'imgx').getRepo()
-          repoName = 'imgx'
-          repoExists = true
-        } catch (e) {
-          // 仓库不存在，无法检测
-          return null
-        }
-      }
-
-      if (!repoExists) {
-        return null
-      }
-
-      // 3. 获取仓库的分支列表
-      const repoApi = new GitHubAPI(token, username, repoName)
-      let branches: string[] = []
-
-      try {
-        branches = await repoApi.getBranches()
-      } catch (error) {
-        // 获取分支失败，使用默认分支
-        try {
-          const repoInfo = await repoApi.getRepo()
-          branches = [repoInfo.default_branch]
-        } catch (e) {
-          return null
-        }
-      }
-
-      // 4. 优先检查的分支列表
-      const priorityBranches = ['data', 'master', 'main', 'master']
-
-      // 5. 检查每个分支是否有图片
-      for (const branch of priorityBranches) {
-        if (!branches.includes(branch)) continue
-
-        try {
-          // 创建带有特定分支的 API 实例
-          const branchApi = new GitHubAPI(token, username, repoName, branch)
-          const files = await branchApi.listAllFilesWithTree()
-          const hasImages = files.some(file =>
-            /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file.name)
-          )
-
-          if (hasImages) {
-            return {
-              owner: username,
-              repo: repoName,
-              branch,
-            }
-          }
+          const testApi = new GitHubAPI(token, username, repoName)
+          await testApi.getRepo()
+          foundRepo = repoName
+          break
         } catch (error) {
-          // 该分支获取文件失败，尝试下一个
           continue
         }
       }
 
-      // 6. 检查其他分支（如果前面的都没有图片）
-      for (const branch of branches) {
-        if (priorityBranches.includes(branch)) continue
+      if (!foundRepo) {
+        return null
+      }
 
+      // 3. 优先检查的分支列表
+      const priorityBranches = ['data', 'master', 'main']
+
+      // 4. 检查每个分支是否有配置文件
+      for (const branch of priorityBranches) {
         try {
-          // 创建带有特定分支的 API 实例
-          const branchApi = new GitHubAPI(token, username, repoName, branch)
-          const files = await branchApi.listAllFilesWithTree()
-          const hasImages = files.some(file =>
-            /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file.name)
-          )
+          const branchApi = new GitHubAPI(token, username, foundRepo, branch)
 
-          if (hasImages) {
-            return {
-              owner: username,
-              repo: repoName,
-              branch,
+          // 尝试读取配置文件
+          const configFile = await branchApi.getFile('.imgx-config/config.json', branch)
+
+          if (configFile && configFile.content) {
+            // 找到了配置文件，解析内容
+            try {
+              const configContent = JSON.parse(
+                Buffer.from(configFile.content, 'base64').toString('utf-8')
+              )
+
+              // 返回完整的配置信息
+              return {
+                owner: username,
+                repo: foundRepo,
+                branch,
+                ...configContent,
+              } as Partial<Config>
+            } catch (parseError) {
+              console.error('Failed to parse config file:', parseError)
+              // 配置文件存在但解析失败，继续检查下一个分支
+              continue
             }
           }
         } catch (error) {
+          // 该分支没有配置文件，尝试下一个
           continue
         }
       }
