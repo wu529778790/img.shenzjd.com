@@ -112,8 +112,18 @@ export function useImages() {
       const api = new GitHubAPI(token, owner, repo, branch)
 
       // 获取文件的 SHA
-      const file = await api.getFile(filePath, branch)
-      const sha = file.sha
+      let sha: string
+      try {
+        const file = await api.getFile(filePath, branch)
+        sha = file.sha
+      } catch (error: any) {
+        // 如果文件不存在（404），说明已经被删除了，视为删除成功（幂等性）
+        if (error.response?.status === 404) {
+          debugLog('[Delete] File already deleted:', filePath)
+          return filePath
+        }
+        throw error
+      }
 
       // 删除文件
       await api.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, sha, branch)
@@ -131,8 +141,15 @@ export function useImages() {
       // 刷新图片列表
       queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
     },
-    onError: () => {
-      toast.error('删除失败')
+    onError: (error: any) => {
+      // 如果是 404 错误，说明文件已经被删除了，不显示错误提示
+      if (error.response?.status === 404) {
+        debugLog('[Delete] File already gone:', error.message)
+        // 仍然刷新列表以保持同步
+        queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
+      } else {
+        toast.error('删除失败')
+      }
     },
   })
 
@@ -154,8 +171,20 @@ export function useImages() {
         const batchResults = await Promise.allSettled(
           batch.map(async (filePath) => {
             // 先获取当前文件信息以获取正确的 SHA
-            const file = await api.getFile(filePath, branch)
-            await api.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, file.sha, branch)
+            let sha: string
+            try {
+              const file = await api.getFile(filePath, branch)
+              sha = file.sha
+            } catch (error: any) {
+              // 如果文件不存在（404），说明已经被删除了，视为删除成功（幂等性）
+              if (error.response?.status === 404) {
+                debugLog('[Bulk Delete] File already deleted:', filePath)
+                return filePath
+              }
+              throw error
+            }
+
+            await api.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, sha, branch)
             return filePath
           })
         )
@@ -188,8 +217,15 @@ export function useImages() {
       // 刷新图片列表
       queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
     },
-    onError: () => {
-      toast.error('批量删除失败')
+    onError: (error: any) => {
+      // 如果是 404 错误，说明文件已经被删除了，不显示错误提示
+      if (error.response?.status === 404) {
+        debugLog('[Bulk Delete] Files already gone:', error.message)
+        // 仍然刷新列表以保持同步
+        queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
+      } else {
+        toast.error('批量删除失败')
+      }
     },
   })
 
