@@ -84,7 +84,7 @@ export function useImages() {
       const sha = file.sha
 
       // 删除文件
-      await api.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, sha)
+      await api.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, sha, branch)
 
       return filePath
     },
@@ -123,7 +123,7 @@ export function useImages() {
           batch.map(async (filePath) => {
             // 先获取当前文件信息以获取正确的 SHA
             const file = await api.getFile(filePath, branch)
-            await api.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, file.sha)
+            await api.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, file.sha, branch)
             return filePath
           })
         )

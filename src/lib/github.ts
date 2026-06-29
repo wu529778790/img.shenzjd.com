@@ -241,15 +241,15 @@ export class GitHubAPI {
   }
 
   // 删除文件
-  async deleteFile(filePath: string, message: string, sha: string) {
+  async deleteFile(filePath: string, message: string, sha: string, branch?: string) {
     const response = await this.client.delete(`/repos/${this.owner}/${this.repo}/contents/${filePath}`, {
-      data: { message, sha },
+      data: { message, sha, branch },
     })
     return response.data
   }
 
   // 批量删除文件（带并发限制）
-  async deleteFiles(filePaths: string[], concurrency: number = 5): Promise<{ successful: number; failed: number }> {
+  async deleteFiles(filePaths: string[], concurrency: number = 5, branch?: string): Promise<{ successful: number; failed: number }> {
     let successful = 0
     let failed = 0
 
@@ -260,8 +260,8 @@ export class GitHubAPI {
       const results = await Promise.allSettled(
         batch.map(async (filePath) => {
           try {
-            const file = await this.getFile(filePath)
-            return this.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, file.sha)
+            const file = await this.getFile(filePath, branch)
+            return this.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, file.sha, branch)
           } catch (error) {
             debugError(`Failed to delete ${filePath}:`, error)
             throw error
