@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { ThemeToggle } from './ThemeToggle'
 import { useRouter } from 'next/navigation'
+import { useAuthDialog } from '@/components/auth'
 
 const navigation = [
   { name: '上传图片', href: '/', icon: Upload },
@@ -53,6 +54,7 @@ export function Header() {
   const pathname = usePathname()
   const router = useRouter()
   const { data: session } = useSession()
+  const { openLoginDialog } = useAuthDialog()
   const user = session?.user
   const configStore = useConfigStore()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -198,7 +200,7 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={() => router.push('/login')} size="sm">
+              <Button onClick={openLoginDialog} size="sm">
                 登录
               </Button>
             )}
