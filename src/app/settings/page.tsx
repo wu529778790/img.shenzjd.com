@@ -672,8 +672,9 @@ function ConfigSection({ configStore }: { configStore: ConfigState }) {
 
   // 从 configStore 恢复配置到本地状态
   useEffect(() => {
-    if (configStore.owner) {
-      setRepo(configStore.owner + '/' + configStore.repo)
+    if (configStore.owner && configStore.repo) {
+      // 仓库选择器的 value 是 repo.name，不是 owner/repo
+      setRepo(configStore.repo)
     }
     if (configStore.branch) {
       setBranch(configStore.branch)
