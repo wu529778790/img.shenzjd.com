@@ -33,18 +33,14 @@ export function ConfigDiscovery() {
           const { _remoteUpdatedAt, ...configData } = config as any
 
           // 检查是否有更新的远程配置
+          let hasRemoteUpdate = false
           if (_remoteUpdatedAt && configStore.lastSyncAt) {
             const remoteTime = new Date(_remoteUpdatedAt)
             const localTime = new Date(configStore.lastSyncAt)
-
-            if (remoteTime > localTime) {
-              toast.info(`检测到远程配置已更新，正在同步...`, {
-                duration: 3000,
-              })
-            }
+            hasRemoteUpdate = remoteTime > localTime
           }
 
-          // 更新配置
+          // 静默更新配置（不打扰用户）
           configStore.updateConfig({
             owner: config.owner,
             repo: config.repo,
@@ -69,16 +65,11 @@ export function ConfigDiscovery() {
             sha: config.sha,
           })
 
-          if (_remoteUpdatedAt && configStore.lastSyncAt) {
-            const remoteTime = new Date(_remoteUpdatedAt)
-            const localTime = new Date(configStore.lastSyncAt)
-            toast.success(
-              remoteTime > localTime
-                ? `配置已同步: ${config.owner}/${config.repo} (${config.branch})`
-                : `已恢复配置: ${config.owner}/${config.repo} (${config.branch})`
-            )
-          } else {
-            toast.success(`已发现并加载配置: ${config.owner}/${config.repo}`)
+          // 只有当远程配置确实更新时，才通知用户
+          if (hasRemoteUpdate) {
+            toast.success(`配置已同步: ${config.owner}/${config.repo} (${config.branch})`, {
+              duration: 3000,
+            })
           }
         }
       })
