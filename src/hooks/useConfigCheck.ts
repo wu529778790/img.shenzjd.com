@@ -38,15 +38,12 @@ export function useConfigCheck() {
    */
   const checkConfig = useCallback(
     async (force: boolean = false): Promise<ConfigCheckResult | null> => {
-      // 如果配置为空且最近检测过（即使缓存未过期），也允许重试
-      // 这样可以避免配置检测失败后被锁定 5 分钟
+      // 如果已检测过且在缓存期内，不再请求
+      // - 配置完整：使用现有配置
+      // - 配置为空：GitHub 上也没有，无需重试
       if (!force && configStore.configLastCheckedAt && !configStore.needsConfigCheck(5 * 60 * 1000)) {
-        if (!configStore.owner || !configStore.repo || !configStore.branch) {
-          debugLog('[ConfigCheck] Config is empty but cache is fresh, forcing retry')
-        } else {
-          debugLog('[ConfigCheck] Config is valid and cache is fresh, skipping')
-          return null
-        }
+        debugLog('[ConfigCheck] Checked recently, using cached result')
+        return null
       }
 
       const token = typeof window !== 'undefined' ? localStorage.getItem('github_token') : null
@@ -132,6 +129,8 @@ export function useConfigCheck() {
         return null
       } catch (error) {
         debugError('[ConfigCheck] Failed:', error)
+        // 发生错误也标记检测完成，避免频繁重试
+        configStore.markConfigChecked('img.shenzjd.com', configStore.branch || 'main')
         return null
       }
     },
