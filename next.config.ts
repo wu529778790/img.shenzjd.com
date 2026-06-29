@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  // Docker 支持：启用 standalone 输出
+  output: 'standalone',
+
   // P2 优化：静态资产缓存策略
   async headers() {
     return [

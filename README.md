@@ -114,3 +114,58 @@ NEXT_PUBLIC_SITE_URL=https://your-project.vercel.app
 
 - **Homepage URL**: `https://your-project.vercel.app`
 - **Authorization callback URL**: `https://your-project.vercel.app/api/auth/callback`
+
+### 🐳 Docker 部署
+
+#### 使用 GitHub Container Registry（推荐）
+
+GitHub Actions 会自动构建并发布镜像到 GitHub Container Registry (ghcr.io)，无需手动配置 Token。
+
+```bash
+# 拉取镜像
+docker pull ghcr.io/你的用户名/img.shenzjd.com:latest
+
+# 运行容器
+docker run -d \
+  -p 3000:3000 \
+  -e GITHUB_CLIENT_ID=your_client_id \
+  -e GITHUB_CLIENT_SECRET=your_client_secret \
+  -e NEXTAUTH_SECRET=your_nextauth_secret \
+  -e NEXTAUTH_URL=https://你的域名 \
+  -e GITHUB_TOKEN=your_github_token \
+  --name imgx \
+  ghcr.io/你的用户名/img.shenzjd.com:latest
+```
+
+#### 使用 Docker Compose
+
+```bash
+# 编辑 docker-compose.yml 配置环境变量后启动
+docker-compose up -d
+```
+
+#### 环境变量说明
+
+| 变量名 | 必填 | 说明 |
+|--------|------|------|
+| `GITHUB_CLIENT_ID` | ✅ | GitHub OAuth App 的 Client ID |
+| `GITHUB_CLIENT_SECRET` | ✅ | GitHub OAuth App 的 Client Secret |
+| `NEXTAUTH_SECRET` | ✅ | NextAuth 密钥（使用 `openssl rand -base64 32` 生成） |
+| `NEXTAUTH_URL` | ✅ | 应用访问地址（如 `https://img.yourdomain.com`） |
+| `GITHUB_TOKEN` | ✅ | GitHub Personal Access Token（用于 API 操作） |
+| `PORT` | ❌ | 服务端口（默认 3000） |
+
+#### 本地构建镜像
+
+```bash
+# 构建镜像
+docker build -t imgx .
+
+# 运行
+docker run -d -p 3000:3000 imgx
+```
+
+#### 镜像发布规则
+
+- **main 分支推送**：自动发布 `ghcr.io/用户名/img.shenzjd.com:latest`
+- **版本标签**：发布 `v1.0.0`、`v1.0`、`v1` 等多版本标签
