@@ -670,6 +670,19 @@ function ConfigSection({ configStore }: { configStore: ConfigState }) {
 
   const { updateConfig } = configStore
 
+  // 从 configStore 恢复配置到本地状态
+  useEffect(() => {
+    if (configStore.owner) {
+      setRepo(configStore.owner + '/' + configStore.repo)
+    }
+    if (configStore.branch) {
+      setBranch(configStore.branch)
+    }
+    if (configStore.directory) {
+      setDirectory(configStore.directory)
+    }
+  }, [configStore.owner, configStore.repo, configStore.branch, configStore.directory])
+
   // 获取 token
   useEffect(() => {
     const getToken = async () => {

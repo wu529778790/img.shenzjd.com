@@ -7,8 +7,19 @@ import { useConfigStore } from '@/stores/configStore'
 import type { Config } from '@/types/config'
 
 /**
+ * 从 GitHub 文件信息中提取最后修改时间
+ */
+function getUpdatedAtFromGitHub(file: any): string | null {
+  // GitHub API 返回的 commit 信息中有更新时间
+  if (file.commit && file.commit.commit && file.commit.commit.committer) {
+    return file.commit.commit.committer.date
+  }
+  return null
+}
+
+/**
  * 检测 GitHub 仓库是否已有配置文件
- * 检查 .imgx-config/config.json 是否存在并读取配置
+ * 检查 .imgx-config/config.json 是否存在并对比时间戳
  */
 export function useDetectExistingConfig() {
   const { data: session } = useSession()
@@ -17,10 +28,9 @@ export function useDetectExistingConfig() {
   const [detectedConfig, setDetectedConfig] = useState<Partial<Config> | null>(null)
 
   const detectExistingConfig = useCallback(async () => {
-    // 如果已有本地配置，无需检测
-    if (configStore.owner && configStore.repo && configStore.branch) {
-      return null
-    }
+    // 如果已有本地配置，仍然需要检查 GitHub 是否有更新的配置
+    const hasLocalConfig = configStore.owner && configStore.repo && configStore.branch
+    const localLastSync = configStore.lastSyncAt
 
     // 未登录，无法检测
     if (!session?.accessToken) {
@@ -36,55 +46,79 @@ export function useDetectExistingConfig() {
       const user = await api.getCurrentUser()
       const username = user.login
 
-      // 2. 查找可能的仓库
-      const possibleRepos = ['img.shenzjd.com', 'imgx']
-      let foundRepo: string | null = null
+      // 2. 确定要检查的仓库和分支
+      let checkOwner = configStore.owner || username
+      let checkRepo = configStore.repo
+      let checkBranches: string[] = []
 
-      for (const repoName of possibleRepos) {
-        try {
-          const testApi = new GitHubAPI(token, username, repoName)
-          await testApi.getRepo()
-          foundRepo = repoName
-          break
-        } catch (error) {
-          continue
+      if (hasLocalConfig && checkRepo) {
+        // 有本地配置，只检查当前配置的分支
+        checkBranches = [configStore.branch]
+      } else {
+        // 没有本地配置，查找可能的仓库
+        const possibleRepos = ['img.shenzjd.com', 'imgx']
+        let foundRepo: string | null = null
+
+        for (const repoName of possibleRepos) {
+          try {
+            const testApi = new GitHubAPI(token, username, repoName)
+            await testApi.getRepo()
+            foundRepo = repoName
+            break
+          } catch (error) {
+            continue
+          }
         }
+
+        if (!foundRepo) {
+          return null
+        }
+
+        checkRepo = foundRepo
+        // 优先检查的分支列表
+        checkBranches = ['master', 'main']
       }
 
-      if (!foundRepo) {
-        return null
-      }
-
-      // 3. 优先检查的分支列表
-      // master: 老用户使用习惯
-      // main: GitHub 默认分支（新用户）
-      const priorityBranches = ['master', 'main']
-
-      // 4. 检查每个分支是否有配置文件
-      for (const branch of priorityBranches) {
+      // 3. 检查每个分支的配置文件
+      for (const branch of checkBranches) {
         try {
-          const branchApi = new GitHubAPI(token, username, foundRepo, branch)
+          const branchApi = new GitHubAPI(token, checkOwner, checkRepo, branch)
 
-          // 尝试读取配置文件
+          // 尝试读取配置文件（使用 commit API 获取更新时间）
           const configFile = await branchApi.getFile('.imgx-config/config.json', branch)
 
           if (configFile && configFile.content) {
-            // 找到了配置文件，解析内容
+            // 解析配置内容
             try {
               const configContent = JSON.parse(
                 Buffer.from(configFile.content, 'base64').toString('utf-8')
               )
 
-              // 返回完整的配置信息
+              // 获取远程配置的最后修改时间
+              const remoteUpdatedAt = getUpdatedAtFromGitHub(configFile)
+
+              // 如果有本地配置，对比时间戳
+              if (hasLocalConfig && localLastSync && remoteUpdatedAt) {
+                const localTime = new Date(localLastSync).getTime()
+                const remoteTime = new Date(remoteUpdatedAt).getTime()
+
+                // 如果本地配置更新，跳过远程配置
+                if (localTime >= remoteTime) {
+                  console.log('[ConfigDetection] Local config is up-to-date, skipping remote')
+                  return null
+                }
+              }
+
+              // 返回配置信息，包含更新时间
               return {
-                owner: username,
-                repo: foundRepo,
+                owner: checkOwner,
+                repo: checkRepo,
                 branch,
                 ...configContent,
-              } as Partial<Config>
+                _remoteUpdatedAt: remoteUpdatedAt, // 内部字段，不保存到 store
+              } as Partial<Config> & { _remoteUpdatedAt?: string }
             } catch (parseError) {
               console.error('Failed to parse config file:', parseError)
-              // 配置文件存在但解析失败，继续检查下一个分支
               continue
             }
           }

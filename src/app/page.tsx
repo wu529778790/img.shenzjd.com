@@ -71,8 +71,35 @@ export default function HomePage() {
         if (config) {
           // 检测到已有配置，自动填充
           console.log('[HomePage] Detected existing config:', config)
-          configStore.updateConfig(config, () => {
-            toast.success(`已恢复配置: ${config.owner}/${config.repo} (${config.branch})`)
+
+          // 提取配置内容，排除内部字段
+          const { _remoteUpdatedAt, ...configData } = config as any
+
+          // 检查是否有更新的远程配置
+          if (_remoteUpdatedAt && configStore.lastSyncAt) {
+            const remoteTime = new Date(_remoteUpdatedAt)
+            const localTime = new Date(configStore.lastSyncAt)
+
+            if (remoteTime > localTime) {
+              toast.info(`检测到远程配置已更新，正在同步...`, {
+                duration: 3000,
+              })
+            }
+          }
+
+          configStore.updateConfig(configData, () => {
+            if (_remoteUpdatedAt && configStore.lastSyncAt) {
+              const remoteTime = new Date(_remoteUpdatedAt)
+              const localTime = new Date(configStore.lastSyncAt)
+
+              if (remoteTime > localTime) {
+                toast.success(`配置已同步: ${config.owner}/${config.repo} (${config.branch})`)
+              } else {
+                toast.success(`已恢复配置: ${config.owner}/${config.repo} (${config.branch})`)
+              }
+            } else {
+              toast.success(`已恢复配置: ${config.owner}/${config.repo} (${config.branch})`)
+            }
           })
         } else {
           // 没有检测到配置，打开配置弹窗
