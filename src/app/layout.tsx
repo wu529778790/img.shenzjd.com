@@ -39,9 +39,9 @@ export default function RootLayout({
         <ReactQueryProvider>
           <AuthProvider>
             <SyncGitHubTokenToLocalStorage />
-            <ConfigDiscovery />
             <AuthDialogProvider>
               <ConfigDialogProvider>
+                <ConfigDiscovery />
                 <div className="relative flex min-h-screen flex-col">
                   <SkipLink />
                   <Header />

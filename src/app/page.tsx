@@ -1,12 +1,11 @@
 'use client'
 
-import { useMemo, useState, useCallback, useEffect } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { useUpload } from '@/hooks/useUpload'
 import { useRepoFolders, type RepoFolder } from '@/hooks/useRepoFolders'
-import { useDetectExistingConfig } from '@/hooks/useDetectExistingConfig'
 import { UploadArea } from '@/components/upload/UploadArea'
 import { UploadQueue } from '@/components/upload/UploadQueue'
 import { Button } from '@/components/ui/button'
@@ -33,9 +32,6 @@ export default function HomePage() {
   const { owner, repo, branch } = configStore
   const isConfigured = owner && repo && branch
 
-  // 智能检测 GitHub 仓库配置
-  const { detectExistingConfig } = useDetectExistingConfig()
-
   // 当前选择的文件夹路径
   const [selectedFolder, setSelectedFolder] = useState(configStore.directory || '')
 
@@ -61,54 +57,6 @@ export default function HomePage() {
     // 已登录已配置，正常上传
     addFiles(files)
   }, [session, isConfigured, openLoginDialog, openConfigDialog, addFiles])
-
-  // 未配置时自动打开配置弹窗
-  useEffect(() => {
-    if (status === 'authenticated' && !isConfigured && !isConfigDismissed) {
-      console.log('[HomePage] User logged in but not configured, trying to detect existing config')
-      // 先尝试检测是否已有配置
-      detectExistingConfig().then(config => {
-        if (config) {
-          // 检测到已有配置，自动填充
-          console.log('[HomePage] Detected existing config:', config)
-
-          // 提取配置内容，排除内部字段
-          const { _remoteUpdatedAt, ...configData } = config as any
-
-          // 检查是否有更新的远程配置
-          if (_remoteUpdatedAt && configStore.lastSyncAt) {
-            const remoteTime = new Date(_remoteUpdatedAt)
-            const localTime = new Date(configStore.lastSyncAt)
-
-            if (remoteTime > localTime) {
-              toast.info(`检测到远程配置已更新，正在同步...`, {
-                duration: 3000,
-              })
-            }
-          }
-
-          configStore.updateConfig(configData, () => {
-            if (_remoteUpdatedAt && configStore.lastSyncAt) {
-              const remoteTime = new Date(_remoteUpdatedAt)
-              const localTime = new Date(configStore.lastSyncAt)
-
-              if (remoteTime > localTime) {
-                toast.success(`配置已同步: ${config.owner}/${config.repo} (${config.branch})`)
-              } else {
-                toast.success(`已恢复配置: ${config.owner}/${config.repo} (${config.branch})`)
-              }
-            } else {
-              toast.success(`已恢复配置: ${config.owner}/${config.repo} (${config.branch})`)
-            }
-          })
-        } else {
-          // 没有检测到配置，打开配置弹窗
-          console.log('[HomePage] No existing config detected, opening config dialog')
-          openConfigDialog()
-        }
-      })
-    }
-  }, [status, isConfigured, isConfigDismissed, openConfigDialog, detectExistingConfig, configStore])
 
   // 如果正在加载
   if (status === 'loading') {

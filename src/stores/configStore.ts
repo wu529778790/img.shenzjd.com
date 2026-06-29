@@ -3,8 +3,18 @@ import { persist } from 'zustand/middleware'
 import type { Config } from '@/types/config'
 
 export interface ConfigState extends Config {
+  // 配置检测缓存
+  configLastCheckedAt?: number  // 最后检测时间戳
+  configCheckedRepo?: string    // 上次检测的仓库
+  configCheckedBranch?: string  // 上次检测的分支
+
   updateConfig: (updates: Partial<Config>, onUpdate?: () => void) => void
   resetConfig: () => void
+
+  // 配置检测相关方法
+  markConfigChecked: (repo: string, branch: string) => void
+  needsConfigCheck: (ttl?: number) => boolean
+  invalidateConfigCheck: () => void
 }
 
 const defaultConfig: Config = {
@@ -54,6 +64,29 @@ export const useConfigStore = create<ConfigState>()(
       },
       resetConfig: () => {
         set(defaultConfig)
+      },
+      markConfigChecked: (repo: string, branch: string) => {
+        set({
+          configLastCheckedAt: Date.now(),
+          configCheckedRepo: repo,
+          configCheckedBranch: branch,
+        })
+      },
+      needsConfigCheck: (ttl: number = 5 * 60 * 1000) => {
+        const state = get()
+        // 如果没有检测过，需要检测
+        if (!state.configLastCheckedAt) return true
+
+        // 如果距离上次检测超过 TTL，需要重新检测
+        const elapsed = Date.now() - state.configLastCheckedAt
+        return elapsed > ttl
+      },
+      invalidateConfigCheck: () => {
+        set({
+          configLastCheckedAt: undefined,
+          configCheckedRepo: undefined,
+          configCheckedBranch: undefined,
+        })
       },
     }),
     {
