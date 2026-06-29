@@ -883,14 +883,14 @@ export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState(0)
 
   const sections = [
-    { id: 'image',        label: '图片处理', icon: Image },
-    { id: 'github-config', label: '图床配置', icon: FolderGit },
-    { id: 'network',      label: '网络',     icon: Globe },
-    { id: 'config-sync',  label: '配置同步', icon: RefreshCw },
-    { id: 'operation',    label: '操作日志', icon: FileText },
-    { id: 'danger',       label: '危险操作', icon: ShieldAlert },
-    { id: 'account',      label: '账户',     icon: User },
-    { id: 'about',        label: '关于',     icon: Info },
+    { id: 'github-config', label: '图床配置', icon: FolderGit },  // 第一步：先配置
+    { id: 'image',        label: '图片处理', icon: Image },        // 第二步：处理图片
+    { id: 'network',      label: '网络',     icon: Globe },        // 第三步：网络设置
+    { id: 'config-sync',  label: '配置同步', icon: RefreshCw },   // 第四步：同步配置
+    { id: 'operation',    label: '操作日志', icon: FileText },     // 第五步：查看日志
+    { id: 'danger',       label: '危险操作', icon: ShieldAlert },  // 第六步：危险操作
+    { id: 'account',      label: '账户',     icon: User },         // 第七步：账户管理
+    { id: 'about',        label: '关于',     icon: Info },         // 第八步：关于
   ] as const
 
   // 未登录时自动打开登录弹窗
@@ -1018,8 +1018,8 @@ export default function SettingsPage() {
                   })}
                 </div>
 
-                {activeSection === 0 && <ImageProcessingSection configStore={configStore} />}
-                {activeSection === 1 && <ConfigSection configStore={configStore} />}
+                {activeSection === 0 && <ConfigSection configStore={configStore} />}
+                {activeSection === 1 && <ImageProcessingSection configStore={configStore} />}
                 {activeSection === 2 && (
                   <NetworkSection configStore={configStore} onCdnChange={handleCdnChange} />
                 )}
