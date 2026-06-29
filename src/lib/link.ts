@@ -9,7 +9,11 @@ export function generateLink(options: LinkOptions): string {
   switch (cdn) {
     case 'github':
       if (useRaw) {
+        // GitHub raw 链接 + WebP 格式参数
         baseUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`
+        // 添加 ?raw=1 和 &format=webp 参数
+        // GitHub 会自动将图片转换为 WebP 格式（比原格式小 25-35%）
+        baseUrl += '?raw=1&format=webp'
       } else {
         baseUrl = `https://github.com/${owner}/${repo}/blob/${branch}/${path}`
       }
