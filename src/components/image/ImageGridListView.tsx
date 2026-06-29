@@ -32,7 +32,7 @@ export function ImageGridListView({ images, selectedIds, onSelect, selectionMode
               type="checkbox"
               checked={selectedIds.has(image.id)}
               onChange={() => onSelect(image.id, !selectedIds.has(image.id))}
-              className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary cursor-pointer"
+              className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer transition-all"
               onClick={(e) => e.stopPropagation()}
             />
           )}
