@@ -106,23 +106,23 @@ export default function HomePage() {
               className="mt-6"
               aria-label="上传目标文件夹选择"
             >
-              <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-800/30 border border-gray-200/80 dark:border-gray-700/50 backdrop-blur-sm">
-                <div className="flex items-center gap-2 flex-wrap">
+              <div className="p-2.5 rounded-xl bg-gray-50/80 dark:bg-gray-800/30 border border-gray-200/80 dark:border-gray-700/50 backdrop-blur-sm">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <FolderOpen className="h-4 w-4 text-gray-600 dark:text-gray-400 shrink-0" aria-hidden="true" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">上传到</span>
-                  <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded" aria-label="当前仓库">
+                  <span className="text-xs text-gray-600 dark:text-gray-400">上传到</span>
+                  <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded" aria-label="当前仓库">
                     {owner}/{repo}
                   </span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400" aria-hidden="true">/</span>
-                  <div className="flex items-center gap-2">
-                    <label htmlFor="folder-select" className="text-sm text-gray-600 dark:text-gray-400">
-                      目标文件夹
+                  <span className="text-xs text-gray-400" aria-hidden="true">/</span>
+                  <div className="flex items-center gap-1.5">
+                    <label htmlFor="folder-select" className="text-xs text-gray-600 dark:text-gray-400">
+                      文件夹
                     </label>
                     <Select
                       value={selectedFolder}
                       onValueChange={handleFolderChange}
                     >
-                      <SelectTrigger id="folder-select" className="w-[140px] h-9">
+                      <SelectTrigger id="folder-select" className="w-[110px] h-8">
                         <SelectValue placeholder="根目录" />
                       </SelectTrigger>
                       <SelectContent>
@@ -139,7 +139,7 @@ export default function HomePage() {
                   </div>
                   {selectedFolder && (
                     <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
-                      当前: <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded font-mono" title={selectedFolder}>{selectedFolder}</code>
+                      <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded font-mono text-xs" title={selectedFolder}>{selectedFolder}</code>
                     </span>
                   )}
                 </div>

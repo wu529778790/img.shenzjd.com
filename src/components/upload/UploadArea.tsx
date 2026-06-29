@@ -113,7 +113,9 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
             </p>
             <Button
               type="button"
-              className="mt-4"
+              variant="gradient"
+              size="sm"
+              className="mt-4 font-semibold shadow-glow-primary"
               disabled={disabled}
               aria-label="选择图片文件"
             >
