@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
@@ -15,6 +15,7 @@ import { Sparkles, Zap, UploadCloud, FolderOpen } from 'lucide-react'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthDialog } from '@/components/auth'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 export default function HomePage() {
@@ -40,12 +41,22 @@ export default function HomePage() {
     configStore.updateConfig({ directory: path })
   }
 
-  // 未登录时自动打开登录弹窗
-  useEffect(() => {
-    if (status === 'unauthenticated') {
+  // 处理文件选择（需要登录）
+  const handleFilesSelected = useCallback((files: File[]) => {
+    if (!session) {
+      // 未登录，打开登录弹窗
       openLoginDialog()
+      return
     }
-  }, [status, openLoginDialog])
+    if (!isConfigured) {
+      // 未配置，提示去配置
+      toast.error('请先配置图床后再上传图片')
+      router.push('/config')
+      return
+    }
+    // 已登录已配置，正常上传
+    addFiles(files)
+  }, [session, isConfigured, openLoginDialog, addFiles, router])
 
   // 如果正在加载
   if (status === 'loading') {
@@ -68,51 +79,7 @@ export default function HomePage() {
           delay={0.1}
           className="p-8 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg"
         >
-          {/* 未登录提示横幅 */}
-          {!session && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
-              role="alert"
-            >
-              <div className="flex items-center justify-between gap-2 text-sm text-blue-900 dark:text-blue-100">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                  <span className="text-blue-800 dark:text-blue-200 font-medium">
-                    登录后才能上传图片
-                  </span>
-                </div>
-                <Button size="sm" onClick={openLoginDialog}>
-                  立即登录
-                </Button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* 未配置提示横幅 */}
-          {session && !isConfigured && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800"
-              role="alert"
-            >
-              <div className="flex items-center justify-between gap-2 text-sm text-amber-900 dark:text-amber-100">
-                <div className="flex items-center gap-2">
-                  <FolderOpen className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                  <span className="text-amber-800 dark:text-amber-200 font-medium">
-                    请先配置图床后才能上传
-                  </span>
-                </div>
-                <Button size="sm" onClick={() => router.push('/config')}>
-                  去配置
-                </Button>
-              </div>
-            </motion.div>
-          )}
-
-          <UploadArea onFilesSelected={addFiles} />
+          <UploadArea onFilesSelected={handleFilesSelected} />
 
           {/* 文件夹选择 */}
           <motion.div
