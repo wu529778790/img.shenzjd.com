@@ -80,9 +80,8 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
 
   // 使用 useCallback 优化事件处理函数
   const handleClick = useCallback(() => {
-    // 如果正在删除，不触发预览
-    if (isDeletingRef.current) {
-      isDeletingRef.current = false
+    // 如果正在删除或删除确认框显示中，不触发预览
+    if (isDeletingRef.current || showDeleteConfirm) {
       return
     }
     if (selectable) {
@@ -90,7 +89,7 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
     } else {
       onPreview?.(image)
     }
-  }, [selectable, selected, image.id, onSelect, onPreview])
+  }, [selectable, selected, image.id, onSelect, onPreview, showDeleteConfirm])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -210,7 +209,9 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => {
+                  onClick={(e) => {
+                    // 阻止事件冒泡到卡片，防止触发预览
+                    e.stopPropagation()
                     isDeletingRef.current = true
                     setShowDeleteConfirm(true)
                   }}
