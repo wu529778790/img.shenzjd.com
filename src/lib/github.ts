@@ -171,20 +171,7 @@ export class GitHubAPI {
     branch: string = this.branch,
     onProgress?: (progress: number) => void
   ): Promise<{ sha: string; html_url: string }> {
-    // 检查文件是否存在
     let sha: string | undefined
-    let fileExists = false
-    try {
-      const existing = await this.getFile(filePath, branch)
-      sha = existing.sha
-      fileExists = true
-      debugLog(`[GitHub] File exists, will update: ${filePath} on branch ${branch}`)
-    } catch {
-      // 文件不存在，创建新文件
-      debugLog(`[GitHub] File does not exist, will create: ${filePath} on branch ${branch}`)
-    }
-
-    debugLog(`[GitHub] ${fileExists ? 'Updating' : 'Creating'} file: ${filePath} on branch ${branch}`)
 
     // 报告 10% 进度（开始处理文件）
     debugLog('[GitHub Progress] Reporting 10%')
@@ -210,15 +197,42 @@ export class GitHubAPI {
     debugLog('[GitHub Progress] Reporting 60%')
     onProgress?.(60)
 
-    const response = await this.client.put(
-      `/repos/${this.owner}/${this.repo}/contents/${filePath}`,
-      {
-        message,
-        content: contentBase64,
-        sha,
-        branch,  // ✅ 添加分支参数
+    // 先尝试创建文件（不带 sha）
+    // 如果文件已存在，GitHub 会返回 422，我们再获取 sha 并更新
+    let response
+    try {
+      response = await this.client.put(
+        `/repos/${this.owner}/${this.repo}/contents/${filePath}`,
+        {
+          message,
+          content: contentBase64,
+          branch,
+        }
+      )
+      debugLog(`[GitHub] Created new file: ${filePath} on branch ${branch}`)
+    } catch (error: any) {
+      // 如果是 422，说明文件已存在，需要获取 sha 后更新
+      if (error.response?.status === 422) {
+        debugLog(`[GitHub] File already exists, fetching SHA for update: ${filePath}`)
+        const existing = await this.getFile(filePath, branch)
+        sha = existing.sha
+
+        // 使用 sha 更新文件
+        response = await this.client.put(
+          `/repos/${this.owner}/${this.repo}/contents/${filePath}`,
+          {
+            message,
+            content: contentBase64,
+            sha,
+            branch,
+          }
+        )
+        debugLog(`[GitHub] Updated existing file: ${filePath} on branch ${branch}`)
+      } else {
+        // 其他错误直接抛出
+        throw error
       }
-    )
+    }
 
     // 报告 90% 进度（上传请求已完成）
     debugLog('[GitHub Progress] Reporting 90%')
