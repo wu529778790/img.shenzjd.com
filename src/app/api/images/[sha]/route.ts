@@ -19,7 +19,7 @@ export async function DELETE(
     const body = await request.json()
     const { owner, repo, filePath, branch } = body
 
-    console.log('Delete request:', { owner, repo, filePath, pathSha: pathSha.slice(0, 8) + '...' })
+    console.log('Delete request:', { owner, repo, filePath, branch, pathSha: pathSha.slice(0, 8) + '...' })
 
     if (!owner || !repo || !filePath || !branch) {
       return NextResponse.json(
@@ -52,8 +52,9 @@ export async function DELETE(
     }
 
     // 删除文件
+    console.log('Deleting file with:', { filePath, branch, currentSha: currentSha.slice(0, 8) + '...' })
     const deleteResponse = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(filePath)}?ref=${branch}`,
+      `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(filePath)}`,
       {
         method: 'DELETE',
         headers: {
@@ -64,6 +65,7 @@ export async function DELETE(
         body: JSON.stringify({
           message: `Delete ${filePath} via ImgX`,
           sha: currentSha,
+          branch,  // ← 将 branch 放在请求体中
         }),
       }
     )
