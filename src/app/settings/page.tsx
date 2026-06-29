@@ -616,10 +616,12 @@ export default function SettingsPage() {
 
   // 未登录时自动打开登录弹窗
   useEffect(() => {
+    console.log('[Settings] Status changed:', status, 'Session:', !!session)  // Debug
     if (status === 'unauthenticated') {
+      console.log('[Settings] Opening login dialog')  // Debug
       openLoginDialog()
     }
-  }, [status, openLoginDialog])
+  }, [status, openLoginDialog, session])
 
   // 如果正在加载
   if (status === 'loading') {
@@ -633,7 +635,6 @@ export default function SettingsPage() {
       </div>
     )
   }
-
 
   const handleClearConfig = () => {
     if (!confirm('确定要清空所有配置吗？此操作不可恢复。')) return

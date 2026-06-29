@@ -43,10 +43,12 @@ export default function ManagementPage() {
 
   // 未登录时自动打开登录弹窗
   useEffect(() => {
+    console.log('[Management] Status changed:', status, 'Session:', !!session)  // Debug
     if (status === 'unauthenticated') {
+      console.log('[Management] Opening login dialog')  // Debug
       openLoginDialog()
     }
-  }, [status, openLoginDialog])
+  }, [status, openLoginDialog, session])
 
   // 使用 useMemo 缓存过滤和排序结果
   const filteredImages = useMemo(() => {
