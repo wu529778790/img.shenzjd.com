@@ -74,7 +74,7 @@ export default function HomePage() {
   // 如果正在加载
   if (status === 'loading') {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
         <PageTransition>
           <CardAnimation className="p-12 text-center rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 shadow-modern-md backdrop-blur-sm">
             <div className="flex items-center justify-center gap-3">

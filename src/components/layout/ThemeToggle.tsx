@@ -33,7 +33,7 @@ export function ThemeToggle() {
         )}
         aria-label="切换主题"
       >
-        <CurrentIcon className="h-5 w-5" />
+        <CurrentIcon className="h-5 w-5 flex-shrink-0" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-36">
         {themeOptions.map((option) => {

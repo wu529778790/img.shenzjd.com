@@ -110,7 +110,7 @@ export default function WatermarkPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl">
+    <div className="container mx-auto py-8 px-4 max-w-5xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <ImageIcon className="h-8 w-8" />

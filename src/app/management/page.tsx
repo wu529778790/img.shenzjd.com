@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { useConfigStore } from '@/stores/configStore'
 import { useImages } from '@/hooks/useImages'
 import { ImageGrid } from '@/components/image/ImageGrid'
+import { ImagePreview } from '@/components/image/ImagePreview'
 import { ManagementToolbar } from '@/components/image/ManagementToolbar'
 import { ManagementSkeleton } from '@/components/loading/Skeleton'
 import { useAuthDialog, useConfigDialog } from '@/components/auth'
@@ -14,6 +15,7 @@ import { toast } from 'sonner'
 import { Image as ImageIcon } from 'lucide-react'
 import { IMAGE_GRID_CONFIG, SEARCH_CONFIG } from '@/lib/constants'
 import { debugLog, debugError, debugWarn } from '@/lib/debug'
+import type { ImageFile } from '@/types/image'
 
 type SortField = 'name' | 'size' | 'path'
 type SortOrder = 'asc' | 'desc'
@@ -36,6 +38,7 @@ export default function ManagementPage() {
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set())
+  const [previewImage, setPreviewImage] = useState<ImageFile | null>(null)
 
   // 防抖定时器 ref
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null)
@@ -177,7 +180,7 @@ export default function ManagementPage() {
 
   return (
     <div className="min-h-0">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
         {/* 统一工具栏（单行） */}
         <div className="mb-4">
           <ManagementToolbar
@@ -224,6 +227,7 @@ export default function ManagementPage() {
                 return newSet
               })
             }}
+            onPreview={(image) => setPreviewImage(image)}
           />
         </div>
 
@@ -259,6 +263,15 @@ export default function ManagementPage() {
           </div>
         )}
       </div>
+
+      {/* 图片预览模态框 */}
+      {previewImage && (
+        <ImagePreview
+          image={previewImage}
+          images={filteredImages}
+          onClose={() => setPreviewImage(null)}
+        />
+      )}
     </div>
   )
 }

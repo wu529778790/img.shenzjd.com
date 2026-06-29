@@ -22,6 +22,7 @@ interface ImageGridProps {
   selectionMode?: boolean
   selectedIds?: Set<string>
   onSelect?: (id: string, selected: boolean) => void
+  onPreview?: (image: ImageFile) => void
   onImageChange?: (image: ImageFile) => void
 }
 
@@ -34,6 +35,7 @@ export function ImageGrid({
   selectionMode: externalSelectionMode,
   selectedIds: externalSelectedIds,
   onSelect,
+  onPreview,
   onImageChange,
 }: ImageGridProps) {
   // 使用外部状态或内部状态
@@ -79,41 +81,69 @@ export function ImageGrid({
         ) : (
           // 列表视图
           <div className="space-y-2">
-            {images.map((image) => (
-              <div
-                key={image.id}
-                className={`
-                  flex items-center gap-4 p-4 rounded-xl border-2
-                  bg-white dark:bg-gray-800
-                  border-gray-200 dark:border-gray-700
-                  hover:border-primary/30 dark:hover:border-primary/30
-                  hover:bg-primary/5 dark:hover:bg-primary/10
-                  transition-all duration-200 cursor-pointer
-                  group
-                  ${selectedIds.has(image.id) ? 'border-primary bg-primary/5 dark:bg-primary/10' : ''}
-                `}
-                onClick={() => handleSelect(image.id, !selectedIds.has(image.id))}
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedIds.has(image.id)}
-                  onChange={() => handleSelect(image.id, !selectedIds.has(image.id))}
-                  className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary cursor-pointer"
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate group-hover:text-primary transition-colors">
-                    {image.name}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {formatFileSize(image.size)}
-                  </p>
+            {images.map((image) => {
+              // 根据是否在选择模式决定点击行为
+              const handleRowClick = () => {
+                if (selectionMode) {
+                  // 选择模式：点击整行用于选择
+                  onSelect?.(image.id, !selectedIds.has(image.id))
+                } else {
+                  // 普通模式：点击整行用于预览
+                  onPreview?.(image)
+                }
+              }
+
+              const handleEyeClick = (e: React.MouseEvent) => {
+                e.stopPropagation()
+                // 眼睛图标始终用于预览，无论是否在选择模式
+                onPreview?.(image)
+              }
+
+              return (
+                <div
+                  key={image.id}
+                  className={`
+                    flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3 rounded-xl border-2
+                    bg-white dark:bg-gray-800
+                    border-gray-200 dark:border-gray-700
+                    hover:border-primary/30 dark:hover:border-primary/30
+                    hover:bg-primary/5 dark:hover:bg-primary/10
+                    transition-all duration-200 cursor-pointer
+                    group
+                    ${selectedIds.has(image.id) ? 'border-primary bg-primary/5 dark:bg-primary/10' : ''}
+                  `}
+                  onClick={handleRowClick}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(image.id)}
+                    onChange={(e) => {
+                      e.stopPropagation()
+                      onSelect?.(image.id, e.target.checked)
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer transition-all"
+                  />
+                  <div className="flex-1 min-w-0 text-sm">
+                    <p className="font-medium truncate group-hover:text-primary transition-colors leading-tight">
+                      {image.name}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {formatFileSize(image.size)}
+                    </p>
+                  </div>
+                  {/* 眼睛图标 - 始终显示并可用于预览 */}
+                  <button
+                    onClick={handleEyeClick}
+                    className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex-shrink-0"
+                    aria-label="预览图片"
+                    title="预览图片"
+                  >
+                    <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                  </button>
                 </div>
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Eye className="h-5 w-5 text-primary" />
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>

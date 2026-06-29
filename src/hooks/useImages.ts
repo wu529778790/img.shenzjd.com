@@ -67,7 +67,9 @@ export function useImages() {
       }
 
       // 转换为业务层对象（不获取提交时间，使用文件名/大小/路径排序）
-      return imageFiles.map((file) => {
+      // 使用 Map 去重，避免重复的 SHA 导致 React key 冲突
+      const imageMap = new Map<string, ImageFile>()
+      imageFiles.forEach((file) => {
         const cdnUrl = generateLink({
           format: 'url',
           cdn: cdn || 'github',
@@ -79,14 +81,21 @@ export function useImages() {
           useRaw: useRaw ?? true,
         })
 
-        return {
+        const imageFile: ImageFile = {
           ...file,
           id: file.sha,
           type: 'file' as const,
           uploaded_at: undefined, // 不使用提交时间
           cdnUrl,
         }
+
+        // 使用 SHA 作为 key 去重
+        imageMap.set(file.sha, imageFile)
       })
+
+      debugLog('[Images] After deduplication:', imageMap.size, 'unique images out of', imageFiles.length)
+
+      return Array.from(imageMap.values())
     },
     enabled: !!token && !!owner && !!repo,
     staleTime: 2 * 60 * 1000, // 2 分钟

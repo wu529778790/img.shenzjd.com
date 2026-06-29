@@ -8,7 +8,7 @@ export default function NextAuthTestPage() {
   // 仅在开发环境显示
   if (process.env.NODE_ENV !== 'development') {
     return (
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8 max-w-5xl">
         <p className="text-gray-500">页面未找到</p>
       </div>
     )
@@ -16,14 +16,14 @@ export default function NextAuthTestPage() {
 
   if (status === 'loading') {
     return (
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8 max-w-5xl">
         <p>加载中...</p>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-8 max-w-5xl">
       <h1 className="text-3xl font-bold mb-4">NextAuth 测试页面</h1>
 
       <div className="space-y-4">

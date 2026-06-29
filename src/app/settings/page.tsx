@@ -79,21 +79,22 @@ function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
           <h3 className={SUBSECTION_HEADER_CLASSES}>压缩设置</h3>
 
           {/* 压缩质量 */}
-          <div className={ROW_CLASSES}>
-            <div className={ROW_CONTENT_CLASSES}>
+          <div className="flex items-start sm:items-center justify-between gap-4 py-3 px-2 -mx-2 rounded-lg hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+            <div className="flex-1 mr-4">
               <p className={ROW_LABEL_CLASSES}>默认压缩质量</p>
               <p className={ROW_DESCRIPTION_CLASSES}>
                 当前: <span className="font-mono font-semibold text-primary">{configStore.compressionQuality}%</span>
               </p>
             </div>
-            <Slider
-              min={10}
-              max={100}
-              step={10}
-              value={[configStore.compressionQuality]}
-              onValueChange={(value) => updateConfig({ compressionQuality: (value as number[])[0] })}
-              className="w-32 flex-shrink-0"
-            />
+            <div className="w-full sm:w-48 flex-shrink-0 mt-3 sm:mt-0 py-2">
+              <Slider
+                min={10}
+                max={100}
+                step={10}
+                value={[configStore.compressionQuality]}
+                onValueChange={(value) => updateConfig({ compressionQuality: (value as number[])[0] })}
+              />
+            </div>
           </div>
 
           {/* 自动压缩 */}
@@ -397,7 +398,6 @@ function AboutSection() {
   const infoItems = [
     { label: '版本', value: '1.0.0', isCode: true },
     { label: '描述', value: '基于 GitHub 的现代化图床服务', isCode: false },
-    { label: '仓库', value: 'GitHub', isLink: true, href: 'https://github.com/wu529778790/img.shenzjd.com' },
     { label: '技术栈', value: 'Next.js + TypeScript + Tailwind CSS', isCode: true },
   ]
 
@@ -417,16 +417,7 @@ function AboutSection() {
             className="flex items-start gap-3"
           >
             <span className="text-gray-500 dark:text-gray-400 min-w-[4rem] flex-shrink-0">{item.label}</span>
-            {item.isLink ? (
-              <a
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline transition-colors"
-              >
-                {item.value}
-              </a>
-            ) : item.isCode ? (
+            {item.isCode ? (
               <span className="font-mono text-xs bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded break-all">
                 {item.value}
               </span>
@@ -764,7 +755,7 @@ export default function SettingsPage() {
   // 如果正在加载
   if (status === 'loading') {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
         <PageTransition>
           <CardAnimation className="p-12 text-center rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-lg">
             <div className="text-gray-500">加载中...</div>
@@ -799,14 +790,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto px-4 py-8 max-w-5xl">
       <PageTransition>
-        {/* 页面标题 */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">设置</h1>
-          <p className="text-gray-500 dark:text-gray-400">管理你的图床配置和偏好</p>
-        </div>
-
         <div className="flex gap-6">
           {/* Desktop sidebar */}
           <aside className="hidden lg:block w-64 flex-shrink-0">

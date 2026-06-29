@@ -49,7 +49,7 @@ export default function RootLayout({
                     {children}
                   </main>
                   <footer className="border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm py-2">
-                    <div className="container mx-auto px-4">
+                    <div className="container mx-auto px-4 max-w-5xl">
                       <div className="text-center text-xs text-gray-500 dark:text-gray-400">
                         <p>© 2025 ImgX. 基于 GitHub 的现代化图床服务</p>
                       </div>
