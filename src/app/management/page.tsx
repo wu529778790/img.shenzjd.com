@@ -12,7 +12,7 @@ import { ManagementSkeleton } from '@/components/loading/Skeleton'
 import { useAuthDialog, useConfigDialog } from '@/components/auth'
 import { toast } from 'sonner'
 import { Image as ImageIcon } from 'lucide-react'
-import { IMAGE_GRID_CONFIG, SEARCH_CONFIG, DIRECTORY_CONFIG } from '@/lib/constants'
+import { IMAGE_GRID_CONFIG, SEARCH_CONFIG } from '@/lib/constants'
 import { debugLog, debugError, debugWarn } from '@/lib/debug'
 
 type SortField = 'name' | 'size' | 'path'
@@ -38,7 +38,6 @@ export default function ManagementPage() {
   const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set())
 
   // 防抖定时器 ref
-  const directoryDebounceRef = useRef<NodeJS.Timeout | null>(null)
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null)
 
   // 检查配置是否完整
@@ -105,14 +104,8 @@ export default function ManagementPage() {
   }, [])
 
   const handleDirectoryChange = useCallback((dir: string) => {
-    // 清除之前的定时器
-    if (directoryDebounceRef.current) {
-      clearTimeout(directoryDebounceRef.current)
-    }
-    // 设置新的定时器
-    directoryDebounceRef.current = setTimeout(() => {
-      setSelectedDirectory(dir)
-    }, DIRECTORY_CONFIG.DEBOUNCE_MS)
+    // 目录切换不需要防抖，立即生效
+    setSelectedDirectory(dir)
   }, [])
 
   // 防抖搜索
@@ -128,9 +121,6 @@ export default function ManagementPage() {
   // 清理定时器
   useEffect(() => {
     return () => {
-      if (directoryDebounceRef.current) {
-        clearTimeout(directoryDebounceRef.current)
-      }
       if (searchDebounceRef.current) {
         clearTimeout(searchDebounceRef.current)
       }
