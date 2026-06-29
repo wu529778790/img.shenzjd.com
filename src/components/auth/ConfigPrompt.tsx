@@ -51,7 +51,7 @@ export function ConfigPrompt({
 
   return (
     <CardAnimation className={className} delay={0.1}>
-      <div className="max-w-md mx-auto p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+      <div className="max-w-md mx-auto p-8 text-center rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-modern-lg backdrop-blur-sm">
         {/* 图标 */}
         <motion.div
           initial={{ scale: 0 }}
@@ -74,7 +74,7 @@ export function ConfigPrompt({
 
         {/* 按钮 */}
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button onClick={handleClick} size="lg" className="w-full">
+          <Button onClick={handleClick} size="lg" variant="gradient" className="w-full">
             {buttonText || '去配置'}
           </Button>
         </motion.div>

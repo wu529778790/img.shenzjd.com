@@ -102,9 +102,10 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
       <div
         className="
           group relative overflow-hidden rounded-xl
-          bg-white dark:bg-gray-800
-          border border-gray-200 dark:border-gray-700
-          shadow-sm hover:shadow-md
+          bg-white/80 dark:bg-gray-800/80
+          border border-gray-200/80 dark:border-gray-700/50
+          shadow-modern-sm hover:shadow-modern-md
+          backdrop-blur-sm
           transition-all duration-200 ease-out
           cursor-pointer
           focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
@@ -153,7 +154,7 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
               opacity: selected ? 1 : 0,
             }}
           >
-            <div className="h-6 w-6 rounded-full bg-primary text-white flex items-center justify-center shadow-lg">
+            <div className="h-6 w-6 rounded-full bg-primary text-white flex items-center justify-center shadow-modern-lg">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>

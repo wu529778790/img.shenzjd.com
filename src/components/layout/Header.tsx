@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
-import { Upload, Image, Settings, FolderGit, LogOut, User, Menu, X, Code } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Upload, Image, Settings, FolderGit, LogOut, User, Menu, X } from 'lucide-react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useConfigStore } from '@/stores/configStore'
 import {
@@ -76,7 +76,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60 shadow-sm">
+    <header className="sticky top-0 z-50 w-full border-b border-gray-200/80 dark:border-gray-800/80 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/70 shadow-modern-sm">
       <div className="container mx-auto px-4">
         <div className="flex h-14 items-center justify-between">
           {/* Logo */}
@@ -89,7 +89,7 @@ export function Header() {
               <FolderGit className="h-6 w-6" />
             </motion.div>
             <motion.span
-              className="font-bold text-xl bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent"
+              className="font-bold text-xl bg-gradient-to-r from-indigo-500 to-violet-600 bg-clip-text text-transparent"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
@@ -118,7 +118,7 @@ export function Header() {
                     onMouseEnter={item.href === '/management' ? prefetchManagementPage : undefined}
                     className={cn(
                       'relative flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                      'hover:bg-gray-100 dark:hover:bg-gray-800',
+                      'hover:bg-gray-100 dark:hover:bg-gray-800/80',
                       isActive
                         ? 'text-primary bg-primary/10'
                         : 'text-gray-600 dark:text-gray-400'
@@ -139,7 +139,7 @@ export function Header() {
 
             {/* 移动端菜单按钮 */}
             <button
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/80 transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
               aria-expanded={mobileMenuOpen}
@@ -155,7 +155,7 @@ export function Header() {
             {/* 登录状态 */}
             {user ? (
               <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+                <DropdownMenuTrigger className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/80 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-900">
                   {user.image ? (
                     <motion.img
                       src={user.image}
@@ -167,7 +167,7 @@ export function Header() {
                   ) : (
                     <motion.div
                       whileHover={{ scale: 1.05 }}
-                      className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white font-semibold"
+                      className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-semibold shadow-glow-primary"
                     >
                       <User className="h-4 w-4" />
                     </motion.div>
@@ -200,7 +200,12 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={openLoginDialog} size="sm">
+              <Button
+                onClick={openLoginDialog}
+                size="sm"
+                variant="gradient"
+                className="font-semibold shadow-glow-primary hover:shadow-glow-primary-hover"
+              >
                 登录
               </Button>
             )}
@@ -216,7 +221,7 @@ export function Header() {
               animate="open"
               exit="closed"
               variants={mobileMenuVariants}
-              className="md:hidden border-t"
+              className="md:hidden border-t border-gray-200 dark:border-gray-800"
             >
               <div className="py-2 space-y-1">
                 {navigation.map((item) => {
@@ -232,7 +237,7 @@ export function Header() {
                       onClick={() => setMobileMenuOpen(false)}
                       className={cn(
                         'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200',
-                        'hover:bg-gray-100 dark:hover:bg-gray-800',
+                        'hover:bg-gray-100 dark:hover:bg-gray-800/80',
                         isActive
                           ? 'text-primary bg-primary/10'
                           : 'text-gray-600 dark:text-gray-400'

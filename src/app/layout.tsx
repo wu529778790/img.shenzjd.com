@@ -35,7 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning data-scroll-behavior="smooth" className={`${inter.variable} ${poppins.variable}`}>
-      <body className={`${inter.className} antialiased min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300`}>
+      <body className={`${inter.className} antialiased min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-50 dark:from-slate-950 dark:via-gray-950 dark:to-slate-950 transition-colors duration-300`}>
         <ReactQueryProvider>
           <AuthProvider>
             <SyncGitHubTokenToLocalStorage />

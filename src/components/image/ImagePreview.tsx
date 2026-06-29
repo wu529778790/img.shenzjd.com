@@ -295,7 +295,7 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
                 whileHover={{ scale: 1.1, x: -2 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={goToPrevious}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 hover:shadow-xl transition-all"
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-modern-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 hover:shadow-xl transition-all"
                 aria-label="上一张"
               >
                 <ChevronLeft className="h-6 w-6" />
@@ -311,7 +311,7 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
                 whileHover={{ scale: 1.1, x: 2 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={goToNext}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 hover:shadow-xl transition-all"
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-modern-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 hover:shadow-xl transition-all"
                 aria-label="下一张"
               >
                 <ChevronRight className="h-6 w-6" />

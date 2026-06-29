@@ -92,13 +92,13 @@ export function AuthPrompt({
 
   return (
     <CardAnimation className={className} delay={0.1}>
-      <div className="max-w-md mx-auto p-8 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+      <div className="max-w-md mx-auto p-8 text-center rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 shadow-modern-lg backdrop-blur-sm">
         {/* 图标 */}
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-          className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center mb-6"
+          className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-600/10 dark:from-indigo-400/20 dark:to-violet-500/20 flex items-center justify-center mb-6"
         >
           <Icon className="h-10 w-10 text-primary" />
         </motion.div>
@@ -115,7 +115,7 @@ export function AuthPrompt({
 
         {/* 按钮 */}
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button onClick={handleButtonClick} size="lg" className="w-full">
+          <Button onClick={handleButtonClick} size="lg" variant="gradient" className="w-full">
             {buttonText || config.defaultButtonText}
           </Button>
         </motion.div>

@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
 const typeConfig: Record<string, { icon: typeof Upload; label: string; color: string }> = {
-  upload:   { icon: Upload,    label: '上传', color: 'text-blue-500' },
+  upload:   { icon: Upload,    label: '上传', color: 'text-indigo-500' },
   delete:   { icon: Trash2,    label: '删除', color: 'text-red-500' },
   copy:     { icon: Copy,      label: '复制', color: 'text-green-500' },
   settings: { icon: Settings,  label: '设置', color: 'text-amber-500' },

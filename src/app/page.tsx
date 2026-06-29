@@ -63,7 +63,7 @@ export default function HomePage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <PageTransition>
-          <CardAnimation className="p-12 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+          <CardAnimation className="p-12 text-center rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 shadow-modern-md backdrop-blur-sm">
             <div className="text-gray-500">加载中...</div>
           </CardAnimation>
         </PageTransition>
@@ -77,7 +77,7 @@ export default function HomePage() {
         {/* 上传区域 - 设置最小高度保持页面平衡 */}
         <CardAnimation
           delay={0.1}
-          className="p-8 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg min-h-[400px]"
+          className="p-8 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 shadow-modern-lg backdrop-blur-sm min-h-[400px]"
         >
           <UploadArea onFilesSelected={handleFilesSelected} />
 
@@ -89,7 +89,7 @@ export default function HomePage() {
               transition={{ delay: 0.15 }}
               className="mt-6"
             >
-              <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+              <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-800/30 border border-gray-200/80 dark:border-gray-700/50 backdrop-blur-sm">
                 <div className="flex items-center gap-2 flex-wrap">
                   <FolderOpen className="h-4 w-4 text-gray-600 dark:text-gray-400 shrink-0" />
                   <span className="text-sm text-gray-600 dark:text-gray-400">上传到</span>
@@ -172,12 +172,12 @@ export default function HomePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mt-6 px-4 py-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 shadow-soft-sm"
+          className="mt-6 px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-950/40 dark:to-violet-950/40 border border-indigo-200/60 dark:border-indigo-800/60 shadow-modern-sm backdrop-blur-sm"
           role="note"
         >
-          <div className="flex items-center gap-2 text-sm text-blue-900 dark:text-blue-100">
-            <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
-            <span className="text-blue-800 dark:text-blue-200 font-medium">
+          <div className="flex items-center gap-2 text-sm text-indigo-900 dark:text-indigo-100">
+            <Sparkles className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0" aria-hidden="true" />
+            <span className="text-indigo-800 dark:text-indigo-200 font-medium">
               支持 PNG、JPG、JPEG、GIF、WEBP 格式，单文件最大 10MB，支持批量上传
             </span>
           </div>

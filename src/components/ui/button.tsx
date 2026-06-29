@@ -18,6 +18,18 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+
+        /* 新增：渐变按钮变体 - Indigo → Violet */
+        gradient:
+          "text-white font-semibold shadow-glow-primary hover:shadow-glow-primary-hover transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]",
+
+        /* 新增：状态渐变按钮变体 */
+        "gradient-success":
+          "text-white font-semibold shadow-glow-success hover:shadow-glow-success-hover transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]",
+        "gradient-warning":
+          "text-white font-semibold shadow-glow-warning hover:shadow-glow-warning-hover transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]",
+        "gradient-error":
+          "text-white font-semibold shadow-glow-error hover:shadow-glow-error-hover transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]",
       },
       size: {
         default:
@@ -46,9 +58,24 @@ function Button({
   size = "default",
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+  // 为渐变按钮添加内联样式
+  const gradientStyle = (variant === 'gradient' || variant === 'gradient-success' || variant === 'gradient-warning' || variant === 'gradient-error')
+    ? {
+        background: variant === 'gradient'
+          ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+          : variant === 'gradient-success'
+          ? 'linear-gradient(135deg, #22c55e 0%, #4ade80 100%)'
+          : variant === 'gradient-warning'
+          ? 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)'
+          : 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)',
+        backgroundSize: '100% 100%',
+      }
+    : {}
+
   return (
     <ButtonPrimitive
       data-slot="button"
+      style={gradientStyle}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />

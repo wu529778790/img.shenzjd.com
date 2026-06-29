@@ -26,8 +26,8 @@ import { GitHubAPI, GitHubRepo } from '@/lib/github'
 
 function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
   return (
-    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
+    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-modern-sm">
+      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200/80 dark:border-gray-700/50">
         <Image className="h-5 w-5 text-primary" />
         <h2 className="text-xl font-semibold">图床配置</h2>
       </div>
@@ -256,8 +256,8 @@ function ConfigSyncSection({ configStore }: { configStore: ConfigState }) {
   }
 
   return (
-    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
+    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-modern-sm">
+      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200/80 dark:border-gray-700/50">
         <RefreshCw className="h-5 w-5 text-primary" />
         <h2 className="text-xl font-semibold">配置同步</h2>
       </div>
@@ -279,7 +279,7 @@ function ConfigSyncSection({ configStore }: { configStore: ConfigState }) {
               type="text"
               value={configPath}
               onChange={(e) => handleConfigPathChange(e.target.value)}
-              className="w-full px-3 py-2 text-sm font-mono rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="w-full px-3 py-2 text-sm font-mono rounded-lg border border-gray-200/80 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
               placeholder=".imgx-config/config.json"
             />
           </div>
@@ -357,8 +357,8 @@ function NetworkSection({
   onCdnChange: (value: string | null) => void
 }) {
   return (
-    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
+    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-modern-sm">
+      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200/80 dark:border-gray-700/50">
         <Globe className="h-5 w-5 text-primary" />
         <h2 className="text-xl font-semibold">CDN 服务</h2>
       </div>
@@ -460,7 +460,7 @@ function DangerSection({
   onClearAuth: () => void
 }) {
   return (
-    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white dark:bg-gray-800 border border-red-200 dark:border-red-900/50 shadow-sm">
+    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-red-200 dark:border-red-900/50 shadow-modern-sm">
       <div className="flex items-center gap-2 mb-4 pb-3 border-b border-red-100 dark:border-red-900/50">
         <ShieldAlert className="h-5 w-5 text-red-600 dark:text-red-400" />
         <h2 className="text-xl font-semibold text-red-600 dark:text-red-400">危险操作</h2>
@@ -511,8 +511,8 @@ function AccountSection({ session }: { session: any }) {
   if (!user) return null
 
   return (
-    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
+    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-modern-sm">
+      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200/80 dark:border-gray-700/50">
         <User className="h-5 w-5 text-primary" />
         <h2 className="text-xl font-semibold">账户</h2>
       </div>
@@ -520,7 +520,7 @@ function AccountSection({ session }: { session: any }) {
         {user.image ? (
           <img src={user.image} alt={user.name || ''} className="h-14 w-14 rounded-full ring-2 ring-gray-200 dark:ring-gray-700" />
         ) : (
-          <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+          <div className="h-14 w-14 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
             {(user.name || user.email || '?')[0].toUpperCase()}
           </div>
         )}
@@ -538,8 +538,8 @@ function AccountSection({ session }: { session: any }) {
 
 function AboutSection() {
   return (
-    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
+    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-modern-sm">
+      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200/80 dark:border-gray-700/50">
         <Info className="h-5 w-5 text-primary" />
         <h2 className="text-xl font-semibold">关于</h2>
       </div>
@@ -643,7 +643,7 @@ function GitHubRepoSelect({ currentUser, value, onRepoChange }: { currentUser: s
           id="repo"
           value={value}
           onChange={(e) => onRepoChange(e.target.value)}
-          className="mt-1 w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-800"
+          className="mt-1 w-full px-3 py-2 border rounded-md bg-white/80 dark:bg-gray-800/50"
         >
           <option value="">选择仓库</option>
           {repos.map((repo) => (
@@ -801,8 +801,8 @@ function ConfigSection({ configStore }: { configStore: ConfigState }) {
   }
 
   return (
-    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
+    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-modern-sm">
+      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200/80 dark:border-gray-700/50">
         <FolderGit className="h-5 w-5 text-primary" />
         <h2 className="text-xl font-semibold">图床配置</h2>
       </div>
@@ -847,7 +847,7 @@ function ConfigSection({ configStore }: { configStore: ConfigState }) {
                   id="branch"
                   value={branch}
                   onChange={(e) => setBranch(e.target.value)}
-                  className="mt-1 w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-800"
+                  className="mt-1 w-full px-3 py-2 border rounded-md bg-white/80 dark:bg-gray-800/50"
                 >
                   {branches.length > 0 ? (
                     branches.map((branchItem) => (
@@ -922,7 +922,7 @@ export default function SettingsPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <PageTransition>
-          <CardAnimation className="p-12 text-center rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+          <CardAnimation className="p-12 text-center rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-lg">
             <div className="text-gray-500">加载中...</div>
           </CardAnimation>
         </PageTransition>
@@ -989,7 +989,7 @@ export default function SettingsPage() {
                     className={cn(
                       'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
                       activeSection === index
-                        ? 'bg-primary/10 text-primary shadow-sm'
+                        ? 'bg-primary/10 text-primary shadow-modern-sm'
                         : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                     )}
                   >
