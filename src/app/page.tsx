@@ -1,7 +1,6 @@
 'use client'
 
-import { useMemo, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { useUpload } from '@/hooks/useUpload'
@@ -11,21 +10,19 @@ import { UploadQueue } from '@/components/upload/UploadQueue'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Sparkles, Zap, UploadCloud, FolderOpen } from 'lucide-react'
+import { Sparkles, Zap, FolderOpen } from 'lucide-react'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { useAuthDialog, useConfigDialog } from '@/components/auth'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 import { useFramerMotion } from '@/hooks/useFramerMotion'
 
 export default function HomePage() {
-  const router = useRouter()
   const { data: session, status } = useSession()
   const { openLoginDialog } = useAuthDialog()
-  const { openConfigDialog, isConfigDismissed } = useConfigDialog()
+  const { openConfigDialog } = useConfigDialog()
   const configStore = useConfigStore()
   const { uploadQueue, addFiles, retryTask, retryAllFailed, removeTask } = useUpload()
-  const { data: folders = [], isLoading: foldersLoading } = useRepoFolders()
+  const { data: folders = [] } = useRepoFolders()
   const foldersList = folders as RepoFolder[]
 
   // ✅ 动态导入 framer-motion，减少首屏 JS 体积
@@ -148,7 +145,7 @@ export default function HomePage() {
           )}
 
           {/* 上传队列 */}
-          {AnimatePresence && uploadQueue.length > 0 && (
+          {AnimatePresence && motion && uploadQueue.length > 0 && (
             <AnimatePresence>
               <motion.div
                 initial={{ opacity: 0, height: 0 }}

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '../[...nextauth]/route'
 
-export async function GET(request: Request) {
+export async function GET(request: Request) { // eslint-disable-line @typescript-eslint/no-unused-vars
   try {
     const session = await getServerSession(authOptions)
 
@@ -19,10 +19,10 @@ export async function GET(request: Request) {
         name: session.user.name,
         email: session.user.email,
         avatar_url: session.user.image,
-        id: (session.user as any).id,
+        id: session.user.id,
       },
     })
-  } catch (error) {
+  } catch (error) { // eslint-disable-line @typescript-eslint/no-unused-vars
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

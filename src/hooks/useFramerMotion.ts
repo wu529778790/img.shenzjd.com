@@ -6,8 +6,8 @@ import { useState, useEffect } from 'react'
  */
 export function useFramerMotion() {
   const [framer, setFramer] = useState<{
-    motion: any // framer-motion motion 组件
-    AnimatePresence: any
+    motion: typeof import('framer-motion').motion
+    AnimatePresence: typeof import('framer-motion').AnimatePresence
   } | null>(null)
 
   useEffect(() => {

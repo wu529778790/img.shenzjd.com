@@ -1,7 +1,7 @@
 'use client'
 
 import { Component, ErrorInfo, ReactNode } from 'react'
-import { debugLog, debugError, debugWarn } from '@/lib/debug'
+import { debugError } from '@/lib/debug'
 
 interface ErrorBoundaryProps {
   children: ReactNode

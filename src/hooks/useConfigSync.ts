@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useConfigStore } from '@/stores/configStore'
 import type { Config } from '@/types/config'
-import { debugLog, debugError, debugWarn } from '@/lib/debug'
+import { debugError } from '@/lib/debug'
 
 interface SaveConfigResponse {
   success: boolean
@@ -54,7 +54,7 @@ async function saveConfigToGitHub(
     } catch { /* 文件不存在，继续创建 */ }
   }
 
-  const body: any = {
+  const body: { message: string; content: string; branch: string; sha?: string } = {
     message: 'chore: update imgx config',
     content: contentBase64,
     branch,
@@ -128,7 +128,7 @@ async function loadConfigFromGitHub(
     const config = JSON.parse(content) as Config
 
     return { success: true, config }
-  } catch (error) {
+  } catch {
     return { success: false, message: '解析配置失败' }
   }
 }

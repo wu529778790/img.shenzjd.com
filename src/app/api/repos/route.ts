@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '../auth/[...nextauth]/route'
 
-export async function GET(request: NextRequest) {
+interface GitHubRepo {
+  name: string
+  full_name: string
+  private: boolean
+  owner?: { login: string }
+}
+
+export async function GET(request: NextRequest) { // eslint-disable-line @typescript-eslint/no-unused-vars
   try {
     const session = await getServerSession(authOptions)
 
@@ -24,9 +31,9 @@ export async function GET(request: NextRequest) {
       throw new Error(`GitHub API returned ${response.status}: ${response.statusText}`)
     }
 
-    const repos = await response.json()
+    const repos: GitHubRepo[] = await response.json()
 
-    const standardizedRepos = repos.map((repo: any) => ({
+    const standardizedRepos = repos.map((repo) => ({
       name: repo.name,
       full_name: repo.full_name,
       private: repo.private,

@@ -1,7 +1,6 @@
 'use client'
 
 import { CheckCircle, XCircle, Loader2, Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { UploadTask } from '@/types/image'
 

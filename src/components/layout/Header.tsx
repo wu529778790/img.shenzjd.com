@@ -20,7 +20,6 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { ThemeToggle } from './ThemeToggle'
-import { useRouter } from 'next/navigation'
 import { useAuthDialog } from '@/components/auth'
 
 const navigation = [
@@ -52,7 +51,6 @@ const mobileMenuVariants = {
 
 export function Header() {
   const pathname = usePathname()
-  const router = useRouter()
   const { data: session } = useSession()
   const { openLoginDialog } = useAuthDialog()
   const user = session?.user
@@ -61,24 +59,10 @@ export function Header() {
   const queryClient = useQueryClient()
 
   const handleLogout = async () => {
-    try {
-      // 等待 NextAuth 完全清除 session
-      await signOut({ redirect: false })
-
-      // 等待一小段时间确保 session cookie 已清除
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      // 手动清除本地存储的 token
-      localStorage.removeItem('github_token')
-
-      // 刷新页面以更新状态
-      window.location.href = '/'
-    } catch (error) {
-      console.error('退出登录失败:', error)
-      // 即使出错也要清除本地状态
-      localStorage.removeItem('github_token')
-      window.location.href = '/'
-    }
+    // 先清除本地 token，防止任何竞态
+    localStorage.removeItem('github_token')
+    // 使用 NextAuth 内置跳转，确保 cookie 清除后再回到首页
+    await signOut({ callbackUrl: '/' })
   }
 
   // 预加载管理页面数据

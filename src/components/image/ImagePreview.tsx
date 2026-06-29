@@ -5,13 +5,12 @@ import Image from 'next/image'
 import { X, Download, Copy, Check, ExternalLink, Info, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { generateLink } from '@/lib/link'
-import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { debugLog, debugError, debugWarn } from '@/lib/debug'
+import { debugError } from '@/lib/debug'
 
 
 interface ImagePreviewProps {
@@ -22,8 +21,6 @@ interface ImagePreviewProps {
 }
 
 export function ImagePreview({ image, images, onClose, onImageChange }: ImagePreviewProps) {
-  const { data: session } = useSession()
-  const token = session?.accessToken || ''
   const configStore = useConfigStore()
 
   const modalRef = useRef<HTMLDivElement>(null)
@@ -137,7 +134,7 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
       setCopiedFormat(format)
       toast.success(`${format.toUpperCase()} 链接已复制`)
       setTimeout(() => setCopiedFormat(null), 2000)
-    } catch (error) {
+    } catch {
       toast.error('复制失败')
     }
   }

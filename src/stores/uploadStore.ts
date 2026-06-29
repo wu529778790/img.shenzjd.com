@@ -12,7 +12,7 @@ interface UploadState {
   retryFailed: () => string[]
 }
 
-export const useUploadStore = create<UploadState>((set, get) => ({
+export const useUploadStore = create<UploadState>((set) => ({
   queue: [],
 
   addTasks: (files: File[]) => {

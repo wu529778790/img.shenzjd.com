@@ -8,8 +8,8 @@ import { useConfigStore } from '@/stores/configStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
 import { BULK_DELETE_CONFIG } from '@/lib/constants'
-import { debugLog, debugError } from '@/lib/debug'
-import type { GitHubFileInfo, ImageFile } from '@/types/image'
+import { debugLog } from '@/lib/debug'
+import type { ImageFile } from '@/types/image'
 
 export function useImages() {
   const { data: session } = useSession()
@@ -123,9 +123,10 @@ export function useImages() {
       try {
         const file = await api.getFile(filePath, branch)
         sha = file.sha
-      } catch (error: any) {
+      } catch (error) {
         // 如果文件不存在（404），说明已经被删除了，视为删除成功（幂等性）
-        if (error.response?.status === 404) {
+        const status = (error as { response?: { status?: number } })?.response?.status
+        if (status === 404) {
           debugLog('[Delete] File already deleted:', filePath)
           return filePath
         }
@@ -137,15 +138,17 @@ export function useImages() {
 
       return filePath
     },
-    onSuccess: (_data, variables: string) => {
+    onSuccess: () => {
       toast.success('删除成功')
       // 刷新图片列表
       queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
     },
-    onError: (error: any) => {
+    onError: (error) => {
       // 如果是 404 错误，说明文件已经被删除了，不显示错误提示
-      if (error.response?.status === 404) {
-        debugLog('[Delete] File already gone:', error.message)
+      const status = (error as { response?: { status?: number } })?.response?.status
+      const message = error instanceof Error ? error.message : String(error)
+      if (status === 404) {
+        debugLog('[Delete] File already gone:', message)
         // 仍然刷新列表以保持同步
         queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
       } else {
@@ -176,9 +179,10 @@ export function useImages() {
             try {
               const file = await api.getFile(filePath, branch)
               sha = file.sha
-            } catch (error: any) {
+            } catch (error) {
               // 如果文件不存在（404），说明已经被删除了，视为删除成功（幂等性）
-              if (error.response?.status === 404) {
+              const status = (error as { response?: { status?: number } })?.response?.status
+              if (status === 404) {
                 debugLog('[Bulk Delete] File already deleted:', filePath)
                 return filePath
               }
@@ -212,10 +216,12 @@ export function useImages() {
       // 刷新图片列表
       queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
     },
-    onError: (error: any) => {
+    onError: (error) => {
       // 如果是 404 错误，说明文件已经被删除了，不显示错误提示
-      if (error.response?.status === 404) {
-        debugLog('[Bulk Delete] Files already gone:', error.message)
+      const status = (error as { response?: { status?: number } })?.response?.status
+      const message = error instanceof Error ? error.message : String(error)
+      if (status === 404) {
+        debugLog('[Bulk Delete] Files already gone:', message)
         // 仍然刷新列表以保持同步
         queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
       } else {

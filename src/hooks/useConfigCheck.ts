@@ -3,15 +3,11 @@
 import { useCallback } from 'react'
 import { GitHubAPI } from '@/lib/github'
 import { useConfigStore } from '@/stores/configStore'
-import { toast } from 'sonner'
 import type { Config } from '@/types/config'
-import { debugLog, debugError, debugWarn } from '@/lib/debug'
+import { debugLog, debugError } from '@/lib/debug'
 
-interface ConfigCheckResult {
-  owner: string
-  repo: string
-  branch: string
-  [key: string]: any
+interface ConfigCheckResult extends Config {
+  _remoteUpdatedAt?: string
 }
 
 /**
@@ -77,6 +73,7 @@ export function useConfigCheck() {
             const configFile = await configApi.getFile(configPath, branch)
 
             // 解析配置
+            if (!configFile.content) continue
             const content = decodeURIComponent(escape(atob(configFile.content)))
             const config: Config = JSON.parse(content)
 

@@ -17,12 +17,12 @@ export function useRepoFolders() {
   const token = session?.accessToken || ''
   const config = useConfigStore()
 
+  const { owner, repo, branch } = config
+
   const fetchFolders = useCallback(async (): Promise<RepoFolder[]> => {
     if (!token) {
       throw new Error('Not authenticated')
     }
-
-    const { owner, repo, branch } = config
 
     if (!owner || !repo || !branch) {
       return []
@@ -40,7 +40,7 @@ export function useRepoFolders() {
         type: 'dir' as const,
       }))
       .sort((a, b) => a.name.localeCompare(b.name))
-  }, [token, config.owner, config.repo, config.branch])
+  }, [token, owner, repo, branch])
 
   return useQuery({
     queryKey: ['repo-folders', config.owner, config.repo, config.branch],

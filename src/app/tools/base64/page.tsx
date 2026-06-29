@@ -45,7 +45,7 @@ export default function Base64Page() {
       setCopied(true)
       toast.success('已复制到剪贴板')
       setTimeout(() => setCopied(false), 2000)
-    } catch (error) {
+    } catch {
       toast.error('复制失败')
     }
   }

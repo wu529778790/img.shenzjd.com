@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode } from 'react'
+
 import { useAuthDialog } from '@/components/auth/AuthDialogProvider'
 import { Lock, FolderTree } from 'lucide-react'
 import { Button } from '@/components/ui/button'

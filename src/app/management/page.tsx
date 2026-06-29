@@ -11,10 +11,9 @@ import { ImagePreview } from '@/components/image/ImagePreview'
 import { ManagementToolbar } from '@/components/image/ManagementToolbar'
 import { ManagementSkeleton } from '@/components/loading/Skeleton'
 import { useAuthDialog, useConfigDialog } from '@/components/auth'
-import { toast } from 'sonner'
 import { Image as ImageIcon } from 'lucide-react'
-import { IMAGE_GRID_CONFIG, SEARCH_CONFIG } from '@/lib/constants'
-import { debugLog, debugError, debugWarn } from '@/lib/debug'
+import { SEARCH_CONFIG } from '@/lib/constants'
+import { debugLog } from '@/lib/debug'
 import type { ImageFile } from '@/types/image'
 
 type SortField = 'name' | 'size' | 'path'
@@ -25,10 +24,10 @@ export default function ManagementPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
   const { openLoginDialog } = useAuthDialog()
-  const { openConfigDialog, isConfigDismissed } = useConfigDialog()
+  const { openConfigDialog } = useConfigDialog()
   const configStore = useConfigStore()
 
-  const { images, isLoading, handleDelete, handleBulkDelete, isDeleting } = useImages()
+  const { images, isLoading, handleDelete, handleBulkDelete } = useImages()
 
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [selectedDirectory, setSelectedDirectory] = useState<string>('')

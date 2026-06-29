@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Settings, Trash2, Link2, Globe, Image, Info, FileText, Code, RefreshCw, Check, Copy, FolderGit, Loader2, Plus } from 'lucide-react'
+import { Trash2, Link2, Globe, Image, Info, RefreshCw, Check, FolderGit, Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
@@ -12,14 +12,14 @@ import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { useConfigStore, type ConfigState } from '@/stores/configStore'
 import { useQueryClient } from '@tanstack/react-query'
-import { useQuery, useMutation, useQueryClient as useTanStackQueryClient } from '@tanstack/react-query'
-import { useSaveConfigToGitHub, useLoadConfigFromGitHub } from '@/hooks/useConfigSync'
+import { useQuery } from '@tanstack/react-query'
+import { useSaveConfigToGitHub } from '@/hooks/useConfigSync'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
 import { debugLog, debugError } from '@/lib/debug'
 import { useAuthDialog } from '@/components/auth'
 import { cn } from '@/lib/utils'
-import { GitHubAPI, GitHubRepo } from '@/lib/github'
+import { GitHubAPI } from '@/lib/github'
 
 // ── 统一样式常量 ───────────────────────────────────────────────────────────────
 
@@ -69,7 +69,9 @@ function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
   return (
     <CardAnimation delay={0} className={CARD_BASE_CLASSES}>
       <div className={SECTION_HEADER_CLASSES}>
-        <Image className="h-5 w-5 text-primary" />
+        {/* Lucide SVG icon, not an HTML <img> */}
+        {/* eslint-disable-next-line jsx-a11y/alt-text */}
+        <Image className="h-5 w-5 text-primary" aria-hidden="true" />
         <h2 className={SECTION_TITLE_CLASSES}>图片处理</h2>
       </div>
 
@@ -210,7 +212,7 @@ function ConfigSyncSection({ configStore }: { configStore: ConfigState }) {
       } else {
         toast.error(result.message)
       }
-    } catch (error) {
+    } catch {
       toast.error('同步失败')
     }
   }
@@ -291,7 +293,7 @@ function ConfigSyncSection({ configStore }: { configStore: ConfigState }) {
           </Button>
           {(!configStore.owner || !configStore.repo) && (
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center">
-              请先在"图床配置"中配置 GitHub 仓库
+              请先在&quot;图床配置&quot;中配置 GitHub 仓库
             </p>
           )}
         </div>
@@ -434,18 +436,10 @@ function AboutSection() {
 // ── Config Section (moved from /config page) ────────────────────────────────────
 
 function GitHubRepoSelect({ currentUser, value, onRepoChange }: { currentUser: string, value: string, onRepoChange: (repo: string) => void }) {
-  const [token, setToken] = useState<string | undefined>()
   const { data: session, status } = useSession()
-  const queryClient = useTanStackQueryClient()
 
-  // 从 session 获取 token
-  useEffect(() => {
-    if (status === 'authenticated' && session?.accessToken) {
-      setToken(session.accessToken)
-    } else if (status === 'unauthenticated') {
-      setToken(undefined)
-    }
-  }, [session, status])
+  // 直接从 session 派生 token，避免在 effect 中调用 setState
+  const token = status === 'authenticated' ? session?.accessToken : undefined
 
   // 使用 React Query 缓存仓库列表
   const { data: repos = [], isLoading } = useQuery({
@@ -493,44 +487,21 @@ function ConfigSection({ configStore, onClearConfig }: { configStore: ConfigStat
   const queryClient = useQueryClient()
   const { data: session } = useSession()
   const [loading, setLoading] = useState(false)
-  const [currentUser, setCurrentUser] = useState('')
-  const [repo, setRepo] = useState('')
-  const [branch, setBranch] = useState('main')
-  const [directory, setDirectory] = useState('')
-  const [token, setToken] = useState<string | undefined>()
+  // 使用惰性初始化从 configStore 恢复初始值，避免在 effect 中调用 setState
+  const currentUser = useMemo(() => {
+    const user = session?.user
+    if (!user) return ''
+    const username = user.githubUsername || user.name || user.email || ''
+    return username.includes('@') ? username.split('@')[0] : username
+  }, [session?.user])
+  const [repo, setRepo] = useState(() => configStore.repo || '')
+  const [branch, setBranch] = useState(() => configStore.branch || 'main')
+  const [directory, setDirectory] = useState(() => configStore.directory || '')
 
   const { updateConfig } = configStore
 
-  // 从 configStore 恢复配置到本地状态
-  useEffect(() => {
-    if (configStore.owner && configStore.repo) {
-      setRepo(configStore.repo)
-    }
-    if (configStore.branch) {
-      setBranch(configStore.branch)
-    }
-    if (configStore.directory) {
-      setDirectory(configStore.directory)
-    }
-  }, [configStore.owner, configStore.repo, configStore.branch, configStore.directory])
-
-  // 从 session 获取 token
-  useEffect(() => {
-    if (session?.accessToken) {
-      setToken(session.accessToken)
-    } else {
-      setToken(undefined)
-    }
-  }, [session])
-
-  // 从 session 获取用户信息
-  useEffect(() => {
-    if (session?.user) {
-      const username = (session.user as any).githubUsername || session.user.name || session.user.email
-      const cleanUsername = username.includes('@') ? username.split('@')[0] : username
-      setCurrentUser(cleanUsername)
-    }
-  }, [session])
+  // 直接从 session 派生 token，避免在 effect 中调用 setState
+  const token = session?.accessToken
 
   // 使用 React Query 缓存分支列表
   const { data: branches = [], isLoading: loadingBranches } = useQuery({

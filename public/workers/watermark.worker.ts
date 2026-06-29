@@ -103,11 +103,11 @@ self.onmessage = async (e: MessageEvent<WatermarkWorkerMessage>) => {
     }
 
     self.postMessage(response, { transfer: [watermarkedBlob] })
-  } catch (error: any) {
+  } catch (error: unknown) {
     // 发送错误回主线程
     const response: WatermarkWorkerResponse = {
       type: 'error',
-      error: error.message || 'Watermark processing failed',
+      error: error instanceof Error ? error.message : 'Watermark processing failed',
     }
 
     self.postMessage(response)

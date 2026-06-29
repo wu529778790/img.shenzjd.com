@@ -11,6 +11,87 @@ export interface GitHubRepo {
   html_url: string
 }
 
+// GitHub API response types
+export interface GitHubUser {
+  id: number
+  login: string
+  name: string | null
+  email: string | null
+  avatar_url: string
+  html_url: string
+  type: string
+}
+
+export interface GitHubBranchInfo {
+  name: string
+  commit: { sha: string; url: string }
+  protected: boolean
+}
+
+export interface GitHubTreeItem {
+  path: string
+  mode: string
+  type: 'blob' | 'tree' | 'commit'
+  sha: string
+  size?: number
+  url: string
+}
+
+export interface GitHubTreeResponse {
+  sha: string
+  url: string
+  tree: GitHubTreeItem[]
+  truncated: boolean
+}
+
+export interface GitHubContentResponse {
+  name: string
+  path: string
+  sha: string
+  size: number
+  url: string
+  html_url: string
+  download_url: string | null
+  type: 'file' | 'dir'
+  content: string
+  encoding?: string
+  commit?: { commit?: { committer?: { date?: string } } }
+}
+
+export interface GitHubFileCreateUpdateResponse {
+  content: GitHubContentResponse
+  commit: {
+    sha: string
+    url: string
+    message?: string
+  }
+}
+
+export interface GitHubCommit {
+  sha: string
+  commit: {
+    committer: { date: string; name: string; email: string }
+    author: { date: string; name: string; email: string }
+    message: string
+  }
+  html_url: string
+}
+
+interface GitHubAPIError extends Error {
+  response?: {
+    status: number
+    data: unknown
+  }
+}
+
+function getErrorStatus(error: unknown): number | undefined {
+  if (error instanceof Error && 'response' in error) {
+    const response = (error as GitHubAPIError).response
+    return response?.status
+  }
+  return undefined
+}
+
 export class GitHubAPI {
   public owner: string
   public repo: string
@@ -43,8 +124,8 @@ export class GitHubAPI {
     })
 
     if (!response.ok) {
-      const error = new Error(`GitHub API error: ${response.statusText}`)
-      ;(error as any).response = {
+      const error: GitHubAPIError = new Error(`GitHub API error: ${response.statusText}`)
+      error.response = {
         status: response.status,
         data: await response.json().catch(() => null),
       }
@@ -60,13 +141,13 @@ export class GitHubAPI {
   }
 
   // 获取当前用户信息
-  async getCurrentUser() {
-    return this.request<any>('/user')
+  async getCurrentUser(): Promise<GitHubUser> {
+    return this.request<GitHubUser>('/user')
   }
 
   // 创建仓库
-  async createRepo(name: string, description: string = 'ImgX image host', private_: boolean = false) {
-    return this.request<any>('/user/repos', {
+  async createRepo(name: string, description: string = 'ImgX image host', private_: boolean = false): Promise<GitHubRepo> {
+    return this.request<GitHubRepo>('/user/repos', {
       method: 'POST',
       body: JSON.stringify({
         name,
@@ -78,25 +159,25 @@ export class GitHubAPI {
   }
 
   // 列出用户的所有仓库
-  async listRepos() {
-    const response = await this.request<any[]>('/user/repos', {
+  async listRepos(): Promise<GitHubRepo[]> {
+    const response = await this.request<GitHubRepo[]>('/user/repos', {
       method: 'GET',
     })
     return response
   }
 
   // 获取仓库信息
-  async getRepo() {
-    return this.request<any>(`/repos/${this.owner}/${this.repo}`)
+  async getRepo(): Promise<GitHubRepo> {
+    return this.request<GitHubRepo>(`/repos/${this.owner}/${this.repo}`)
   }
 
   // 获取仓库的所有分支
   async getBranches(): Promise<string[]> {
     try {
-      const response = await this.request<any[]>(`/repos/${this.owner}/${this.repo}/branches`, {
+      const response = await this.request<GitHubBranchInfo[]>(`/repos/${this.owner}/${this.repo}/branches`, {
         method: 'GET',
       })
-      const branches = response.map((branch: any) => branch.name)
+      const branches = response.map((branch: GitHubBranchInfo) => branch.name)
       return branches
     } catch (error) {
       debugError('Failed to get branches:', error)
@@ -115,7 +196,7 @@ export class GitHubAPI {
   async listAllFilesWithTree(): Promise<GitHubFileInfo[]> {
     try {
       // 使用 Git Trees API，recursive=1 递归获取所有文件
-      const response = await this.request<any>(`/repos/${this.owner}/${this.repo}/git/trees/${this.branch}?recursive=1`, {
+      const response = await this.request<GitHubTreeResponse>(`/repos/${this.owner}/${this.repo}/git/trees/${this.branch}?recursive=1`, {
         method: 'GET',
       })
 
@@ -123,20 +204,21 @@ export class GitHubAPI {
 
       // 只保留文件（blob），过滤掉目录（tree）和子模块（commit）
       const files: GitHubFileInfo[] = tree
-        .filter((item: any) => item.type === 'blob')
-        .map((item: any) => ({
+        .filter((item: GitHubTreeItem) => item.type === 'blob')
+        .map((item: GitHubTreeItem) => ({
           name: item.path.split('/').pop() || item.path,
           path: item.path,
           sha: item.sha,
-          size: item.size,
+          size: item.size ?? 0,
           type: 'file' as const,
+          url: item.url,
           download_url: `https://raw.githubusercontent.com/${this.owner}/${this.repo}/${this.branch}/${item.path}`,
           html_url: `https://github.com/${this.owner}/${this.repo}/blob/${this.branch}/${item.path}`,
         }))
 
       debugLog('[GitHub] Tree API returned', tree.length, 'items,', files.length, 'files')
       if (tree.length > 0) {
-        debugLog('[GitHub] Tree sample:', tree.slice(0, 10).map((item: any) => ({ path: item.path, type: item.type })))
+        debugLog('[GitHub] Tree sample:', tree.slice(0, 10).map((item: GitHubTreeItem) => ({ path: item.path, type: item.type })))
       }
 
       return files
@@ -174,13 +256,13 @@ export class GitHubAPI {
 
   // 列出目录内容
   async listContents(path: string = ''): Promise<GitHubFileInfo[]> {
-    const response = await this.request<any[]>(`/repos/${this.owner}/${this.repo}/contents/${path}?ref=${this.branch}`)
-    return response
+    const response = await this.request<GitHubContentResponse[]>(`/repos/${this.owner}/${this.repo}/contents/${path}?ref=${this.branch}`)
+    return response as unknown as GitHubFileInfo[]
   }
 
   // 获取单个文件
-  async getFile(path: string, branch?: string): Promise<any> {
-    const response = await this.request<any>(`/repos/${this.owner}/${this.repo}/contents/${path}?ref=${branch || this.branch}`)
+  async getFile(path: string, branch?: string): Promise<GitHubContentResponse> {
+    const response = await this.request<GitHubContentResponse>(`/repos/${this.owner}/${this.repo}/contents/${path}?ref=${branch || this.branch}`)
     return response
   }
 
@@ -220,9 +302,9 @@ export class GitHubAPI {
 
     // 先尝试创建文件（不带 sha）
     // 如果文件已存在，GitHub 会返回 422，我们再获取 sha 并更新
-    let response
+    let response: GitHubFileCreateUpdateResponse
     try {
-      response = await this.request<any>(`/repos/${this.owner}/${this.repo}/contents/${encodeURIComponent(filePath)}`, {
+      response = await this.request<GitHubFileCreateUpdateResponse>(`/repos/${this.owner}/${this.repo}/contents/${encodeURIComponent(filePath)}`, {
         method: 'PUT',
         body: JSON.stringify({
           message,
@@ -231,15 +313,15 @@ export class GitHubAPI {
         }),
       })
       debugLog(`[GitHub] Created new file: ${filePath} on branch ${branch}`)
-    } catch (error: any) {
+    } catch (error) {
       // 如果是 422，说明文件已存在，需要获取 sha 后更新
-      if (error.response?.status === 422) {
+      if (getErrorStatus(error) === 422) {
         debugLog(`[GitHub] File already exists, fetching SHA for update: ${filePath}`)
         const existing = await this.getFile(filePath, branch)
         sha = existing.sha
 
         // 使用 sha 更新文件
-        response = await this.request<any>(`/repos/${this.owner}/${this.repo}/contents/${encodeURIComponent(filePath)}`, {
+        response = await this.request<GitHubFileCreateUpdateResponse>(`/repos/${this.owner}/${this.repo}/contents/${encodeURIComponent(filePath)}`, {
           method: 'PUT',
           body: JSON.stringify({
             message,
@@ -276,8 +358,8 @@ export class GitHubAPI {
   }
 
   // 删除文件
-  async deleteFile(filePath: string, message: string, sha: string, branch?: string) {
-    const response = await this.request<any>(`/repos/${this.owner}/${this.repo}/contents/${encodeURIComponent(filePath)}`, {
+  async deleteFile(filePath: string, message: string, sha: string, branch?: string): Promise<GitHubFileCreateUpdateResponse> {
+    const response = await this.request<GitHubFileCreateUpdateResponse>(`/repos/${this.owner}/${this.repo}/contents/${encodeURIComponent(filePath)}`, {
       method: 'DELETE',
       body: JSON.stringify({
         message,
@@ -322,17 +404,19 @@ export class GitHubAPI {
   }
 
   // 搜索仓库内容
-  async searchContent(query: string) {
-    const response = await this.request<any>('/search/code', {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- _query 是公共 API 占位参数，暂未实现搜索逻辑
+  async searchContent(_query: string): Promise<unknown> {
+    const response = await this.request<unknown>('/search/code', {
       method: 'GET',
     })
     return response
   }
 
   // 获取文件的最后提交时间（已废弃，不再使用）
-  async getFileCommitTime(path: string, branch?: string): Promise<Date | null> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- _branch 是公共 API 占位参数，方法体未按分支过滤
+  async getFileCommitTime(path: string, _branch?: string): Promise<Date | null> {
     try {
-      const response = await this.request<any>(`/repos/${this.owner}/${this.repo}/commits`, {
+      const response = await this.request<GitHubCommit[]>(`/repos/${this.owner}/${this.repo}/commits`, {
         method: 'GET',
       })
 
@@ -342,14 +426,14 @@ export class GitHubAPI {
       }
 
       return null
-    } catch (error: any) {
+    } catch (error) {
       // 如果是速率限制错误，直接抛出以便上层处理
-      if (error.response?.status === 403) {
+      if (getErrorStatus(error) === 403) {
         debugWarn(`[GitHub] Rate limited when fetching commit time for ${path}`)
         throw error
       }
       // 其他错误只记录日志，返回 null
-      debugError(`[GitHub] Failed to get commit time for ${path}:`, error.message)
+      debugError(`[GitHub] Failed to get commit time for ${path}:`, (error as Error).message)
       return null
     }
   }

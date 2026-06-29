@@ -77,7 +77,6 @@ const SORT_OPTIONS: { field: SortField; label: string }[] = [
 
 export function ManagementToolbar({
   images,
-  filteredCount,
   searchQuery,
   onSearchChange,
   sortField,

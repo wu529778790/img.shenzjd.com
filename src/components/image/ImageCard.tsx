@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, memo, useCallback, useMemo, useRef } from 'react'
+import { useState, memo, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { MoreVertical, Trash2, Link2 } from 'lucide-react'
 import { formatFileSize } from '@/lib/utils'
@@ -81,6 +81,7 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
     } else {
       onPreview?.(image)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: depend on image.id only to avoid re-creating callback on every image prop change
   }, [selectable, selected, image.id, onSelect, onPreview, showDeleteConfirm])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -92,6 +93,7 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
         onPreview?.(image)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: depend on image.id only to avoid re-creating callback on every image prop change
   }, [selectable, selected, image.id, onSelect, onPreview])
 
   return (

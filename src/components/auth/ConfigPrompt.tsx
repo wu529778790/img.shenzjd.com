@@ -1,8 +1,7 @@
 'use client'
 
-import { ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { FolderTree, Settings } from 'lucide-react'
+import { FolderTree } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CardAnimation } from '@/components/animations/PageAnimations'
 import { motion } from 'framer-motion'

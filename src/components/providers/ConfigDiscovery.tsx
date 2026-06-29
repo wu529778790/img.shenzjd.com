@@ -30,7 +30,7 @@ export function ConfigDiscovery() {
       checkConfig().then((config) => {
         if (config) {
           // 提取配置内容，排除内部字段
-          const { _remoteUpdatedAt, ...configData } = config as any
+          const { _remoteUpdatedAt } = config
 
           // 检查是否有更新的远程配置
           let hasRemoteUpdate = false

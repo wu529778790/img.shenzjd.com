@@ -11,7 +11,7 @@ import { useUploadStore } from '@/stores/uploadStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
 import { debugLog, debugError, debugWarn } from '@/lib/debug'  // ✅ 使用调试工具
-import type { ImageFile, LinkOptions, UploadTask } from '@/types/image'
+import type { LinkOptions, UploadTask } from '@/types/image'
 
 export function useUpload() {
   const { data: session } = useSession()
@@ -136,22 +136,10 @@ export function useUpload() {
       try {
         await api.getFile(filePath, config.branch)
         debugLog('[Upload] File verified successfully')
-      } catch (verifyErr: any) {
+      } catch (verifyErr) {
         // 验证失败只记录警告，不阻塞上传流程
-        debugWarn('[Upload] Verification skipped (GitHub API delay):', verifyErr?.message || verifyErr)
-      }
-
-      const imageFile: ImageFile = {
-        id: result.sha,
-        name: fileName,
-        path: filePath,
-        sha: result.sha,
-        size: processedFile.size,
-        url: `https://github.com/${config.owner}/${config.repo}/blob/${config.branch}/${filePath}`,
-        html_url: result.html_url,
-        download_url: `https://raw.githubusercontent.com/${config.owner}/${config.repo}/${config.branch}/${filePath}`,
-        type: 'file',
-        uploaded_at: new Date(),
+        const message = verifyErr instanceof Error ? verifyErr.message : String(verifyErr)
+        debugWarn('[Upload] Verification skipped (GitHub API delay):', message)
       }
 
       debugLog('[Upload] ✅ Upload completed successfully:', fileName)
@@ -194,18 +182,19 @@ export function useUpload() {
 
       // 刷新图片列表
       queryClient.invalidateQueries({ queryKey: ['images', config.owner, config.repo, config.branch] })
-    } catch (error: any) {
+    } catch (error) {
       debugError('[Upload] ❌ GitHub API error:', error)
+      const err = error as { message?: string; response?: { data?: unknown; status?: number } }
       debugError('[Upload] Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
       })
 
       updateTask(taskId, {
         status: 'error',
         progress: 0,
-        error: error.message,
+        error: err.message ?? 'Upload failed',
       })
     }
   }, [token, config, updateTask, queryClient])
@@ -237,7 +226,7 @@ export function useUpload() {
         uploadSingleFile(file, taskId)
       })
     },
-    [uploadSingleFile]
+    [uploadSingleFile, updateTask]
   )
 
   // 获取失败任务的文件列表

@@ -1,16 +1,40 @@
 import NextAuth from 'next-auth'
 import GitHubProvider from 'next-auth/providers/github'
-import type { Session, User } from 'next-auth'
+import type { Session } from 'next-auth'
+import type { JWT } from 'next-auth/jwt'
 
 // 扩展 Session 和 User 类型
 declare module 'next-auth' {
   interface Session {
     accessToken?: string
+    user?: {
+      id?: string
+      githubUsername?: string
+      name?: string | null
+      email?: string | null
+      image?: string | null
+    }
   }
 
   interface User {
+    id?: string
     githubUsername?: string
   }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    accessToken?: string
+    githubUsername?: string | null
+  }
+}
+
+interface GitHubProfile {
+  login?: string
+}
+
+interface AccountShape {
+  access_token?: string
 }
 
 export const authOptions = {
@@ -26,17 +50,17 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, account, profile }: { token: any; account?: any; profile?: any }) {
+    async jwt({ token, account, profile }: { token: JWT; account?: AccountShape | null; profile?: unknown }) {
       if (account) {
         token.accessToken = account.access_token
-        token.githubUsername = profile?.login || null
+        token.githubUsername = (profile as GitHubProfile | undefined)?.login || null
       }
       return token
     },
-    async session({ session, token }: { session: Session; token: any }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       session.accessToken = token.accessToken
       if (session.user) {
-        (session.user as any).githubUsername = token.githubUsername
+        session.user.githubUsername = token.githubUsername ?? undefined
       }
       return session
     },

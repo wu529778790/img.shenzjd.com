@@ -1,7 +1,6 @@
 'use client'
 
-import { cn } from '@/lib/utils'
-import { motion, AnimatePresence, Variants } from 'framer-motion'
+import { motion, Variants } from 'framer-motion'
 
 // 动画配置常量
 export const ANIMATION_CONFIG = {

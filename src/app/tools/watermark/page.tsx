@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, Download, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -284,7 +284,7 @@ export default function WatermarkPage() {
                 </Card>
               ) : (
                 <Card className="p-4 flex items-center justify-center">
-                  <p className="text-gray-500">点击"添加水印"查看效果</p>
+                  <p className="text-gray-500">点击{'"'}添加水印{'"'}查看效果</p>
                 </Card>
               )}
             </div>

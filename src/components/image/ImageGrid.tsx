@@ -1,14 +1,12 @@
 'use client'
 
-import { useMemo, useCallback } from 'react'
-import { Search, Eye } from 'lucide-react'
-import { ImageCard } from './ImageCard'
+import { useCallback } from 'react'
+import { Eye } from 'lucide-react'
 import { LazyImageGrid } from './LazyImageGrid'
 import { ErrorBoundary } from '@/components/error/ErrorBoundary'
 import { formatFileSize } from '@/lib/utils'
 import { IMAGE_GRID_CONFIG } from '@/lib/constants'
 import type { ImageFile } from '@/types/image'
-import { cn } from '@/lib/utils'
 
 type ViewMode = 'grid' | 'list'
 
@@ -29,7 +27,6 @@ interface ImageGridProps {
 export function ImageGrid({
   images,
   onDelete,
-  onBulkDelete,
   isLoading = false,
   viewMode: externalViewMode,
   selectionMode: externalSelectionMode,
@@ -48,8 +45,6 @@ export function ImageGrid({
       onSelect(id, selected)
     }
   }, [onSelect])
-
-  const allSelected = images.length > 0 && selectedIds.size === images.length
 
   return (
     <>
@@ -148,24 +143,5 @@ export function ImageGrid({
         )}
       </div>
     </>
-  )
-}
-
-// 占位图标组件
-function ImageCardPlaceholder() {
-  return (
-    <svg
-      className="h-12 w-12 text-gray-400"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.5}
-        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-      />
-    </svg>
   )
 }
