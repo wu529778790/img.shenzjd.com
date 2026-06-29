@@ -8,16 +8,23 @@ import { toast } from 'sonner'
 
 /**
  * 配置发现组件
- * 登录后自动搜索并加载 GitHub 仓库中的配置
  *
- * 优化：只在登录时检测一次，结果缓存到 configStore
+ * 功能：
+ * 1. 登录后自动加载配置（只请求一次配置文件）
+ * 2. 对比 GitHub 和本地的时间戳，哪个新用哪个
+ * 3. 更新 configStore
+ *
+ * 优化：
+ * - 只请求 .imgx-config/config.json 一个文件
+ * - 对比时间戳，避免不必要的更新
+ * - 5 分钟 TTL 缓存
  */
 export function ConfigDiscovery() {
   const { data: session, status } = useSession()
   const configStore = useConfigStore()
   const { checkConfig } = useConfigCheck()
 
-  // 已登录时检测配置（只检测一次，结果缓存）
+  // 已登录时加载配置
   useEffect(() => {
     if (status === 'authenticated' && session?.accessToken) {
       checkConfig().then((config) => {
@@ -74,8 +81,6 @@ export function ConfigDiscovery() {
             toast.success(`已发现并加载配置: ${config.owner}/${config.repo}`)
           }
         }
-        // 如果没有检测到配置，不自动打开弹窗
-        // 让各页面自己处理未配置的情况
       })
     }
   }, [status, session, checkConfig, configStore])
