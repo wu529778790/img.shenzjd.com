@@ -22,6 +22,7 @@ import { debugLog, debugError } from '@/lib/debug'
 import { useAuthDialog } from '@/components/auth'
 import { cn } from '@/lib/utils'
 import { GitHubAPI, GitHubRepo } from '@/lib/github'
+import NextImage from 'next/image'
 
 // ── Section components (defined outside SettingsPage for stable identity) ─────
 
@@ -519,7 +520,13 @@ function AccountSection({ session }: { session: any }) {
       </div>
       <div className="flex items-center gap-4">
         {user.image ? (
-          <img src={user.image} alt={user.name || ''} className="h-14 w-14 rounded-full ring-2 ring-gray-200 dark:ring-gray-700" />
+          <NextImage
+            src={user.image}
+            alt={user.name || ''}
+            width={56}
+            height={56}
+            className="h-14 w-14 rounded-full ring-2 ring-gray-200 dark:ring-gray-700"
+          />
         ) : (
           <div className="h-14 w-14 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
             {(user.name || user.email || '?')[0].toUpperCase()}

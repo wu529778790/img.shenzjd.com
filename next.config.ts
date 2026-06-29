@@ -2,7 +2,12 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   images: {
+    // P1 优化：启用 AVIF 和 WebP 格式（AVIF 比 WebP 小 20%）
+    formats: ['image/avif', 'image/webp'],
     qualities: [75, 85],
+    // P1 优化：响应式图片尺寸配置
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
     remotePatterns: [
       {
         protocol: 'https',

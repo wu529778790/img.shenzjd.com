@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import { addWatermark } from '@/lib/watermark'
 import { formatFileSize } from '@/lib/utils'
 import { debugError } from '@/lib/debug'
+import Image from 'next/image'
 
 export default function WatermarkPage() {
   const [originalFile, setOriginalFile] = useState<File | null>(null)
@@ -239,10 +240,13 @@ export default function WatermarkPage() {
               <Card className="p-4">
                 <h3 className="font-semibold mb-2">原图</h3>
                 <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-                  <img
+                  <Image
                     src={preview}
                     alt="Original"
+                    width={800}
+                    height={600}
                     className="w-full h-full object-contain"
+                    unoptimized // Preview images don't need optimization
                   />
                 </div>
                 <p className="text-sm text-gray-500 mt-2">
@@ -255,10 +259,13 @@ export default function WatermarkPage() {
                 <Card className="p-4">
                   <h3 className="font-semibold mb-2">水印效果</h3>
                   <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-                    <img
+                    <Image
                       src={watermarkedPreview}
                       alt="Watermarked"
+                      width={800}
+                      height={600}
                       className="w-full h-full object-contain"
+                      unoptimized // Preview images don't need optimization
                     />
                   </div>
                   <div className="flex items-center justify-between mt-2">

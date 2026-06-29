@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
+import Image from 'next/image'
 
 export default function Base64Page() {
   const [file, setFile] = useState<File | null>(null)
@@ -94,10 +95,13 @@ export default function Base64Page() {
               <h2 className="text-xl font-semibold mb-4">图片预览</h2>
               <div className="flex justify-center">
                 <div className="relative max-h-96 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-                  <img
+                  <Image
                     src={preview}
                     alt="Preview"
+                    width={800}
+                    height={600}
                     className="max-h-96 object-contain"
+                    unoptimized // Base64 images don't need optimization
                   />
                 </div>
               </div>
