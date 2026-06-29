@@ -1,6 +1,21 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  // P2 优化：静态资产缓存策略
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ]
+  },
+
   images: {
     // P1 优化：启用 AVIF 和 WebP 格式（AVIF 比 WebP 小 20%）
     formats: ['image/avif', 'image/webp'],
@@ -35,6 +50,12 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  // P3 优化：压缩配置
+  compress: true,
+  // P3 优化：生产环境移除 console
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
   },
   env: {
     // 自动将 GITHUB_CLIENT_ID 暴露给客户端
