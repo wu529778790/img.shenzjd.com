@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import {
   Search,
   X,
@@ -99,6 +99,9 @@ export function ManagementToolbar({
   onBulkDelete,
   copied,
 }: ManagementToolbarProps) {
+  // 控制目录下拉菜单的开关状态
+  const [directoryMenuOpen, setDirectoryMenuOpen] = useState(false)
+
   const stats = useMemo(() => {
     if (images.length === 0) return null
     return {
@@ -108,6 +111,12 @@ export function ManagementToolbar({
   }, [images])
 
   const currentSortLabel = SORT_OPTIONS.find((o) => o.field === sortField)?.label ?? '排序'
+
+  // 处理目录选择，选择后自动关闭菜单
+  const handleDirectorySelect = useCallback((dir: string) => {
+    onDirectoryChange(dir)
+    setDirectoryMenuOpen(false) // 选择后关闭菜单
+  }, [onDirectoryChange])
 
   return (
     <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
@@ -202,45 +211,60 @@ export function ManagementToolbar({
 
       {/* 目录筛选下拉 */}
       {directories.length > 0 && (
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            className={cn(
-              'inline-flex items-center gap-1 h-8 px-2.5 rounded-lg border text-xs font-medium transition-colors',
-              'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800',
-              'hover:bg-gray-50 dark:hover:bg-gray-700',
-              'focus:outline-none focus:ring-2 focus:ring-primary/20',
-              selectedDirectory && 'border-primary/50 bg-primary/5 text-primary'
-            )}
-          >
-            <FolderOpen className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline max-w-[80px] truncate">
-              {selectedDirectory ? selectedDirectory.split('/').pop() : '目录'}
-            </span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" sideOffset={4}>
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>筛选目录</DropdownMenuLabel>
-              <DropdownMenuCheckboxItem
-                checked={!selectedDirectory}
-                onCheckedChange={() => onDirectoryChange('')}
-              >
-                全部目录
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuSeparator />
-              {directories.slice(0, 10).map((dir) => (
+        <div className="flex items-center gap-1 shrink-0">
+          <DropdownMenu open={directoryMenuOpen} onOpenChange={setDirectoryMenuOpen}>
+            <DropdownMenuTrigger
+              className={cn(
+                'inline-flex items-center gap-1 h-8 px-2.5 rounded-lg border text-xs font-medium transition-colors',
+                'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800',
+                'hover:bg-gray-50 dark:hover:bg-gray-700',
+                'focus:outline-none focus:ring-2 focus:ring-primary/20',
+                selectedDirectory && 'border-primary/50 bg-primary/5 text-primary'
+              )}
+            >
+              <FolderOpen className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline max-w-[80px] truncate">
+                {selectedDirectory ? selectedDirectory.split('/').pop() : '目录'}
+              </span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" sideOffset={4}>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>筛选目录</DropdownMenuLabel>
                 <DropdownMenuCheckboxItem
-                  key={dir}
-                  checked={selectedDirectory === dir}
-                  onCheckedChange={() => onDirectoryChange(dir)}
+                  checked={!selectedDirectory}
+                  onCheckedChange={() => handleDirectorySelect('')}
                 >
-                  <span className="truncate max-w-[200px]" title={dir}>
-                    {dir}
-                  </span>
+                  全部目录
                 </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                <DropdownMenuSeparator />
+                {directories.slice(0, 10).map((dir) => (
+                  <DropdownMenuCheckboxItem
+                    key={dir}
+                    checked={selectedDirectory === dir}
+                    onCheckedChange={() => handleDirectorySelect(dir)}
+                  >
+                    <span className="truncate max-w-[200px]" title={dir}>
+                      {dir}
+                    </span>
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* 清除目录筛选按钮 */}
+          {selectedDirectory && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onDirectoryChange('')}
+              className="h-8 w-8 p-0 shrink-0 hover:bg-gray-100 dark:hover:bg-gray-700"
+              title="清除目录筛选"
+            >
+              <X className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            </Button>
+          )}
+        </div>
       )}
 
       {/* 弹性空间 */}
