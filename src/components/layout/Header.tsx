@@ -117,15 +117,15 @@ export function Header() {
                     href={item.href}
                     onMouseEnter={item.href === '/management' ? prefetchManagementPage : undefined}
                     className={cn(
-                      'relative flex items-center justify-center w-9 h-9 text-sm font-medium rounded-lg transition-all duration-200',
+                      'relative flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                       'hover:bg-gray-100 dark:hover:bg-gray-800/80',
                       isActive
                         ? 'text-primary bg-primary/10'
                         : 'text-gray-600 dark:text-gray-400'
                     )}
-                    title={item.name}
                   >
                     <Icon className="h-4 w-4" />
+                    <span className="hidden lg:inline">{item.name}</span>
                   </Link>
                 </motion.div>
               )
@@ -172,9 +172,6 @@ export function Header() {
                       <User className="h-4 w-4" />
                     </motion.div>
                   )}
-                  <span className="hidden md:inline text-sm font-medium">
-                    {user.name || user.email}
-                  </span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuGroup>
@@ -244,7 +241,6 @@ export function Header() {
                       )}
                     >
                       <Icon className="h-5 w-5" />
-                      {item.name}
                     </Link>
                   )
                 })}

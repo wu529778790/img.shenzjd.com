@@ -48,9 +48,9 @@ export default function RootLayout({
                   <main id="main-content" tabIndex={-1} className="flex-1">
                     {children}
                   </main>
-                  <footer className="border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm py-4">
-                    <div className="container mx-auto px-4 py-4">
-                      <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+                  <footer className="border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm py-2">
+                    <div className="container mx-auto px-4">
+                      <div className="text-center text-xs text-gray-500 dark:text-gray-400">
                         <p>© 2025 ImgX. 基于 GitHub 的现代化图床服务</p>
                       </div>
                     </div>
