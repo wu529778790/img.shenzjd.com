@@ -61,15 +61,24 @@ export function Header() {
   const queryClient = useQueryClient()
 
   const handleLogout = async () => {
-    // 真正的退出登录：清除 session 和本地 token
-    // 不指定 callbackUrl，让用户停留在当前页面
-    await signOut({ redirect: false })
+    try {
+      // 等待 NextAuth 完全清除 session
+      await signOut({ redirect: false })
 
-    // 手动清除本地存储的 token（虽然 SyncGitHubTokenToLocalStorage 会自动处理）
-    localStorage.removeItem('github_token')
+      // 等待一小段时间确保 session cookie 已清除
+      await new Promise(resolve => setTimeout(resolve, 100))
 
-    // 刷新页面以更新状态
-    window.location.href = '/'
+      // 手动清除本地存储的 token
+      localStorage.removeItem('github_token')
+
+      // 刷新页面以更新状态
+      window.location.href = '/'
+    } catch (error) {
+      console.error('退出登录失败:', error)
+      // 即使出错也要清除本地状态
+      localStorage.removeItem('github_token')
+      window.location.href = '/'
+    }
   }
 
   // 预加载管理页面数据
