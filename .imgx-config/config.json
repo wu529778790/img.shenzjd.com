@@ -3,7 +3,7 @@
   "repo": "img.shenzjd.com",
   "branch": "master",
   "directory": "",
-  "compressionEnabled": false,
+  "compressionEnabled": true,
   "compressionQuality": 80,
   "watermarkEnabled": false,
   "watermarkText": "",
@@ -13,10 +13,9 @@
   "theme": "system",
   "cdn": "jsdmirror",
   "useRaw": true,
-  "copyFormat": "url",
+  "copyFormat": "markdown",
   "autoCopyAfterUpload": true,
   "useOriginalFileName": false,
   "configPath": ".imgx-config/config.json",
-  "autoSync": true,
-  "lastSyncAt": "2026-06-28T12:40:01.551Z"
+  "autoSync": true
 }
