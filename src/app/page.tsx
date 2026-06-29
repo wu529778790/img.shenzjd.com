@@ -81,47 +81,49 @@ export default function HomePage() {
         >
           <UploadArea onFilesSelected={handleFilesSelected} />
 
-          {/* 文件夹选择 */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="mt-6"
-          >
-            <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-2 flex-wrap">
-                <FolderOpen className="h-4 w-4 text-gray-600 dark:text-gray-400 shrink-0" />
-                <span className="text-sm text-gray-600 dark:text-gray-400">上传到</span>
-                <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
-                  {owner}/{repo}
-                </span>
-                <span className="text-sm text-gray-600 dark:text-gray-400">/</span>
-                <Select
-                  value={selectedFolder}
-                  onValueChange={handleFolderChange}
-                >
-                  <SelectTrigger className="w-[200px] h-8">
-                    <SelectValue placeholder="选择文件夹" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">
-                      <span className="text-gray-500">根目录</span>
-                    </SelectItem>
-                    {foldersList.map((folder) => (
-                      <SelectItem key={folder.path} value={folder.path}>
-                        <span className="font-mono text-sm">{folder.name}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedFolder && (
-                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
-                    当前: <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">{selectedFolder}</code>
+          {/* 文件夹选择 - 仅登录后显示 */}
+          {session && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="mt-6"
+            >
+              <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <FolderOpen className="h-4 w-4 text-gray-600 dark:text-gray-400 shrink-0" />
+                  <span className="text-sm text-gray-600 dark:text-gray-400">上传到</span>
+                  <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
+                    {owner}/{repo}
                   </span>
-                )}
+                  <span className="text-sm text-gray-600 dark:text-gray-400">/</span>
+                  <Select
+                    value={selectedFolder}
+                    onValueChange={handleFolderChange}
+                  >
+                    <SelectTrigger className="w-[200px] h-8">
+                      <SelectValue placeholder="选择文件夹" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">
+                        <span className="text-gray-500">根目录</span>
+                      </SelectItem>
+                      {foldersList.map((folder) => (
+                        <SelectItem key={folder.path} value={folder.path}>
+                          <span className="font-mono text-sm">{folder.name}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedFolder && (
+                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
+                      当前: <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">{selectedFolder}</code>
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          )}
 
           {/* 上传队列 */}
           <AnimatePresence>
