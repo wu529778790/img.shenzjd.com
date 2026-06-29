@@ -26,173 +26,130 @@ import { GitHubAPI, GitHubRepo } from '@/lib/github'
 function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
   return (
     <CardAnimation delay={0} className="p-6 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-modern-sm">
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200/80 dark:border-gray-700/50">
+      <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-200/80 dark:border-gray-700/50">
         <Image className="h-5 w-5 text-primary" />
-        <h2 className="text-xl font-semibold">图床配置</h2>
+        <h2 className="text-xl font-semibold">图片处理</h2>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* 压缩设置 */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wide">压缩设置</h3>
-          </div>
+        <div className="space-y-3">
+          <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">压缩设置</h3>
 
           {/* 压缩质量 */}
-          <motion.div
-            whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
-            className="flex items-center justify-between p-4 rounded-xl -mx-2 transition-colors"
-          >
-            <div className="flex-1">
-              <p className="font-medium">默认压缩质量</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <div className="flex items-center justify-between py-2">
+            <div className="flex-1 pr-4">
+              <p className="font-medium text-sm">默认压缩质量</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 当前: <span className="font-mono font-semibold text-primary">{configStore.compressionQuality}%</span>
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <Slider
-                min={10}
-                max={100}
-                step={10}
-                value={[configStore.compressionQuality]}
-                onValueChange={(value) => configStore.updateConfig({ compressionQuality: (value as number[])[0] })}
-                className="w-36"
-              />
-            </div>
-          </motion.div>
+            <Slider
+              min={10}
+              max={100}
+              step={10}
+              value={[configStore.compressionQuality]}
+              onValueChange={(value) => configStore.updateConfig({ compressionQuality: (value as number[])[0] })}
+              className="w-32"
+            />
+          </div>
 
           {/* 自动压缩 */}
-          <motion.div
-            whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
-            className="flex items-center justify-between p-4 rounded-xl -mx-2 transition-colors"
-          >
-            <div className="flex-1">
-              <p className="font-medium">自动压缩</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <div className="flex items-center justify-between py-2">
+            <div className="flex-1 pr-4">
+              <p className="font-medium text-sm">自动压缩</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 上传时自动压缩图片以节省空间
               </p>
             </div>
-            <motion.label
-              whileTap={{ scale: 0.95 }}
-              className="relative inline-flex items-center cursor-pointer"
-            >
+            <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={configStore.compressionEnabled}
                 onChange={(e) => configStore.updateConfig({ compressionEnabled: e.target.checked })}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
-            </motion.label>
-          </motion.div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+            </label>
+          </div>
         </div>
 
         {/* 水印设置 */}
-        <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700/50">
-          <div className="flex items-center gap-2">
-            <Image className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wide">水印设置</h3>
-          </div>
+        <div className="space-y-3 pt-5 border-t border-gray-100 dark:border-gray-700/50">
+          <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">水印设置</h3>
 
           {/* 默认水印 */}
-          <motion.div
-            whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
-            className="flex items-center justify-between p-4 rounded-xl -mx-2 transition-colors"
-          >
-            <div className="flex-1">
-              <p className="font-medium">默认水印</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <div className="flex items-center justify-between py-2">
+            <div className="flex-1 pr-4">
+              <p className="font-medium text-sm">默认水印</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 {configStore.watermarkText || '未设置'}
               </p>
             </div>
-            <motion.label
-              whileTap={{ scale: 0.95 }}
-              className="relative inline-flex items-center cursor-pointer"
-            >
+            <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={configStore.watermarkEnabled}
                 onChange={(e) => configStore.updateConfig({ watermarkEnabled: e.target.checked })}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
-            </motion.label>
-          </motion.div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+            </label>
+          </div>
         </div>
 
         {/* 文件名设置 */}
-        <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700/50">
-          <div className="flex items-center gap-2">
-            <Image className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wide">文件名设置</h3>
-          </div>
+        <div className="space-y-3 pt-5 border-t border-gray-100 dark:border-gray-700/50">
+          <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">文件名设置</h3>
 
           {/* 使用原始文件名 */}
-          <motion.div
-            whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
-            className="flex items-center justify-between p-4 rounded-xl -mx-2 transition-colors"
-          >
-            <div className="flex-1">
-              <p className="font-medium">保留原始文件名</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                关闭时自动使用时间戳命名（推荐），开启时保持上传时的文件名
+          <div className="flex items-center justify-between py-2">
+            <div className="flex-1 pr-4">
+              <p className="font-medium text-sm">保留原始文件名</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                关闭时自动使用时间戳命名（推荐）
               </p>
             </div>
-            <motion.label
-              whileTap={{ scale: 0.95 }}
-              className="relative inline-flex items-center cursor-pointer"
-            >
+            <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={configStore.useOriginalFileName}
                 onChange={(e) => configStore.updateConfig({ useOriginalFileName: e.target.checked })}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
-            </motion.label>
-          </motion.div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+            </label>
+          </div>
         </div>
 
         {/* 复制链接设置 */}
-        <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700/50">
-          <div className="flex items-center gap-2">
-            <Link2 className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wide">复制链接</h3>
-          </div>
+        <div className="space-y-3 pt-5 border-t border-gray-100 dark:border-gray-700/50">
+          <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">复制链接</h3>
 
           {/* 自动复制开关 */}
-          <motion.div
-            whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
-            className="flex items-center justify-between p-4 rounded-xl -mx-2 transition-colors"
-          >
-            <div className="flex-1">
-              <p className="font-medium">上传后自动复制</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <div className="flex items-center justify-between py-2">
+            <div className="flex-1 pr-4">
+              <p className="font-medium text-sm">上传后自动复制</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 上传成功后自动复制链接到剪贴板
               </p>
             </div>
-            <motion.label
-              whileTap={{ scale: 0.95 }}
-              className="relative inline-flex items-center cursor-pointer"
-            >
+            <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={configStore.autoCopyAfterUpload}
                 onChange={(e) => configStore.updateConfig({ autoCopyAfterUpload: e.target.checked })}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
-            </motion.label>
-          </motion.div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+            </label>
+          </div>
 
           {/* 复制格式 */}
-          <motion.div
-            whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
-            className="flex items-center justify-between p-4 rounded-xl -mx-2 transition-colors"
-          >
-            <div className="flex-1">
-              <p className="font-medium">复制格式</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <div className="flex items-center justify-between py-2">
+            <div className="flex-1 pr-4">
+              <p className="font-medium text-sm">复制格式</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 选择复制到剪贴板的链接格式
               </p>
             </div>
@@ -200,7 +157,7 @@ function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
               value={configStore.copyFormat}
               onValueChange={(value) => configStore.updateConfig({ copyFormat: value as 'markdown' | 'html' | 'bbcode' | 'url' })}
             >
-              <SelectTrigger className="w-[180px] h-10 rounded-xl">
+              <SelectTrigger className="w-[160px] h-9 rounded-lg">
                 <SelectValue placeholder="选择格式" />
               </SelectTrigger>
               <SelectContent>
@@ -210,22 +167,7 @@ function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
                 <SelectItem value="bbcode">BBCode</SelectItem>
               </SelectContent>
             </Select>
-          </motion.div>
-
-          {/* 格式预览 */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800"
-          >
-            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">预览：</p>
-            <code className="text-xs font-mono text-primary break-all">
-              {configStore.copyFormat === 'markdown' && '![image.png](https://example.com/image.png)'}
-              {configStore.copyFormat === 'url' && 'https://example.com/image.png'}
-              {configStore.copyFormat === 'html' && '<img src="https://example.com/image.png" alt="image.png" />'}
-              {configStore.copyFormat === 'bbcode' && '[img]https://example.com/image.png[/img]'}
-            </code>
-          </motion.div>
+          </div>
         </div>
       </div>
     </CardAnimation>
