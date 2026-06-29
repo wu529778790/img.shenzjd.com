@@ -157,7 +157,6 @@ export function useUpload() {
 
       console.log('[Upload] ✅ Upload completed successfully:', fileName)
       console.log('[Upload] File URL:', result.html_url)
-      console.log('[Upload] ⚠️ Note: File may be on different branch than configured')
 
       // 上传成功
       console.log('[Progress] Setting progress to 100% (upload complete)')
