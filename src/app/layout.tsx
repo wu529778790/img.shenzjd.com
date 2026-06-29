@@ -24,8 +24,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "ImgX - 个人图床管理工具",
-  description: "基于 GitHub 的现代化图床服务",
+  title: "ImgX - 现代化图床管理工具",
+  description: "基于 GitHub 的高性能图床服务",
 };
 
 export default function RootLayout({

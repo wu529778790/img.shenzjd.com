@@ -22,7 +22,7 @@ function LoginContent() {
       <Card className="w-full max-w-md p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold">ImgX</h1>
-          <p className="text-gray-500 mt-2">个人图床管理工具</p>
+          <p className="text-gray-500 mt-2">现代化图床管理工具</p>
         </div>
 
         <div className="space-y-4">
