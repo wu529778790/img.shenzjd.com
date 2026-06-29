@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
@@ -15,6 +15,7 @@ import { useConfigStore, type ConfigState } from '@/stores/configStore'
 import { useOperationLogStore } from '@/stores/operationLogStore'
 import { OperationLogPanel } from '@/components/management/OperationLogPanel'
 import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient as useTanStackQueryClient } from '@tanstack/react-query'
 import { useSaveConfigToGitHub, useLoadConfigFromGitHub } from '@/hooks/useConfigSync'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -606,13 +607,11 @@ function AboutSection() {
 // ── Config Section (moved from /config page) ────────────────────────────────────
 
 function GitHubRepoSelect({ currentUser, value, onRepoChange }: { currentUser: string, value: string, onRepoChange: (repo: string) => void }) {
-  const [repos, setRepos] = useState<GitHubRepo[]>([])
-  const [loadingRepos, setLoadingRepos] = useState(false)
   const [token, setToken] = useState<string | undefined>()
-
-  // ✅ 修复：使用 useSession() 代替 getSession()（getSession 只能在服务端使用）
   const { data: session, status } = useSession()
+  const queryClient = useTanStackQueryClient()
 
+  // 从 session 获取 token
   useEffect(() => {
     if (status === 'authenticated' && session?.accessToken) {
       setToken(session.accessToken)
@@ -621,31 +620,24 @@ function GitHubRepoSelect({ currentUser, value, onRepoChange }: { currentUser: s
     }
   }, [session, status])
 
-  useEffect(() => {
-    if (!currentUser || !token) return
-
-    const fetchRepos = async () => {
-      setLoadingRepos(true)
-      try {
-        const api = new GitHubAPI(token, currentUser, '')
-        const data = await api.listRepos()
-        setRepos(Array.isArray(data) ? data : [])
-      } catch (error) {
-        debugError('Failed to fetch repos:', error)
-        toast.error('获取仓库列表失败')
-        setRepos([])
-      } finally {
-        setLoadingRepos(false)
-      }
-    }
-
-    fetchRepos()
-  }, [currentUser, token])
+  // ✅ 使用 React Query 缓存仓库列表
+  const { data: repos = [], isLoading } = useQuery({
+    queryKey: ['repos', currentUser],
+    queryFn: async () => {
+      if (!currentUser || !token) return []
+      const api = new GitHubAPI(token, currentUser, '')
+      const data = await api.listRepos()
+      return Array.isArray(data) ? data : []
+    },
+    enabled: !!currentUser && !!token,
+    staleTime: 10 * 60 * 1000, // 10 分钟内使用缓存
+    gcTime: 30 * 60 * 1000, // 30 分钟后垃圾回收
+  })
 
   return (
     <div>
       <Label htmlFor="repo">仓库名</Label>
-      {loadingRepos ? (
+      {isLoading ? (
         <div className="flex items-center mt-1">
           <Loader2 className="h-4 w-4 animate-spin" />
           <span className="ml-2 text-sm text-gray-500">加载中...</span>
@@ -678,8 +670,6 @@ function ConfigSection({ configStore }: { configStore: ConfigState }) {
   const [repo, setRepo] = useState('')
   const [branch, setBranch] = useState('main')
   const [directory, setDirectory] = useState('')
-  const [branches, setBranches] = useState<string[]>([])
-  const [loadingBranches, setLoadingBranches] = useState(false)
   const [token, setToken] = useState<string | undefined>()
 
   const { updateConfig } = configStore
@@ -716,33 +706,25 @@ function ConfigSection({ configStore }: { configStore: ConfigState }) {
     }
   }, [session])
 
-  // 当选择仓库时，获取分支列表
-  useEffect(() => {
-    if (!repo || !currentUser || !token) return
+  // ✅ 使用 React Query 缓存分支列表
+  const { data: branches = [], isLoading: loadingBranches } = useQuery({
+    queryKey: ['branches', currentUser, repo],
+    queryFn: async () => {
+      if (!currentUser || !repo || !token) return []
+      const api = new GitHubAPI(token, currentUser, repo)
+      const branchList = await api.getBranches()
 
-    const fetchBranches = async () => {
-      setLoadingBranches(true)
-      try {
-        const api = new GitHubAPI(token, currentUser, repo)
-        const branchList = await api.getBranches()
-
-        if (branchList.length > 0) {
-          setBranches(branchList)
-        } else {
-          const repoInfo = await api.getRepo()
-          setBranches([repoInfo.default_branch])
-        }
-      } catch (error) {
-        debugError('Failed to fetch branches:', error)
-        toast.error(`获取分支列表失败: ${error instanceof Error ? error.message : '未知错误'}`)
-        setBranches([])
-      } finally {
-        setLoadingBranches(false)
+      if (branchList.length > 0) {
+        return branchList
+      } else {
+        const repoInfo = await api.getRepo()
+        return [repoInfo.default_branch]
       }
-    }
-
-    fetchBranches()
-  }, [repo, currentUser, token])
+    },
+    enabled: !!currentUser && !!repo && !!token,
+    staleTime: 10 * 60 * 1000, // 10 分钟内使用缓存
+    gcTime: 30 * 60 * 1000, // 30 分钟后垃圾回收
+  })
 
   const handleAutoConfig = async () => {
     if (!currentUser) {
