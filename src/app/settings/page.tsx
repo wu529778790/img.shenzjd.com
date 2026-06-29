@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { signOut } from 'next-auth/react'
-import { Settings, Trash2, Link2, Globe, Image, ShieldAlert, User, Info, FileText, Code, RefreshCw, Check, Copy, FolderGit, Loader2, Plus } from 'lucide-react'
+import { Settings, Trash2, Link2, Globe, Image, User, Info, FileText, Code, RefreshCw, Check, Copy, FolderGit, Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
@@ -454,60 +453,6 @@ function NetworkSection({
   )
 }
 
-function DangerSection({
-  onClearConfig,
-  onClearAuth,
-}: {
-  onClearConfig: () => void
-  onClearAuth: () => void
-}) {
-  return (
-    <CardAnimation delay={0} className="p-6 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-red-200 dark:border-red-900/50 shadow-modern-sm">
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-red-100 dark:border-red-900/50">
-        <ShieldAlert className="h-5 w-5 text-red-600 dark:text-red-400" />
-        <h2 className="text-xl font-semibold text-red-600 dark:text-red-400">危险操作</h2>
-      </div>
-      <div className="space-y-4">
-        <motion.div
-          whileHover={{ backgroundColor: 'rgba(239, 68, 68, 0.05)' }}
-          className="flex items-center justify-between p-4 rounded-xl -mx-2 transition-colors"
-        >
-          <div className="flex-1">
-            <p className="font-medium text-red-600 dark:text-red-400">清空配置</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              清除所有本地配置，下次使用需要重新配置图床
-            </p>
-          </div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button variant="destructive" onClick={onClearConfig}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              清空配置
-            </Button>
-          </motion.div>
-        </motion.div>
-
-        <motion.div
-          whileHover={{ backgroundColor: 'rgba(239, 68, 68, 0.05)' }}
-          className="flex items-center justify-between p-4 rounded-xl -mx-2 transition-colors"
-        >
-          <div className="flex-1">
-            <p className="font-medium text-red-600 dark:text-red-400">退出登录</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              清除登录状态，需要重新登录
-            </p>
-          </div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button variant="destructive" onClick={onClearAuth}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              退出登录
-            </Button>
-          </motion.div>
-        </motion.div>
-      </div>
-    </CardAnimation>
-  )
-}
-
 function AccountSection({ session }: { session: any }) {
   const user = session?.user
   if (!user) return null
@@ -659,7 +604,7 @@ function GitHubRepoSelect({ currentUser, value, onRepoChange }: { currentUser: s
   )
 }
 
-function ConfigSection({ configStore }: { configStore: ConfigState }) {
+function ConfigSection({ configStore, onClearConfig }: { configStore: ConfigState, onClearConfig: () => void }) {
   const router = useRouter()
   const queryClient = useQueryClient()
   const { data: session } = useSession() // ✅ 使用 useSession
@@ -867,6 +812,22 @@ function ConfigSection({ configStore }: { configStore: ConfigState }) {
           </Button>
         </div>
       </div>
+
+      {/* 清空配置 */}
+      <div className="mt-6 pt-6 border-t border-red-100 dark:border-red-900/30">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium text-red-600 dark:text-red-400">清空配置</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              清除所有本地配置，需要重新配置
+            </p>
+          </div>
+          <Button variant="destructive" onClick={onClearConfig} size="sm">
+            <Trash2 className="h-4 w-4 mr-2" />
+            清空配置
+          </Button>
+        </div>
+      </div>
     </CardAnimation>
   )
 }
@@ -886,9 +847,8 @@ export default function SettingsPage() {
     { id: 'image',        label: '图片处理', icon: Image },        // 第二步：处理图片
     { id: 'network',      label: '网络',     icon: Globe },        // 第三步：网络设置
     { id: 'config-sync',  label: '配置同步', icon: RefreshCw },   // 第四步：同步配置
-    { id: 'danger',       label: '危险操作', icon: ShieldAlert },  // 第五步：危险操作
-    { id: 'account',      label: '账户',     icon: User },         // 第六步：账户管理
-    { id: 'about',        label: '关于',     icon: Info },         // 第七步：关于
+    { id: 'account',      label: '账户',     icon: User },         // 第五步：账户管理
+    { id: 'about',        label: '关于',     icon: Info },         // 第六步：关于
   ] as const
 
   // 未登录时自动打开登录弹窗
@@ -920,14 +880,6 @@ export default function SettingsPage() {
     configStore.resetConfig()
     toast.success('配置已清空')
     router.push('/config')
-  }
-
-  const handleClearAuth = async () => {
-    if (!confirm('确定要退出登录吗？')) return
-
-    await signOut({ redirect: false })
-    toast.success('已退出登录')
-    router.push('/login')
   }
 
   const handleCdnChange = (value: string | null) => {
@@ -1009,7 +961,7 @@ export default function SettingsPage() {
                   })}
                 </div>
 
-                {activeSection === 0 && <ConfigSection configStore={configStore} />}
+                {activeSection === 0 && <ConfigSection configStore={configStore} onClearConfig={handleClearConfig} />}
                 {activeSection === 1 && <ImageProcessingSection configStore={configStore} />}
                 {activeSection === 2 && (
                   <NetworkSection configStore={configStore} onCdnChange={handleCdnChange} />
@@ -1017,11 +969,8 @@ export default function SettingsPage() {
                 {activeSection === 3 && (
                   <ConfigSyncSection configStore={configStore} />
                 )}
-                {activeSection === 4 && (
-                  <DangerSection onClearConfig={handleClearConfig} onClearAuth={handleClearAuth} />
-                )}
-                {activeSection === 5 && <AccountSection session={session} />}
-                {activeSection === 6 && <AboutSection />}
+                {activeSection === 4 && <AccountSection session={session} />}
+                {activeSection === 5 && <AboutSection />}
               </motion.div>
             </AnimatePresence>
           </main>
