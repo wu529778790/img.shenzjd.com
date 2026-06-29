@@ -3,9 +3,9 @@ FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# 安装依赖
+# 安装所有依赖（包括 devDependencies，因为构建需要）
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci && npm cache clean --force
 
 # 构建阶段
 FROM node:20-alpine AS builder

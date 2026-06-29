@@ -2,8 +2,6 @@
 
 现代化图床管理工具，使用 GitHub 作为存储后端。
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/wu529778790/img.shenzjd.com)
-
 ## 🚀 快速部署
 
 ### Vercel（推荐）
