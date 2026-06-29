@@ -39,3 +39,7 @@ docker run -d -p 3000:3000 \
 | `GITHUB_CLIENT_SECRET` | ✅ | GitHub OAuth App Client Secret |
 | `NEXTAUTH_SECRET` | ✅ | NextAuth 密钥（`openssl rand -base64 32`） |
 | `NEXTAUTH_URL` | ✅ | 应用地址（如 `https://img.example.com`） |
+
+## 📖 使用教程
+
+详细使用教程（包含 PicGo 配置、GitHub 图床搭建等）：[USAGE.md](USAGE.md)
