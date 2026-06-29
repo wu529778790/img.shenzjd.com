@@ -222,6 +222,7 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
         token={token}
         owner={configStore.owner}
         repo={configStore.repo}
+        branch={configStore.branch}
         onDeleted={onDelete ?? (() => {})}
       />
 

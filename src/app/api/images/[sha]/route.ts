@@ -17,11 +17,11 @@ export async function DELETE(
     const token = session.accessToken as string
     const { sha: pathSha } = await params
     const body = await request.json()
-    const { owner, repo, filePath } = body
+    const { owner, repo, filePath, branch } = body
 
     console.log('Delete request:', { owner, repo, filePath, pathSha: pathSha.slice(0, 8) + '...' })
 
-    if (!owner || !repo || !filePath) {
+    if (!owner || !repo || !filePath || !branch) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -32,7 +32,7 @@ export async function DELETE(
     let currentSha = pathSha
     try {
       const fileResponse = await fetch(
-        `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(filePath)}`,
+        `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(filePath)}?ref=${branch}`,
         {
           headers: {
             Authorization: `token ${token}`,
@@ -53,7 +53,7 @@ export async function DELETE(
 
     // 删除文件
     const deleteResponse = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(filePath)}`,
+      `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(filePath)}?ref=${branch}`,
       {
         method: 'DELETE',
         headers: {

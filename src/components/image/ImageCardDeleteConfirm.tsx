@@ -22,6 +22,7 @@ interface ImageCardDeleteConfirmProps {
   token: string
   owner: string
   repo: string
+  branch: string
   /** Called with image id after successful delete so parent can refresh */
   onDeleted: (id: string) => void
 }
@@ -33,6 +34,7 @@ export function ImageCardDeleteConfirm({
   token,
   owner,
   repo,
+  branch,
   onDeleted,
 }: ImageCardDeleteConfirmProps) {
   const [deleting, setDeleting] = useState(false)
@@ -47,7 +49,7 @@ export function ImageCardDeleteConfirm({
           Authorization: `token ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ owner, repo, filePath: image.path }),
+        body: JSON.stringify({ owner, repo, filePath: image.path, branch }),
       })
       if (!response.ok) throw new Error('Delete failed')
       toast.success('删除成功')
