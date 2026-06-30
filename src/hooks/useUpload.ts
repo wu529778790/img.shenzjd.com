@@ -59,9 +59,12 @@ export function useUpload() {
     })
 
     try {
+      // 实时读取最新配置（避免 mutation 闭包捕获旧值）
+      const cfg = useConfigStore.getState()
+
       // 1. 压缩图片
       let processedFile = file
-      if (config.compressionEnabled) {
+      if (cfg.compressionEnabled) {
         try {
           debugLog('[Progress] Setting progress to 10% (compression start)')
           updateTask(taskId, { progress: 10 }) // 压缩开始
@@ -69,7 +72,7 @@ export function useUpload() {
           processedFile = await compressImage(file, {
             maxSizeMB: 1,
             maxWidthOrHeight: 1920,
-            initialQuality: config.compressionQuality / 100,
+            initialQuality: cfg.compressionQuality / 100,
           })
           debugLog('[Progress] Setting progress to 20% (compression done)')
           updateTask(taskId, { progress: 20 }) // 压缩完成
@@ -82,16 +85,16 @@ export function useUpload() {
       }
 
       // 2. 添加水印
-      if (config.watermarkEnabled && config.watermarkText) {
+      if (cfg.watermarkEnabled && cfg.watermarkText) {
         try {
           debugLog('[Progress] Setting progress to 30% (watermark start)')
           updateTask(taskId, { progress: 30 }) // 水印开始
           await new Promise(resolve => setTimeout(resolve, 300)) // 延迟显示
           const watermarkedBlob = await addWatermark(processedFile, {
-            text: config.watermarkText,
-            color: config.watermarkColor,
-            size: config.watermarkSize,
-            position: config.watermarkPosition,
+            text: cfg.watermarkText,
+            color: cfg.watermarkColor,
+            size: cfg.watermarkSize,
+            position: cfg.watermarkPosition,
           })
           processedFile = new File([watermarkedBlob], file.name, {
             type: 'image/jpeg',
@@ -108,10 +111,10 @@ export function useUpload() {
 
       // 3. 生成文件路径（带品牌前缀，用户可在设置中关闭）
       const ext = processedFile.name.split('.').pop()
-      const fileName = config.useOriginalFileName
+      const fileName = cfg.useOriginalFileName
         ? processedFile.name
         : `imgx-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-      const filePath = config.directory ? `${config.directory}/${fileName}` : fileName
+      const filePath = cfg.directory ? `${cfg.directory}/${fileName}` : fileName
 
       debugLog('[Upload] File path:', filePath)
       debugLog('[Progress] Setting progress to 50% (ready to upload)')
@@ -120,12 +123,12 @@ export function useUpload() {
 
       // 4. 上传到 GitHub
       debugLog('[Upload] Starting GitHub upload...')
-      debugLog('[Upload] Target branch:', config.branch)
+      debugLog('[Upload] Target branch:', cfg.branch)
       const result = await api.createOrUpdateFile(
         filePath,
         processedFile,
         `[skip ci] Upload by https://img.shenzjd.com/`,
-        config.branch,
+        cfg.branch || 'main',
         (progress) => {
           // 实时更新上传进度 (50% -> 90%)
           const totalProgress = 50 + Math.round(progress * 0.4)
