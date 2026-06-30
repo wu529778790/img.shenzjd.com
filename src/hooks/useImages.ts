@@ -8,7 +8,7 @@ import { useConfigStore } from '@/stores/configStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
 import { BULK_DELETE_CONFIG } from '@/lib/constants'
-import { debugLog } from '@/lib/debug'
+import { debugLog, debugError } from '@/lib/debug'
 import type { ImageFile } from '@/types/image'
 
 export function useImages() {
@@ -38,6 +38,7 @@ export function useImages() {
         return []
       }
 
+      try {
       debugLog('[Images] Fetching images from GitHub API...', { owner, repo, branch })
       const api = new GitHubAPI(token, owner, repo, branch)
 
@@ -97,10 +98,17 @@ export function useImages() {
       debugLog('[Images] After deduplication:', imageMap.size, 'unique images out of', imageFiles.length)
 
       return Array.from(imageMap.values())
+      } catch (err) {
+        // API 失败时返回空数组，避免 SSR crash 导致 503
+        debugError('[Images] Query failed, returning empty array:', err)
+        return []
+      }
     },
     enabled: !!token && !!owner && !!repo,
-    staleTime: 0, // 每次挂载都重新获取，确保上传后立即看到新图片
-    gcTime: 5 * 60 * 1000, // 5 分钟
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000,
+    retry: 2,
+    retryDelay: 1000,
   })
 
   // 检测仓库是否被删除：404 时清除配置并提示重新配置
