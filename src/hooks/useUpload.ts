@@ -106,11 +106,11 @@ export function useUpload() {
         }
       }
 
-      // 3. 生成文件路径
+      // 3. 生成文件路径（带品牌前缀，用户可在设置中关闭）
       const ext = processedFile.name.split('.').pop()
       const fileName = config.useOriginalFileName
-        ? processedFile.name                                    // 保持原名
-        : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`  // 时间戳重命名
+        ? processedFile.name
+        : `imgx-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
       const filePath = config.directory ? `${config.directory}/${fileName}` : fileName
 
       debugLog('[Upload] File path:', filePath)
