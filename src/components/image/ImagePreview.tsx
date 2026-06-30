@@ -140,8 +140,9 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
   }
 
   const handleDownload = () => {
+    const url = image.cdnUrl || image.download_url
     const link = document.createElement('a')
-    link.href = image.download_url
+    link.href = url
     link.download = image.name
     link.target = '_blank'
     document.body.appendChild(link)
@@ -150,7 +151,8 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
   }
 
   const handleOpenInNewTab = () => {
-    window.open(image.download_url, '_blank', 'noopener,noreferrer')
+    const url = image.cdnUrl || image.download_url
+    window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   return (
