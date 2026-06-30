@@ -165,8 +165,10 @@ export function useImages() {
     },
     onSuccess: () => {
       toast.success('删除成功')
-      // 刷新图片列表
-      queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
+      // 延迟刷新，给 GitHub tree API 最终一致性留出时间
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['images'] })
+      }, 2000)
     },
     onError: (error) => {
       // 如果是 404 错误，说明文件已经被删除了，不显示错误提示
@@ -175,7 +177,9 @@ export function useImages() {
       if (status === 404) {
         debugLog('[Delete] File already gone:', message)
         // 仍然刷新列表以保持同步
-        queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ['images'] })
+        }, 2000)
       } else {
         toast.error('删除失败')
       }
@@ -238,8 +242,10 @@ export function useImages() {
       } else {
         toast.success(`删除完成：${data.successful} 成功，${data.failed} 失败`)
       }
-      // 刷新图片列表
-      queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
+      // 延迟刷新，给 GitHub tree API 最终一致性留出时间
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['images'] })
+      }, 2000)
     },
     onError: (error) => {
       // 如果是 404 错误，说明文件已经被删除了，不显示错误提示
@@ -248,7 +254,9 @@ export function useImages() {
       if (status === 404) {
         debugLog('[Bulk Delete] Files already gone:', message)
         // 仍然刷新列表以保持同步
-        queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ['images'] })
+        }, 2000)
       } else {
         toast.error('批量删除失败')
       }

@@ -195,8 +195,11 @@ export function useUpload() {
         }
       }
 
-      // 刷新图片列表（前缀匹配，确保不同 config 的 images 查询都能失效）
-      queryClient.invalidateQueries({ queryKey: ['images'] })
+      // 延迟刷新图片列表，给 GitHub tree API 最终一致性留出时间
+      // GitHub commit 成功后 tree 需要几秒才能反映新文件
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['images'] })
+      }, 2000)
     } catch (error) {
       debugError('[Upload] ❌ GitHub API error:', error)
       const err = error as { message?: string; response?: { data?: unknown; status?: number } }
