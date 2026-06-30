@@ -248,6 +248,7 @@ export function useUpload() {
       })
 
       // 直接添加到 store，taskId 保持一致性
+      // ✅ zustand v5: 直接调用 hook.setState()
       useUploadStore.setState((state) => ({
         queue: [...state.queue, ...newTasks],
       }))

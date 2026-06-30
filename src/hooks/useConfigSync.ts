@@ -201,13 +201,11 @@ export function useSaveConfigToGitHub() {
     onSuccess: (result) => {
       if (result.success) {
         console.log('[AutoSync] Save success, updating lastSyncAt and sha')
-        // ✅ 直接更新内部状态，不走 updateConfig 的事件通道，
-        // 避免触发 config-updated 事件导致无限循环
+        // ✅ zustand v5: 直接调用 hook.setState()
         useConfigStore.setState({
           lastSyncAt: new Date().toISOString(),
           sha: result.sha,
         })
-        // 更新 query cache
         queryClient.setQueryData(['config-sync'], result)
       }
     },
