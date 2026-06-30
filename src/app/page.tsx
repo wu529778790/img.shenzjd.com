@@ -8,7 +8,7 @@ import { UploadQueue } from '@/components/upload/UploadQueue'
 import { AdvancedConfig } from '@/components/upload/AdvancedConfig'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Sparkles, Zap, RefreshCw } from 'lucide-react'
+import { Zap, RefreshCw } from 'lucide-react'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { useAuthDialog } from '@/components/auth'
 import { toast } from 'sonner'
@@ -95,30 +95,6 @@ export default function HomePage() {
             </AnimatePresence>
           )}
         </CardAnimation>
-
-        {/* 优化：提示信息 - 更好的视觉层次和响应式 */}
-        {motion && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.3, ease: 'easeOut' }}
-            className="mt-5 px-5 sm:px-6 py-3.5 sm:py-4 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/70 dark:border-blue-800/50 shadow-md backdrop-blur-sm"
-            role="note"
-            aria-label="使用提示"
-          >
-          <div className="flex items-start gap-2.5 text-sm text-blue-900 dark:text-blue-100">
-            <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" aria-hidden="true" />
-            <div className="flex-1 space-y-0.5">
-              <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                支持多种格式上传
-              </p>
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                PNG、JPG、JPEG、GIF、WEBP 格式，单文件最大 100MB，支持批量上传和 Ctrl+V / Cmd+V 粘贴
-              </p>
-            </div>
-          </div>
-        </motion.div>
-        )}
 
         {/* 高级配置 */}
         <AdvancedConfig />
