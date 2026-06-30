@@ -60,8 +60,12 @@ export function ConfigDiscovery() {
 
   // 已登录时加载配置
   useEffect(() => {
+    debugLog('[ConfigDiscovery] Effect fired:', { status, hasSession: !!session?.accessToken })
     if (status === 'authenticated' && session?.accessToken) {
+      debugLog('[ConfigDiscovery] Starting checkConfig...')
+      const t0 = performance.now()
       checkConfig().then((config) => {
+        debugLog('[ConfigDiscovery] checkConfig resolved in', Math.round(performance.now() - t0), 'ms')
         if (config) {
           // 提取配置内容，排除内部字段
           const { _remoteUpdatedAt } = config
@@ -126,13 +130,17 @@ export function ConfigDiscovery() {
 
     const handleConfigUpdate = async (e: Event) => {
       const detail = (e as CustomEvent).detail
+      console.log('[AutoSync] Event received:', !!detail, 'autoSync:', configStore.autoSync)
       if (!detail) return
 
       // 如果 autoSync 为 false，跳过
       if (configStore.autoSync === false) return
 
       // 防抖：避免短时间内多次保存
-      if (syncingRef.current) return
+      if (syncingRef.current) {
+        console.log('[AutoSync] Already syncing, skipping')
+        return
+      }
       syncingRef.current = true
 
       try {

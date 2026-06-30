@@ -66,6 +66,7 @@ export const useConfigStore = create<ConfigState>()(
             // 延迟同步，避免阻塞 UI
             const timer = setTimeout(() => {
               pendingTimers.delete(timer)
+              console.log('[ConfigStore] config-updated event:', updates)
               const autoSync = get().autoSync
               if (autoSync !== false && typeof window !== 'undefined') {
                 // 触发自定义事件，让组件可以监听并同步
