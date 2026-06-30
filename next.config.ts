@@ -55,9 +55,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // P3 优化：生产环境移除 console
+  // 保留 console.error 用于生产环境错误诊断
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: false,
   },
   env: {
     // 自动将 GITHUB_CLIENT_ID 暴露给客户端

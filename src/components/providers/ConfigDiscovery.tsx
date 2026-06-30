@@ -30,6 +30,7 @@ export function ConfigDiscovery() {
   const saveMutation = useSaveConfigToGitHub()
   const validatedRef = useRef(false)
   const syncingRef = useRef(false)
+  const loadingRef = useRef(false) // 防止并发执行
 
   // 验证已配置的仓库是否存在
   async function validateConfiguredRepo() {
@@ -60,65 +61,70 @@ export function ConfigDiscovery() {
 
   // 已登录时加载配置
   useEffect(() => {
-    debugLog('[ConfigDiscovery] Effect fired:', { status, hasSession: !!session?.accessToken })
+    // ✅ 防止并发执行：如果上一次还没完成，跳过
+    if (loadingRef.current) return
+
     if (status === 'authenticated' && session?.accessToken) {
-      debugLog('[ConfigDiscovery] Starting checkConfig...')
-      const t0 = performance.now()
+      loadingRef.current = true
       checkConfig().then((config) => {
-        debugLog('[ConfigDiscovery] checkConfig resolved in', Math.round(performance.now() - t0), 'ms')
-        if (config) {
-          // 提取配置内容，排除内部字段
-          const { _remoteUpdatedAt } = config
+        try {
+          if (config) {
+            const { _remoteUpdatedAt } = config
 
-          // 检查是否有更新的远程配置
-          let hasRemoteUpdate = false
-          if (_remoteUpdatedAt && configStore.lastSyncAt) {
-            const remoteTime = new Date(_remoteUpdatedAt).getTime()
-            const localTime = new Date(configStore.lastSyncAt).getTime()
-            hasRemoteUpdate = remoteTime > localTime
-          }
+            let hasRemoteUpdate = false
+            if (_remoteUpdatedAt && configStore.lastSyncAt) {
+              const remoteTime = new Date(_remoteUpdatedAt).getTime()
+              const localTime = new Date(configStore.lastSyncAt).getTime()
+              hasRemoteUpdate = remoteTime > localTime
+            }
 
-          // 静默更新配置（不打扰用户）
-          configStore.updateConfig({
-            owner: config.owner,
-            repo: config.repo,
-            branch: config.branch,
-            directory: config.directory || '',
-            compressionEnabled: config.compressionEnabled ?? false,
-            compressionQuality: config.compressionQuality ?? 80,
-            watermarkEnabled: config.watermarkEnabled ?? false,
-            watermarkText: config.watermarkText || '',
-            watermarkColor: config.watermarkColor || '#ffffff',
-            watermarkSize: config.watermarkSize ?? 24,
-            watermarkPosition: config.watermarkPosition || 'bottom-right',
-            theme: config.theme || 'system',
-            cdn: config.cdn || 'jsdmirror',
-            useRaw: config.useRaw ?? true,
-            copyFormat: config.copyFormat || 'url',
-            autoCopyAfterUpload: config.autoCopyAfterUpload ?? true,
-            useOriginalFileName: config.useOriginalFileName ?? false,
-            configPath: config.configPath || '.imgx-config/config.json',
-            autoSync: config.autoSync ?? true,
-            lastSyncAt: config.lastSyncAt,
-            sha: config.sha,
-          })
+            configStore.updateConfig({
+              owner: config.owner,
+              repo: config.repo,
+              branch: config.branch,
+              directory: config.directory || '',
+              compressionEnabled: config.compressionEnabled ?? false,
+              compressionQuality: config.compressionQuality ?? 80,
+              watermarkEnabled: config.watermarkEnabled ?? false,
+              watermarkText: config.watermarkText || '',
+              watermarkColor: config.watermarkColor || '#ffffff',
+              watermarkSize: config.watermarkSize ?? 24,
+              watermarkPosition: config.watermarkPosition || 'bottom-right',
+              theme: config.theme || 'system',
+              cdn: config.cdn || 'jsdmirror',
+              useRaw: config.useRaw ?? true,
+              copyFormat: config.copyFormat || 'url',
+              autoCopyAfterUpload: config.autoCopyAfterUpload ?? true,
+              useOriginalFileName: config.useOriginalFileName ?? false,
+              configPath: config.configPath || '.imgx-config/config.json',
+              autoSync: config.autoSync ?? true,
+              lastSyncAt: config.lastSyncAt,
+              sha: config.sha,
+            })
 
-          // 只有当远程配置确实更新时，才通知用户
-          if (hasRemoteUpdate) {
-            toast.success(`配置已同步: ${config.owner}/${config.repo} (${config.branch})`, {
-              duration: 3000,
+            if (hasRemoteUpdate) {
+              toast.success(`配置已同步: ${config.owner}/${config.repo} (${config.branch})`, {
+                duration: 3000,
+              })
+            }
+          } else {
+            configStore.updateConfig({
+              compressionEnabled: false,
+              cdn: 'jsdmirror',
             })
           }
-        } else {
-          // 远程配置不存在，确保本地使用正确的默认值
-          configStore.updateConfig({
-            compressionEnabled: false,
-            cdn: 'jsdmirror',
-          })
-        }
 
-        // 验证本地配置的仓库是否仍然存在（每次登录只验证一次）
-        validateConfiguredRepo()
+          validateConfiguredRepo()
+        } catch (err) {
+          debugError('[ConfigDiscovery] Error processing config:', err)
+          console.error('[ConfigDiscovery] Error processing config:', err)
+        } finally {
+          loadingRef.current = false
+        }
+      }).catch((err) => {
+        debugError('[ConfigDiscovery] checkConfig failed:', err)
+        console.error('[ConfigDiscovery] checkConfig failed:', err)
+        loadingRef.current = false
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -133,10 +139,8 @@ export function ConfigDiscovery() {
       console.log('[AutoSync] Event received:', !!detail, 'autoSync:', configStore.autoSync)
       if (!detail) return
 
-      // 如果 autoSync 为 false，跳过
       if (configStore.autoSync === false) return
 
-      // 防抖：避免短时间内多次保存
       if (syncingRef.current) {
         console.log('[AutoSync] Already syncing, skipping')
         return
@@ -156,6 +160,7 @@ export function ConfigDiscovery() {
         }
       } catch {
         debugError('[AutoSync] Save error')
+        console.error('[AutoSync] Save error')
       } finally {
         syncingRef.current = false
       }
