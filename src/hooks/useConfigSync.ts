@@ -194,7 +194,7 @@ export function useSaveConfigToGitHub() {
     onSuccess: (result) => {
       if (result.success) {
         console.log('[AutoSync] Save success, updating lastSyncAt and sha')
-        configStore.setState({
+        useConfigStore.setState({
           lastSyncAt: new Date().toISOString(),
           sha: result.sha,
         })
