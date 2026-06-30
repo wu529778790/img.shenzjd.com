@@ -30,7 +30,7 @@ const defaultConfig: Config = {
   watermarkSize: 24,
   watermarkPosition: 'bottom-right',
   theme: 'system',
-  cdn: 'github',
+  cdn: 'jsdmirror',
   useRaw: true,
   copyFormat: 'markdown',
   autoCopyAfterUpload: true,
