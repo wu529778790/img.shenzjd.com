@@ -28,7 +28,7 @@ const defaultConfig: Config = {
   compressionEnabled: false,
   compressionQuality: 80,
   watermarkEnabled: false,
-  watermarkText: '',
+  watermarkText: 'by img.shenzjd.com',
   watermarkColor: '#ffffff',
   watermarkSize: 24,
   watermarkPosition: 'bottom-right',

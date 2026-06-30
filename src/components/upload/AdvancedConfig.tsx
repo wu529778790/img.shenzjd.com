@@ -104,7 +104,13 @@ export function AdvancedConfig() {
             label="默认水印"
             description={configStore.watermarkText || '未设置水印文字'}
             checked={configStore.watermarkEnabled}
-            onChange={(checked) => configStore.updateConfig({ watermarkEnabled: checked })}
+            onChange={(checked) => {
+              if (checked && !configStore.watermarkText) {
+                configStore.updateConfig({ watermarkEnabled: true, watermarkText: 'by img.shenzjd.com' })
+              } else {
+                configStore.updateConfig({ watermarkEnabled: checked })
+              }
+            }}
           />
           {/* 水印文字 */}
           {configStore.watermarkEnabled && (
