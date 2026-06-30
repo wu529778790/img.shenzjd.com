@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { compressImage } from '@/lib/compress'
@@ -10,7 +10,7 @@ import { useConfigStore } from '@/stores/configStore'
 import { useUploadStore } from '@/stores/uploadStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
-import { debugLog, debugError, debugWarn } from '@/lib/debug'  // ✅ 使用调试工具
+import { debugLog, debugError, debugWarn } from '@/lib/debug'
 import type { FileWithPreview, LinkOptions, UploadTask } from '@/types/image'
 
 export function useUpload() {
@@ -18,7 +18,22 @@ export function useUpload() {
   const token = session?.accessToken || ''
   const config = useConfigStore()
   const queryClient = useQueryClient()
-  const { updateTask, removeTask: removeTaskStore, clearQueue, retryTask: retryTaskFn, retryFailed: retryFailedFn } = useUploadStore()
+  const { updateTask, removeTask: removeTaskStore, clearQueue, retryFailed: retryFailedFn } = useUploadStore()
+
+  // ✅ 组件卸载时释放所有 blob URL，防止内存泄漏
+  useEffect(() => {
+    return () => {
+      const queue = useUploadStore.getState().queue
+      queue.forEach((task) => {
+        if (task.file instanceof File) {
+          const preview = (task.file as FileWithPreview).preview
+          if (preview) {
+            URL.revokeObjectURL(preview)
+          }
+        }
+      })
+    }
+  }, [])
 
   // 上传单个文件的函数
   const uploadSingleFile = useCallback(async (
@@ -273,25 +288,26 @@ export function useUpload() {
   const retryTask = useCallback((taskId: string) => {
     const file = getFailedTaskFile(taskId)
     if (file) {
-      // 重置任务状态
-      retryTaskFn(taskId)
-      // 重新上传
+      // ✅ 先移除旧任务（store 会释放 blob URL），避免队列中残留
+      removeTaskStore(taskId)
+      // 重新上传（addFiles 会为同一 file 对象复用已有 blob URL）
       addFiles([file])
     }
-  }, [getFailedTaskFile, retryTaskFn, addFiles])
+  }, [getFailedTaskFile, removeTaskStore, addFiles])
 
   // 重试所有失败任务
   const retryAllFailed = useCallback(() => {
     const failedFiles = getFailedTaskFiles()
     if (failedFiles.length > 0) {
-      // 重置所有失败任务
+      // ✅ 先移除所有失败任务（store 会释放 blob URL）
       const failedIds = retryFailedFn()
+      failedIds.forEach((id) => removeTaskStore(id))
       // 重新上传所有失败的文件
       addFiles(failedFiles)
       return failedIds.length
     }
     return 0
-  }, [getFailedTaskFiles, retryFailedFn, addFiles])
+  }, [getFailedTaskFiles, retryFailedFn, removeTaskStore, addFiles])
 
   // 移除单个任务
   const removeTask = useCallback((taskId: string) => {

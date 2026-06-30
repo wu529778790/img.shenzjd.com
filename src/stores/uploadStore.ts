@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { produce } from 'immer'
-import type { UploadTask } from '@/types/image'
+import type { FileWithPreview, UploadTask } from '@/types/image'
 
 interface UploadState {
   queue: UploadTask[]
@@ -44,7 +44,15 @@ export const useUploadStore = create<UploadState>((set) => ({
   },
 
   removeTask: (id) => {
-    // ✅ 使用 immer 过滤数组
+    // ✅ 释放 blob URL，防止内存泄漏（需在 set 之前读取）
+    const existing = useUploadStore.getState().queue.find((t) => t.id === id)
+    if (existing && existing.file instanceof File) {
+      const preview = (existing.file as FileWithPreview).preview
+      if (preview) {
+        URL.revokeObjectURL(preview)
+        delete (existing.file as FileWithPreview).preview
+      }
+    }
     set(
       produce((state: UploadState) => {
         const index = state.queue.findIndex((t) => t.id === id)
@@ -56,6 +64,17 @@ export const useUploadStore = create<UploadState>((set) => ({
   },
 
   clearQueue: () => {
+    // ✅ 释放所有 blob URL，防止内存泄漏
+    const currentQueue = useUploadStore.getState().queue
+    currentQueue.forEach((task) => {
+      if (task.file instanceof File) {
+        const preview = (task.file as FileWithPreview).preview
+        if (preview) {
+          URL.revokeObjectURL(preview)
+          delete (task.file as FileWithPreview).preview
+        }
+      }
+    })
     set({ queue: [] })
   },
 

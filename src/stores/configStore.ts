@@ -2,6 +2,9 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Config } from '@/types/config'
 
+// 存储待清理的 timer，防止内存泄漏
+const pendingTimers = new Set<ReturnType<typeof setTimeout>>()
+
 export interface ConfigState extends Config {
   // 配置检测缓存
   configLastCheckedAt?: number  // 最后检测时间戳
@@ -50,19 +53,24 @@ export const useConfigStore = create<ConfigState>()(
           // 如果启用了自动同步，触发配置同步
           if (updates.configPath !== undefined || updates.autoSync !== false) {
             // 延迟同步，避免阻塞 UI
-            setTimeout(() => {
+            const timer = setTimeout(() => {
+              pendingTimers.delete(timer)
               const autoSync = get().autoSync
               if (autoSync !== false && typeof window !== 'undefined') {
                 // 触发自定义事件，让组件可以监听并同步
                 window.dispatchEvent(new CustomEvent('config-updated', { detail: updates }))
               }
             }, 0)
+            pendingTimers.add(timer)
           }
           return newState
         })
         if (onUpdate) onUpdate()
       },
       resetConfig: () => {
+        // ✅ 清理所有待执行的 config-updated 定时器
+        pendingTimers.forEach((timer) => clearTimeout(timer))
+        pendingTimers.clear()
         set(defaultConfig)
       },
       markConfigChecked: (repo: string, branch: string) => {

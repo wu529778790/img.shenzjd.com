@@ -31,6 +31,33 @@ export function ConfigDiscovery() {
   const validatedRef = useRef(false)
   const syncingRef = useRef(false)
 
+  // 验证已配置的仓库是否存在
+  async function validateConfiguredRepo() {
+    if (validatedRef.current) return
+    validatedRef.current = true
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('github_token') : null
+    const { owner, repo } = configStore
+    if (!token || !owner || !repo) return
+
+    try {
+      const api = new GitHubAPI(token, owner, repo)
+      await api.getRepo()
+      debugLog('[ConfigDiscovery] Repo exists:', `${owner}/${repo}`)
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response?.status
+      if (status === 404) {
+        debugLog('[ConfigDiscovery] Repo not found, clearing config:', `${owner}/${repo}`)
+        configStore.resetConfig()
+        localStorage.removeItem('config-storage')
+        toast.warning('检测到图床仓库已被删除，请重新配置', {
+          description: `仓库 ${owner}/${repo} 不存在，已清除本地配置`,
+          duration: 6000,
+        })
+      }
+    }
+  }
+
   // 已登录时加载配置
   useEffect(() => {
     if (status === 'authenticated' && session?.accessToken) {
@@ -97,8 +124,6 @@ export function ConfigDiscovery() {
   useEffect(() => {
     if (status !== 'authenticated' || !session?.accessToken) return
 
-    const timer: ReturnType<typeof setTimeout> | null = null
-
     const handleConfigUpdate = async (e: Event) => {
       const detail = (e as CustomEvent).detail
       if (!detail) return
@@ -131,33 +156,6 @@ export function ConfigDiscovery() {
     window.addEventListener('config-updated', handleConfigUpdate)
     return () => window.removeEventListener('config-updated', handleConfigUpdate)
   }, [status, session, configStore, saveMutation])
-
-  // 验证已配置的仓库是否存在
-  async function validateConfiguredRepo() {
-    if (validatedRef.current) return
-    validatedRef.current = true
-
-    const token = typeof window !== 'undefined' ? localStorage.getItem('github_token') : null
-    const { owner, repo } = configStore
-    if (!token || !owner || !repo) return
-
-    try {
-      const api = new GitHubAPI(token, owner, repo)
-      await api.getRepo()
-      debugLog('[ConfigDiscovery] Repo exists:', `${owner}/${repo}`)
-    } catch (error) {
-      const status = (error as { response?: { status?: number } })?.response?.status
-      if (status === 404) {
-        debugLog('[ConfigDiscovery] Repo not found, clearing config:', `${owner}/${repo}`)
-        configStore.resetConfig()
-        localStorage.removeItem('config-storage')
-        toast.warning('检测到图床仓库已被删除，请重新配置', {
-          description: `仓库 ${owner}/${repo} 不存在，已清除本地配置`,
-          duration: 6000,
-        })
-      }
-    }
-  }
 
   return null
 }

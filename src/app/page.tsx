@@ -55,22 +55,6 @@ export default function HomePage() {
     addFiles(files)
   }, [session, isConfigured, openLoginDialog, openConfigDialog, addFiles])
 
-  // 如果正在加载
-  if (status === 'loading') {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
-        <PageTransition>
-          <CardAnimation className="p-12 text-center rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 shadow-modern-md backdrop-blur-sm">
-            <div className="flex items-center justify-center gap-3">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" aria-hidden="true" />
-              <span className="text-gray-500" role="status">加载中...</span>
-            </div>
-          </CardAnimation>
-        </PageTransition>
-      </div>
-    )
-  }
-
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl mx-auto">
       <PageTransition>
