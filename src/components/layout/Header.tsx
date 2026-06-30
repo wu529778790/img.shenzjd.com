@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
-import { FolderGit, LogOut, User, ExternalLink, Image as ImageIcon } from 'lucide-react'
+import { FolderGit, LogOut, User, Image as ImageIcon, LinkIcon } from 'lucide-react'
 import { useConfigStore } from '@/stores/configStore'
 import {
   DropdownMenu,
@@ -89,13 +89,15 @@ export function Header() {
                       <span>图片管理</span>
                     </DropdownMenuItem>
                     {repoUrl && (
-                      <DropdownMenuItem
-                        onSelect={() => window.open(repoUrl, '_blank', 'noopener,noreferrer')}
-                        className="cursor-pointer"
+                      <a
+                        href={repoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground [&>svg]:size-4 [&>svg]:shrink-0"
                       >
-                        <ExternalLink className="mr-2 h-4 w-4" />
+                        <LinkIcon className="mr-0 h-4 w-4" />
                         <span>查看仓库</span>
-                      </DropdownMenuItem>
+                      </a>
                     )}
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
