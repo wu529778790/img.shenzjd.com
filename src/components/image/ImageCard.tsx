@@ -238,19 +238,12 @@ function ImageCardInner({ image, onDelete, onSelect, selected, selectable, prior
       {/* 单张删除确认弹窗 */}
       <ImageCardDeleteConfirm
         open={showDeleteConfirm}
-        onOpenChange={(open) => {
-          setShowDeleteConfirm(open)
-          // 如果对话框关闭且不是因为删除成功而关闭，重置删除状态标记
-          if (!open && !isDeletingRef.current) {
-            isDeletingRef.current = false
-          }
-        }}
+        onOpenChange={setShowDeleteConfirm}
         image={image}
-        token={token}
-        owner={configStore.owner}
-        repo={configStore.repo}
-        branch={configStore.branch}
-        onDeleted={onDelete ?? (() => {})}
+        onConfirm={() => {
+          setShowDeleteConfirm(false)
+          onDelete?.(image.id)
+        }}
       />
 
     </>

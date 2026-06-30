@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -11,7 +10,6 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle } from 'lucide-react'
-import { toast } from 'sonner'
 import { formatFileSize } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
 
@@ -19,49 +17,16 @@ interface ImageCardDeleteConfirmProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   image: ImageFile
-  token: string
-  owner: string
-  repo: string
-  branch: string
-  /** Called with image id after successful delete so parent can refresh */
-  onDeleted: (id: string) => void
+  /** 确认删除的回调（由父组件提供具体的删除逻辑） */
+  onConfirm: () => void
 }
 
 export function ImageCardDeleteConfirm({
   open,
   onOpenChange,
   image,
-  token,
-  owner,
-  repo,
-  branch,
-  onDeleted,
+  onConfirm,
 }: ImageCardDeleteConfirmProps) {
-  const [deleting, setDeleting] = useState(false)
-
-  const handleConfirm = async () => {
-    if (!token) return
-    setDeleting(true)
-    try {
-      const response = await fetch(`/api/images/${image.sha}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `token ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ owner, repo, filePath: image.path, branch }),
-      })
-      if (!response.ok) throw new Error('Delete failed')
-      toast.success('删除成功')
-      onOpenChange(false)
-      onDeleted(image.path)
-    } catch {
-      toast.error('删除失败')
-    } finally {
-      setDeleting(false)
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -90,7 +55,7 @@ export function ImageCardDeleteConfirm({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             取消
           </Button>
-          <Button variant="destructive" onClick={handleConfirm} disabled={deleting}>
+          <Button variant="destructive" onClick={() => { onConfirm(); onOpenChange(false) }}>
             <AlertTriangle className="h-4 w-4 mr-2" />
             确认删除
           </Button>

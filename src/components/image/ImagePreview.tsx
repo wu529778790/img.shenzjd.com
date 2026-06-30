@@ -439,11 +439,10 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
           open={showDeleteConfirm}
           onOpenChange={setShowDeleteConfirm}
           image={image}
-          token={token}
-          owner={configStore.owner}
-          repo={configStore.repo}
-          branch={configStore.branch}
-          onDeleted={(id) => onDelete(id)}
+          onConfirm={() => {
+            setShowDeleteConfirm(false)
+            onDelete(image.id)
+          }}
         />
       )}
     </AnimatePresence>
