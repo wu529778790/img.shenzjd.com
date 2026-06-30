@@ -4,7 +4,6 @@ import { useCallback, useState, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, Image as ImageIcon, ClipboardPaste } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
 interface UploadAreaProps {
@@ -155,16 +154,6 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
             <p className="text-xs text-muted-foreground/70 mt-1">
               也可以直接 Ctrl+V / Cmd+V 粘贴截图
             </p>
-            <Button
-              type="button"
-              variant="gradient"
-              size="sm"
-              className="mt-4 font-semibold shadow-glow-primary"
-              disabled={disabled}
-              aria-label="选择图片文件"
-            >
-              选择图片
-            </Button>
           </>
         )}
       </div>
