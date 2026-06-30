@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
-import { Upload, Image, FolderGit, LogOut, User, Menu, X, RotateCcw } from 'lucide-react'
+import { Image, FolderGit, LogOut, User, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { useConfigStore } from '@/stores/configStore'
 import {
@@ -23,7 +23,6 @@ import { useAuthDialog } from '@/components/auth'
 import { useFramerMotion } from '@/hooks/useFramerMotion'
 
 const navigation = [
-  { name: '上传图片', href: '/', icon: Upload },
   { name: '图片管理', href: '/management', icon: Image },
 ]
 
@@ -67,14 +66,6 @@ export function Header() {
     localStorage.removeItem('config-storage')
     queryClient.clear()
     await signOut({ redirect: false })
-    window.location.href = '/'
-  }
-
-  const handleResetConfig = () => {
-    if (!confirm('确定要重置图床配置吗？下次登录时会重新自动配置。')) return
-    localStorage.removeItem('config-storage')
-    configStore.resetConfig()
-    queryClient.clear()
     window.location.href = '/'
   }
 
@@ -255,12 +246,15 @@ export function Header() {
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
                     <DropdownMenuItem
-                      onClick={handleResetConfig}
-                      className="cursor-pointer text-amber-600 dark:text-amber-400 focus:bg-amber-50 dark:focus:bg-amber-900/20"
+                      onClick={() => window.location.href = '/management'}
+                      className="cursor-pointer"
                     >
-                      <RotateCcw className="mr-2 h-4 w-4" />
-                      <span>重置图床</span>
+                      <Image className="mr-2 h-4 w-4" />
+                      <span>图片管理</span>
                     </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
                     <DropdownMenuItem
                       onClick={handleLogout}
                       className="cursor-pointer text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/20"
