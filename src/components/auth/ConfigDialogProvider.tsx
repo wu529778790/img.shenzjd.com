@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { useRouter } from 'next/navigation'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { ConfigPrompt } from '@/components/auth/ConfigPrompt'
 
@@ -39,6 +40,7 @@ interface ConfigDialogProviderProps {
  * <Button onClick={openConfigDialog}>去配置</Button>
  */
 export function ConfigDialogProvider({ children }: ConfigDialogProviderProps) {
+  const router = useRouter()
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false)
   const [isConfigDismissed, setIsConfigDismissed] = useState(false)
 
@@ -75,7 +77,12 @@ export function ConfigDialogProvider({ children }: ConfigDialogProviderProps) {
           showCloseButton={true}
           className="sm:max-w-md"
         >
-          <ConfigPrompt />
+          <ConfigPrompt
+            onButtonClick={() => {
+              closeConfigDialog()
+              router.push('/settings?section=config')
+            }}
+          />
         </DialogContent>
       </Dialog>
     </ConfigDialogContext.Provider>
