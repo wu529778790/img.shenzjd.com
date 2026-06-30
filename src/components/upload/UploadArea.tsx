@@ -105,8 +105,8 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       className={cn(
-        'relative min-h-[320px]',
-        'border-2 border-dashed rounded-2xl px-8 py-14 text-center cursor-pointer',
+        'relative min-h-[380px]',
+        'border-2 border-dashed rounded-2xl px-10 py-16 text-center cursor-pointer',
         'transition-all duration-200 ease-[var(--easing-default)]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         // 优化：增强拖拽状态的视觉反馈
@@ -150,18 +150,18 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
         ) : (
           <>
             {/* 优化：图标组合 - 统一尺寸和样式 */}
-            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center transition-all duration-200 hover:bg-primary/15 mb-6">
-              <ImageIcon className="h-10 w-10 text-primary" aria-hidden="true" />
+            <div className="w-24 h-24 rounded-2xl bg-primary/10 flex items-center justify-center transition-all duration-200 hover:bg-primary/15 mb-8">
+              <ImageIcon className="h-12 w-12 text-primary" aria-hidden="true" />
             </div>
 
             {/* 优化：改进文案层级和对比度 */}
-            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
               拖拽图片到此处，或点击选择文件
             </p>
-            <p id="upload-help-text" className="text-base text-gray-600 dark:text-gray-400 mt-3">
+            <p id="upload-help-text" className="text-base text-gray-600 dark:text-gray-400 mt-3.5">
               支持 PNG、JPG、JPEG、GIF、WEBP 格式
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-500 mt-2 flex items-center justify-center gap-2">
+            <p className="text-sm text-gray-500 dark:text-gray-500 mt-3 flex items-center justify-center gap-2">
               <span>单文件最大 10MB</span>
               <span className="w-1 h-1 rounded-full bg-gray-400" aria-hidden="true" />
               <span>支持批量上传</span>
