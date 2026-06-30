@@ -5,8 +5,8 @@
   "directory": "",
   "compressionEnabled": false,
   "compressionQuality": 80,
-  "watermarkEnabled": false,
-  "watermarkText": "",
+  "watermarkEnabled": true,
+  "watermarkText": "by img.shenzjd.com",
   "watermarkColor": "#ffffff",
   "watermarkSize": 24,
   "watermarkPosition": "bottom-right",
@@ -18,6 +18,6 @@
   "useOriginalFileName": false,
   "configPath": ".imgx-config/config.json",
   "autoSync": true,
-  "lastSyncAt": "2026-06-30T16:13:25.603Z",
-  "sha": "f49b2576b8f76b7e64368a694c79d0ec1d3af031"
+  "lastSyncAt": "2026-06-30T16:25:12.779Z",
+  "sha": "c7b6dd061f0a0c85fe1dac1b3193b2c563ff7862"
 }
