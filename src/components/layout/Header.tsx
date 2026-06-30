@@ -45,14 +45,14 @@ export function Header() {
           </Link>
 
           {/* 导航链接 - 直接展示 */}
-          <nav className="hidden md:flex items-center gap-0.5 ml-1">
+          <nav className="hidden md:flex items-center gap-0.5 ml-1 h-full">
             {navLinks.map((link) => (
               <a
                 key={link.name}
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-2.5 py-1.5 text-[13px] font-medium text-muted-foreground rounded-md hover:bg-muted hover:text-foreground transition-colors"
+                className="inline-flex items-center h-8 px-2.5 text-[13px] font-medium text-muted-foreground rounded-md hover:bg-muted hover:text-foreground transition-colors"
               >
                 {link.name}
               </a>
