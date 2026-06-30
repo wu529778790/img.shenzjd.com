@@ -109,11 +109,15 @@ export function useUpload() {
         }
       }
 
-      // 3. 生成文件路径（带品牌前缀，用户可在设置中关闭）
+      // 3. 生成文件路径（带品牌前缀和可读日期）
       const ext = processedFile.name.split('.').pop()
+      const now = new Date()
+      const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`
+      const rand = Math.random().toString(36).slice(2, 6)
       const fileName = cfg.useOriginalFileName
         ? processedFile.name
-        : `imgx-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+        : `imgx-${dateStr}-${timeStr}-${rand}.${ext}`
       const filePath = cfg.directory ? `${cfg.directory}/${fileName}` : fileName
 
       debugLog('[Upload] File path:', filePath)
