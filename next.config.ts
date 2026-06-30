@@ -4,16 +4,6 @@ const nextConfig: NextConfig = {
   // Docker 支持：启用 standalone 输出
   output: 'standalone',
 
-  // Turbopack 配置：解决开发模式下的模块加载和 chunk 错误
-  turbopack: {
-    resolveAlias: {
-      // Buffer polyfill 已在 github.ts 中移除，防止 Turbopack 误检测
-      buffer: 'buffer',
-    },
-    // 忽略已知的 Turbopack 模块加载警告
-    ignoreIssue: [],
-  },
-
   // P2 优化：静态资源长期缓存（仅在生产环境启用）
   async headers() {
     if (process.env.NODE_ENV !== 'production') return []
