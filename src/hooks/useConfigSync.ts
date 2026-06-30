@@ -200,10 +200,10 @@ export function useSaveConfigToGitHub() {
     },
     onSuccess: (result) => {
       if (result.success) {
-        // 更新本地配置，保存 sha 供下次更新使用
-        configStore.updateConfig({
+        // ✅ 直接更新内部状态，不走 updateConfig 的事件通道，
+        // 避免触发 config-updated 事件导致无限循环
+        useConfigStore.setState({
           lastSyncAt: new Date().toISOString(),
-          configPath: configStore.configPath || '.imgx-config/config.json',
           sha: result.sha,
         })
         // 更新 query cache

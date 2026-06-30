@@ -50,8 +50,19 @@ export const useConfigStore = create<ConfigState>()(
       updateConfig: (updates, onUpdate) => {
         set((state) => {
           const newState = { ...state, ...updates }
-          // 如果启用了自动同步，触发配置同步
-          if (updates.configPath !== undefined || updates.autoSync !== false) {
+          // 只有用户-facing配置变更才触发自动同步事件
+          // 内部元数据（lastSyncAt/sha/configLastCheckedAt等）不触发，避免循环
+          const syncKeys: (keyof Config)[] = [
+            'owner', 'repo', 'branch', 'directory',
+            'compressionEnabled', 'compressionQuality',
+            'watermarkEnabled', 'watermarkText', 'watermarkColor',
+            'watermarkSize', 'watermarkPosition',
+            'theme', 'cdn', 'useRaw', 'copyFormat',
+            'autoCopyAfterUpload', 'useOriginalFileName',
+            'configPath', 'autoSync',
+          ]
+          const hasUserConfigChange = syncKeys.some((key) => key in updates)
+          if (hasUserConfigChange) {
             // 延迟同步，避免阻塞 UI
             const timer = setTimeout(() => {
               pendingTimers.delete(timer)
