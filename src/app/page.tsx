@@ -2,7 +2,6 @@
 
 import { useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { useConfigStore } from '@/stores/configStore'
 import { useUpload } from '@/hooks/useUpload'
 import { UploadArea } from '@/components/upload/UploadArea'
 import { UploadQueue } from '@/components/upload/UploadQueue'
@@ -11,15 +10,13 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Sparkles, Zap, RefreshCw } from 'lucide-react'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
-import { useAuthDialog, useConfigDialog } from '@/components/auth'
+import { useAuthDialog } from '@/components/auth'
 import { toast } from 'sonner'
 import { useFramerMotion } from '@/hooks/useFramerMotion'
 
 export default function HomePage() {
-  const { data: session, status } = useSession()
+  const { data: session } = useSession()
   const { openLoginDialog } = useAuthDialog()
-  const { openConfigDialog } = useConfigDialog()
-  const configStore = useConfigStore()
   const { uploadQueue, addFiles, retryTask, retryAllFailed, removeTask } = useUpload()
 
   // ✅ 动态导入 framer-motion，减少首屏 JS 体积
@@ -27,11 +24,7 @@ export default function HomePage() {
   const motion = Framer?.motion
   const AnimatePresence = Framer?.AnimatePresence
 
-  // 检查配置是否完整
-  const { owner, repo, branch } = configStore
-  const isConfigured = owner && repo && branch
-
-  // 处理文件选择（需要登录）
+  // 处理文件选择（只需登录即可，配置由系统自动完成）
   const handleFilesSelected = useCallback((files: File[]) => {
     if (!session) {
       // 未登录，打开登录弹窗
@@ -42,18 +35,9 @@ export default function HomePage() {
       openLoginDialog()
       return
     }
-    if (!isConfigured) {
-      // 未配置，打开配置引导弹窗
-      toast.warning('请先配置 GitHub 仓库', {
-        description: '需要配置仓库信息后才能上传图片',
-        duration: 4000,
-      })
-      openConfigDialog()
-      return
-    }
-    // 已登录已配置，正常上传
+    // 已登录，正常上传（配置由 ConfigDiscovery 自动初始化）
     addFiles(files)
-  }, [session, isConfigured, openLoginDialog, openConfigDialog, addFiles])
+  }, [session, openLoginDialog, addFiles])
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl mx-auto">

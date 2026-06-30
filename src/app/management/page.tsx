@@ -10,10 +10,9 @@ import { ImageGrid } from '@/components/image/ImageGrid'
 import { ImagePreview } from '@/components/image/ImagePreview'
 import { ManagementToolbar } from '@/components/image/ManagementToolbar'
 import { ManagementSkeleton } from '@/components/loading/Skeleton'
-import { useAuthDialog, useConfigDialog } from '@/components/auth'
+import { useAuthDialog } from '@/components/auth'
 import { Image as ImageIcon } from 'lucide-react'
 import { SEARCH_CONFIG } from '@/lib/constants'
-import { debugLog } from '@/lib/debug'
 import type { ImageFile } from '@/types/image'
 
 type SortField = 'name' | 'size' | 'path'
@@ -23,7 +22,6 @@ export default function ManagementPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
   const { openLoginDialog } = useAuthDialog()
-  const { openConfigDialog } = useConfigDialog()
   const configStore = useConfigStore()
 
   const { images, isLoading, handleDelete, handleBulkDelete } = useImages()
@@ -40,21 +38,12 @@ export default function ManagementPage() {
   // 防抖定时器 ref
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null)
 
-  // 检查配置是否完整
-  const isConfigured = configStore.owner && configStore.repo && configStore.branch
-
-  // 未登录时自动打开登录弹窗，已登录但未配置时打开配置弹窗
+  // 未登录时自动打开登录弹窗（配置由 ConfigDiscovery 自动完成）
   useEffect(() => {
-    debugLog('[Management] Status changed:', status, 'Session:', !!session)
     if (status === 'unauthenticated') {
-      debugLog('[Management] Opening login dialog')
       openLoginDialog()
-    } else if (status === 'authenticated' && !isConfigured) {
-      debugLog('[Management] Opening config dialog')
-      // 稍微延迟，让页面先渲染完成
-      setTimeout(() => openConfigDialog(), 300)
     }
-  }, [status, openLoginDialog, openConfigDialog, session, isConfigured])
+  }, [status, openLoginDialog])
 
   // 使用 useMemo 缓存过滤和排序结果
   const filteredImages = useMemo(() => {
@@ -249,24 +238,20 @@ export default function ManagementPage() {
                 <ImageIcon className="h-12 w-12 text-gray-400" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {!isConfigured ? '请先配置图床' : (searchQuery || selectedDirectory ? '没有找到图片' : '暂无图片')}
+                {searchQuery || selectedDirectory ? '没有找到图片' : '暂无图片'}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {!isConfigured
-                  ? '在开始管理图片之前，需要先配置您的 GitHub 仓库'
-                  : searchQuery
+                {searchQuery
                   ? '没有找到匹配 "' + searchQuery + '" 的图片'
                   : selectedDirectory
                   ? '"' + selectedDirectory + '" 目录下没有图片'
                   : '上传您的第一张图片开始使用'}
               </p>
-              {!isConfigured ? (
-                <p className="text-xs text-gray-400 dark:text-gray-500">请先配置您的 GitHub 仓库</p>
-              ) : !searchQuery && !selectedDirectory ? (
+              {!searchQuery && !selectedDirectory && (
                 <Button onClick={() => router.push('/')} className="mt-4">
                   上传图片
                 </Button>
-              ) : null}
+              )}
             </div>
           </div>
         )}

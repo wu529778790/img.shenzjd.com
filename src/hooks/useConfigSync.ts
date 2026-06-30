@@ -35,7 +35,7 @@ function decodeConfigFromBase64(base64: string): string {
 /**
  * 保存配置到 GitHub（使用 Git Data API，自动处理目录创建）
  */
-async function saveConfigToGitHub(
+export async function saveConfigToGitHub(
   config: Config,
   owner: string,
   repo: string,

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { useConfigCheck } from '@/hooks/useConfigCheck'
 import { useSaveConfigToGitHub } from '@/hooks/useConfigSync'
+import { useAutoProvision } from '@/hooks/useAutoProvision'
 import { toast } from 'sonner'
 import { GitHubAPI } from '@/lib/github'
 import { debugLog, debugError, debugWarn } from '@/lib/debug'
@@ -28,6 +29,7 @@ export function ConfigDiscovery() {
   const configStore = useConfigStore()
   const { checkConfig } = useConfigCheck()
   const { mutateAsync: saveMutateAsync } = useSaveConfigToGitHub()
+  const { provision } = useAutoProvision()
   const validatedRef = useRef(false)
   const syncingRef = useRef(false)
   const loadingRef = useRef(false)
@@ -78,7 +80,7 @@ export function ConfigDiscovery() {
     if (status === 'authenticated' && session?.accessToken) {
       checkedSessionRef.current = sessionKey
       loadingRef.current = true
-      checkConfig().then((config) => {
+      checkConfig().then(async (config) => {
         try {
           const store = configStoreRef.current
           if (config) {
@@ -121,10 +123,16 @@ export function ConfigDiscovery() {
               })
             }
           } else {
-            store.updateConfig({
-              compressionEnabled: false,
-              cdn: 'jsdmirror',
-            })
+            // 无远程配置 → 自动创建仓库 + 写入默认配置
+            try {
+              const provisioned = await provision()
+              if (provisioned) {
+                store.updateConfig(provisioned)
+                toast.success('已自动完成图床配置，可以开始上传了！', { duration: 4000 })
+              }
+            } catch (provisionErr) {
+              debugError('[ConfigDiscovery] Auto-provision failed:', provisionErr)
+            }
           }
 
           validateConfiguredRepo()
