@@ -165,6 +165,8 @@
 
   html {
     @apply font-sans scroll-smooth;
+    /* 预留滚动条空间，避免页面切换时滚动条出现/消失导致布局偏移 */
+    scrollbar-gutter: stable;
   }
 
   body {
