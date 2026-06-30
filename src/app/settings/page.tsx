@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { Save, FolderGit, FolderOpen, GitBranch, Loader2 } from 'lucide-react'
+import { Save, FolderGit, FolderOpen, GitBranch, Loader2, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,7 +14,7 @@ import { useAuthDialog } from '@/components/auth'
 const CARD_CLASSES = 'p-6 rounded-2xl bg-card border shadow-sm'
 
 export default function SettingsPage() {
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const { openLoginDialog } = useAuthDialog()
   const configStore = useConfigStore()
 
@@ -149,28 +149,28 @@ export default function SettingsPage() {
           </div>
         </CardAnimation>
 
-        {/* 当前配置信息 */}
-        <CardAnimation delay={0.1} className={`${CARD_CLASSES} mt-6`}>
-          <h3 className="text-sm font-medium text-muted-foreground mb-3">当前配置</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between py-1.5 border-b border-dashed">
-              <span className="text-muted-foreground">用户</span>
-              <span className="font-mono">{session?.user?.name || session?.user?.email || '-'}</span>
+        {/* 查看仓库 */}
+        {configStore.owner && configStore.repo && (
+          <CardAnimation delay={0.1} className={`${CARD_CLASSES} mt-6`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium mb-1">GitHub 仓库</h3>
+                <p className="text-xs text-muted-foreground font-mono">
+                  {configStore.owner}/{configStore.repo}
+                </p>
+              </div>
+              <a
+                href={`https://github.com/${configStore.owner}/${configStore.repo}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border hover:bg-muted transition-colors"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                查看仓库
+              </a>
             </div>
-            <div className="flex justify-between py-1.5 border-b border-dashed">
-              <span className="text-muted-foreground">仓库</span>
-              <span className="font-mono">{configStore.owner || '-'}/{configStore.repo || '-'}</span>
-            </div>
-            <div className="flex justify-between py-1.5 border-b border-dashed">
-              <span className="text-muted-foreground">分支</span>
-              <span className="font-mono">{configStore.branch || '-'}</span>
-            </div>
-            <div className="flex justify-between py-1.5">
-              <span className="text-muted-foreground">目录</span>
-              <span className="font-mono">{configStore.directory || '（根目录）'}</span>
-            </div>
-          </div>
-        </CardAnimation>
+          </CardAnimation>
+        )}
       </PageTransition>
     </div>
   )

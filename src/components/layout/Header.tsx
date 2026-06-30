@@ -2,8 +2,7 @@
 
 import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
-import { FolderGit, LogOut, User, Image as ImageIcon, LinkIcon, Settings } from 'lucide-react'
-import { useConfigStore } from '@/stores/configStore'
+import { FolderGit, LogOut, User, Image as ImageIcon, Settings } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +21,6 @@ export function Header() {
   const { data: session } = useSession()
   const { openLoginDialog } = useAuthDialog()
   const user = session?.user
-  const configStore = useConfigStore()
   const queryClient = useQueryClient()
 
   const handleLogout = async () => {
@@ -32,10 +30,6 @@ export function Header() {
     await signOut({ redirect: false })
     window.location.href = '/'
   }
-
-  const repoUrl = configStore.owner && configStore.repo
-    ? `https://github.com/${configStore.owner}/${configStore.repo}`
-    : null
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200/80 dark:border-gray-800/80 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/70">
@@ -95,17 +89,6 @@ export function Header() {
                       <Settings className="mr-2 h-4 w-4" />
                       <span>设置</span>
                     </DropdownMenuItem>
-                    {repoUrl && (
-                      <a
-                        href={repoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group/dropdown-menu-item relative flex cursor-pointer items-center gap-1.5 rounded-md px-1.5 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-                      >
-                        <LinkIcon className="h-4 w-4" />
-                        <span>查看仓库</span>
-                      </a>
-                    )}
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
