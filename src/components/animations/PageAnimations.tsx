@@ -1,5 +1,6 @@
 'use client'
 
+import type { Variants } from 'framer-motion'
 import { useFramerMotion } from '@/hooks/useFramerMotion'
 
 // ===== 动画变体（纯数据，不依赖 framer-motion） =====
@@ -26,19 +27,19 @@ export const ANIMATION_CONFIG = {
   },
 } as const
 
-export const pageVariants = {
+export const pageVariants: Variants = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: -20 },
 }
 
-export const cardVariants = {
+export const cardVariants: Variants = {
   initial: { opacity: 0, y: 30, scale: 0.95 },
   animate: { opacity: 1, y: 0, scale: 1 },
   exit: { opacity: 0, scale: 0.95 },
 }
 
-export const listItemVariants = {
+export const listItemVariants: Variants = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
 }
@@ -98,7 +99,7 @@ export function PageTransition({ children, className }: PageTransitionProps) {
       initial="initial"
       animate="animate"
       exit="exit"
-      variants={pageVariants as any}
+      variants={pageVariants}
       className={className}
     >
       {children}
@@ -126,7 +127,7 @@ export function CardAnimation({ children, className, delay = 0 }: CardAnimationP
       initial="initial"
       animate="animate"
       exit="exit"
-      variants={cardVariants as any}
+      variants={cardVariants}
       transition={{ delay: delay / 1000 }}
       className={className}
     >
