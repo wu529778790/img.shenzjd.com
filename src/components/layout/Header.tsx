@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
-import { FolderGit, LogOut, User, Image as ImageIcon, LinkIcon } from 'lucide-react'
+import { FolderGit, LogOut, User, Image as ImageIcon, LinkIcon, Settings } from 'lucide-react'
 import { useConfigStore } from '@/stores/configStore'
 import {
   DropdownMenu,
@@ -87,6 +87,13 @@ export function Header() {
                     >
                       <ImageIcon className="mr-2 h-4 w-4" />
                       <span>图片管理</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => window.location.href = '/settings'}
+                      className="cursor-pointer"
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>设置</span>
                     </DropdownMenuItem>
                     {repoUrl && (
                       <a
