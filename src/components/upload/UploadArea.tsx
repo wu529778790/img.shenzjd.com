@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, Image as ImageIcon, ClipboardPaste } from 'lucide-react'
+import { Upload, Image as ImageIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
@@ -24,7 +24,7 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
         setTimeout(() => {
           onFilesSelected(acceptedFiles)
           setIsProcessing(false)
-        }, 100)
+        }, 150) // 优化：延长处理时间，确保反馈可见（>100ms）
       }
     },
     [onFilesSelected]
@@ -66,12 +66,12 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
         e.preventDefault()
         setIsProcessing(true)
         setPasteFlash(true)
-        setTimeout(() => setPasteFlash(false), 400)
+        setTimeout(() => setPasteFlash(false), 600) // 优化：延长闪光效果持续时间
         setTimeout(() => {
           onFilesSelected(imageFiles)
           setIsProcessing(false)
           toast.success(`已粘贴 ${imageFiles.length} 张图片`)
-        }, 100)
+        }, 150) // 优化：延长处理延迟
       }
     }
 
@@ -83,7 +83,7 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
     if (disabled) return
 
     setIsClicking(true)
-    setTimeout(() => setIsClicking(false), 150)
+    setTimeout(() => setIsClicking(false), 200) // 优化：延长点击反馈时间
 
     const input = document.querySelector('input[type="file"]') as HTMLInputElement
     input?.click()
@@ -105,21 +105,26 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       className={cn(
-        'relative min-h-[200px]',
-        'border-2 border-dashed rounded-2xl px-6 py-10 text-center cursor-pointer',
+        'relative min-h-[320px]',
+        'border-2 border-dashed rounded-2xl px-8 py-14 text-center cursor-pointer',
         'transition-all duration-200 ease-[var(--easing-default)]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        // 优化：增强拖拽状态的视觉反馈
         isDragActive || isDragging
-          ? 'border-primary bg-primary/[0.04] shadow-soft-lg scale-[1.01]'
-          : 'border-gray-200 dark:border-gray-700 hover:border-primary/50 hover:bg-primary/[0.02]',
-        disabled && 'opacity-50 cursor-not-allowed',
-        isClicking && 'scale-[0.99]',
-        pasteFlash && 'border-green-500 bg-green-50 dark:bg-green-950/30 scale-[1.01]',
+          ? 'border-primary bg-primary/[0.06] shadow-lg scale-[1.01] border-solid'
+          : 'border-gray-300 dark:border-gray-600 hover:border-primary/60 hover:bg-primary/[0.03] active:bg-primary/[0.05]',
+        // 优化：改进禁用状态（0.38-0.5 透明度）
+        disabled && 'opacity-[0.38] cursor-not-allowed hover:border-gray-300 dark:hover:border-gray-600 hover:bg-transparent',
+        // 优化：改进点击反馈（更明显）
+        isClicking && 'scale-[0.98]',
+        pasteFlash && 'border-green-500 bg-green-50 dark:bg-green-950/30 scale-[1.01] shadow-md',
       )}
       role="button"
       tabIndex={disabled ? -1 : 0}
       aria-label="上传图片区域，拖拽图片到此处或点击选择文件"
       aria-describedby="upload-help-text"
+      // 优化：添加 touch-action 减少移动端延迟
+      style={{ touchAction: 'manipulation' }}
     >
       <input {...getInputProps()} disabled={disabled} />
 
@@ -136,7 +141,7 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
       <div className="flex flex-col items-center">
         {isDragActive ? (
           <>
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 transition-colors">
               <Upload className="h-8 w-8 text-primary" aria-hidden="true" />
             </div>
             <p className="text-lg font-semibold text-foreground">松开以上传</p>
@@ -144,21 +149,24 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
           </>
         ) : (
           <>
-            {/* 图标组合 - 放在视觉容器中 */}
-            <div className="flex items-center justify-center gap-4 mb-5">
-              <div className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                <ImageIcon className="h-7 w-7 text-gray-400 dark:text-gray-500" aria-hidden="true" />
-              </div>
-              <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800/80 flex items-center justify-center">
-                <ClipboardPaste className="h-4 w-4 text-gray-400 dark:text-gray-600" aria-hidden="true" />
-              </div>
+            {/* 优化：图标组合 - 统一尺寸和样式 */}
+            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center transition-all duration-200 hover:bg-primary/15 mb-6">
+              <ImageIcon className="h-10 w-10 text-primary" aria-hidden="true" />
             </div>
-            <p className="text-base font-medium text-foreground">拖拽图片到此处，或点击选择文件</p>
-            <p id="upload-help-text" className="text-sm text-muted-foreground mt-2">
-              支持 PNG、JPG、JPEG、GIF、WEBP 格式，单文件最大 10MB
+
+            {/* 优化：改进文案层级和对比度 */}
+            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              拖拽图片到此处，或点击选择文件
             </p>
-            <p className="text-xs text-muted-foreground/70 mt-1.5">
-              也可以直接 Ctrl+V / Cmd+V 粘贴截图
+            <p id="upload-help-text" className="text-base text-gray-600 dark:text-gray-400 mt-3">
+              支持 PNG、JPG、JPEG、GIF、WEBP 格式
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-500 mt-2 flex items-center justify-center gap-2">
+              <span>单文件最大 10MB</span>
+              <span className="w-1 h-1 rounded-full bg-gray-400" aria-hidden="true" />
+              <span>支持批量上传</span>
+              <span className="w-1 h-1 rounded-full bg-gray-400" aria-hidden="true" />
+              <span>也可以直接 Ctrl+V / Cmd+V 粘贴</span>
             </p>
           </>
         )}

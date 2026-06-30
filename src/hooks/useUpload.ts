@@ -11,7 +11,7 @@ import { useUploadStore } from '@/stores/uploadStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
 import { debugLog, debugError, debugWarn } from '@/lib/debug'  // ✅ 使用调试工具
-import type { LinkOptions, UploadTask } from '@/types/image'
+import type { FileWithPreview, LinkOptions, UploadTask } from '@/types/image'
 
 export function useUpload() {
   const { data: session } = useSession()
@@ -209,16 +209,28 @@ export function useUpload() {
     }
   }, [token, config, updateTask, queryClient])
 
-  // 添加文件到上传队列
+  // 添加文件到上传队列（支持预览）
   const addFiles = useCallback(
     (files: File[]) => {
-      // 为每个文件创建任务，确保 taskId 一致
-      const newTasks: UploadTask[] = files.map((file) => ({
-        id: Math.random().toString(36).substring(7),
-        file,
-        status: 'pending',
-        progress: 0,
-      }))
+      // 为每个文件创建任务，为图片文件添加预览
+      const newTasks: UploadTask[] = files.map((file) => {
+        const task: UploadTask = {
+          id: Math.random().toString(36).substring(7),
+          file,
+          status: 'pending',
+          progress: 0,
+        }
+
+        // 为图片文件添加预览
+        if (file.type.startsWith('image/')) {
+          const previewFile = file as FileWithPreview
+          if (!previewFile.preview) {
+            previewFile.preview = URL.createObjectURL(file)
+          }
+        }
+
+        return task
+      })
 
       // 直接添加到 store，taskId 保持一致性
       useUploadStore.setState((state) => ({

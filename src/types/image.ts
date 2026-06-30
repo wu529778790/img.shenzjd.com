@@ -36,6 +36,11 @@ export interface UploadTask {
   result?: ImageFile
 }
 
+// 带预览的 File 类型（用于客户端）
+export interface FileWithPreview extends File {
+  preview?: string
+}
+
 export interface LinkOptions {
   format: 'markdown' | 'html' | 'bbcode' | 'url'
   cdn: 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages'
