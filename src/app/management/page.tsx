@@ -278,6 +278,7 @@ export default function ManagementPage() {
           image={previewImage}
           images={filteredImages}
           onClose={() => setPreviewImage(null)}
+          onDelete={(id) => handleDelete(id)}
         />
       )}
     </div>

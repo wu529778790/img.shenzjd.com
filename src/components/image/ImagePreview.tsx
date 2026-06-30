@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Image from 'next/image'
-import { X, Download, Copy, Check, ExternalLink, Info, ChevronLeft, ChevronRight } from 'lucide-react'
+import { X, Download, Copy, Check, ExternalLink, Info, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
+import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
+import { ImageCardDeleteConfirm } from './ImageCardDeleteConfirm'
 import { generateLink } from '@/lib/link'
 import { useConfigStore } from '@/stores/configStore'
 import { toast } from 'sonner'
@@ -18,10 +20,13 @@ interface ImagePreviewProps {
   images?: ImageFile[]
   onClose: () => void
   onImageChange?: (image: ImageFile) => void
+  onDelete?: (id: string) => void
 }
 
-export function ImagePreview({ image, images, onClose, onImageChange }: ImagePreviewProps) {
+export function ImagePreview({ image, images, onClose, onImageChange, onDelete }: ImagePreviewProps) {
   const configStore = useConfigStore()
+  const { data: session } = useSession()
+  const token = session?.accessToken || ''
 
   const modalRef = useRef<HTMLDivElement>(null)
   // 跟踪每张图片的加载状态，已加载的图片切换时无需等待
@@ -207,6 +212,9 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
     window.open(url, '_blank', 'noopener,noreferrer')
   }
 
+  // 删除图片
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
   return (
     <AnimatePresence>
       <motion.div
@@ -267,6 +275,19 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
                   <ExternalLink className="h-4 w-4" />
                 </Button>
               </motion.div>
+              {onDelete && (
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="h-9 px-3 text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    aria-label="删除图片"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </motion.div>
+              )}
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button
                   size="sm"
@@ -411,6 +432,20 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
           </div>
         </motion.div>
       </motion.div>
+
+      {/* 删除确认弹窗 */}
+      {onDelete && (
+        <ImageCardDeleteConfirm
+          open={showDeleteConfirm}
+          onOpenChange={setShowDeleteConfirm}
+          image={image}
+          token={token}
+          owner={configStore.owner}
+          repo={configStore.repo}
+          branch={configStore.branch}
+          onDeleted={(id) => onDelete(id)}
+        />
+      )}
     </AnimatePresence>
   )
 }
