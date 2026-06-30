@@ -8,6 +8,8 @@ export interface ConfigState extends Config {
   configLastCheckedAt?: number
   configCheckedRepo?: string
   configCheckedBranch?: string
+  /** 是否已完成首次配置加载（用于区分"首次加载"和"后续同步"） */
+  configInitialized: boolean
 
   updateConfig: (updates: Partial<Config>, onUpdate?: () => void) => void
   resetConfig: () => void
@@ -15,6 +17,7 @@ export interface ConfigState extends Config {
   markConfigChecked: (repo: string, branch: string) => void
   needsConfigCheck: (ttl?: number) => boolean
   invalidateConfigCheck: () => void
+  setConfigInitialized: () => void
 }
 
 const defaultConfig: Config = {
@@ -42,15 +45,16 @@ const defaultConfig: Config = {
 function migrateConfig(persistedState: unknown): ConfigState {
   if (persistedState && typeof persistedState === 'object' && 'state' in persistedState) {
     const v4State = (persistedState as { state: ConfigState }).state
-    return { ...defaultConfig, ...v4State } as ConfigState
+    return { ...defaultConfig, ...v4State, configInitialized: v4State.configInitialized ?? false } as ConfigState
   }
-  return { ...defaultConfig, ...(persistedState as Partial<Config>) } as ConfigState
+  return { ...defaultConfig, ...(persistedState as Partial<Config>), configInitialized: false } as ConfigState
 }
 
 export const useConfigStore = create<ConfigState>()(
   persist(
     () => ({
       ...defaultConfig,
+      configInitialized: false as boolean,
 
       updateConfig: (updates, onUpdate) => {
         useConfigStore.setState((state) => {
@@ -84,7 +88,7 @@ export const useConfigStore = create<ConfigState>()(
       resetConfig: () => {
         pendingTimers.forEach((timer) => clearTimeout(timer))
         pendingTimers.clear()
-        useConfigStore.setState(defaultConfig)
+        useConfigStore.setState({ ...defaultConfig, configInitialized: false })
       },
 
       markConfigChecked: (repo: string, branch: string) => {
@@ -107,6 +111,10 @@ export const useConfigStore = create<ConfigState>()(
           configCheckedRepo: undefined,
           configCheckedBranch: undefined,
         })
+      },
+
+      setConfigInitialized: () => {
+        useConfigStore.setState({ configInitialized: true })
       },
     }),
     {

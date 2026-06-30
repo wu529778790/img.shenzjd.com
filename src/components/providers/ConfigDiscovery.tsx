@@ -83,11 +83,14 @@ export function ConfigDiscovery() {
       checkConfig().then(async (config) => {
         try {
           const store = configStoreRef.current
+          const wasInitialized = store.configInitialized
+
           if (config) {
             const { _remoteUpdatedAt } = config
 
+            // 只有之前已初始化过，且远程确实比本地新，才算"更新"
             let hasRemoteUpdate = false
-            if (_remoteUpdatedAt && store.lastSyncAt) {
+            if (wasInitialized && _remoteUpdatedAt && store.lastSyncAt) {
               const remoteTime = new Date(_remoteUpdatedAt).getTime()
               const localTime = new Date(store.lastSyncAt).getTime()
               hasRemoteUpdate = remoteTime > localTime
@@ -117,13 +120,14 @@ export function ConfigDiscovery() {
               sha: config.sha,
             })
 
+            // 只有非首次加载且有真实更新时才提示
             if (hasRemoteUpdate) {
               toast.success(`配置已同步: ${config.owner}/${config.repo} (${config.branch})`, {
                 duration: 3000,
               })
             }
-          } else {
-            // 无远程配置 → 静默自动创建仓库 + 写入默认配置
+          } else if (!wasInitialized) {
+            // 首次使用且无远程配置 → 静默自动创建
             try {
               const provisioned = await provision()
               if (provisioned) {
@@ -134,6 +138,7 @@ export function ConfigDiscovery() {
             }
           }
 
+          store.setConfigInitialized()
           validateConfiguredRepo()
         } catch (err) {
           debugError('[ConfigDiscovery] Error processing config:', err)
