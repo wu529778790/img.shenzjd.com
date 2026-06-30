@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { useConfigCheck } from '@/hooks/useConfigCheck'
 import { toast } from 'sonner'
+import { GitHubAPI } from '@/lib/github'
+import { debugLog } from '@/lib/debug'
 
 /**
  * 配置发现组件
@@ -12,7 +14,8 @@ import { toast } from 'sonner'
  * 功能：
  * 1. 登录后自动加载配置（只请求一次配置文件）
  * 2. 对比 GitHub 和本地的时间戳，哪个新用哪个
- * 3. 更新 configStore
+ * 3. 验证配置的仓库是否存在，不存在则清除配置并提示
+ * 4. 更新 configStore
  *
  * 优化：
  * - 只请求 .imgx-config/config.json 一个文件
@@ -23,6 +26,7 @@ export function ConfigDiscovery() {
   const { data: session, status } = useSession()
   const configStore = useConfigStore()
   const { checkConfig } = useConfigCheck()
+  const validatedRef = useRef(false)
 
   // 已登录时加载配置
   useEffect(() => {
@@ -72,10 +76,40 @@ export function ConfigDiscovery() {
             })
           }
         }
+
+        // 验证本地配置的仓库是否仍然存在（每次登录只验证一次）
+        validateConfiguredRepo()
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, session, checkConfig])  // ✅ 移除 configStore 依赖，避免死循环
+  }, [status, session, checkConfig])
+
+  // 验证已配置的仓库是否存在
+  async function validateConfiguredRepo() {
+    if (validatedRef.current) return
+    validatedRef.current = true
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('github_token') : null
+    const { owner, repo } = configStore
+    if (!token || !owner || !repo) return
+
+    try {
+      const api = new GitHubAPI(token, owner, repo)
+      await api.getRepo()
+      debugLog('[ConfigDiscovery] Repo exists:', `${owner}/${repo}`)
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response?.status
+      if (status === 404) {
+        debugLog('[ConfigDiscovery] Repo not found, clearing config:', `${owner}/${repo}`)
+        configStore.resetConfig()
+        localStorage.removeItem('config-storage')
+        toast.warning('检测到图床仓库已被删除，请重新配置', {
+          description: `仓库 ${owner}/${repo} 不存在，已清除本地配置`,
+          duration: 6000,
+        })
+      }
+    }
+  }
 
   return null
 }

@@ -102,6 +102,22 @@ export function useImages() {
     gcTime: 5 * 60 * 1000, // 5 分钟
   })
 
+  // 检测仓库是否被删除：404 时清除配置并提示重新配置
+  useEffect(() => {
+    if (error && owner && repo) {
+      const status = (error as { response?: { status?: number } })?.response?.status
+      if (status === 404) {
+        debugLog('[Images] Repo not found (404), clearing config:', `${owner}/${repo}`)
+        configStore.resetConfig()
+        localStorage.removeItem('config-storage')
+        toast.warning('检测到图床仓库已被删除，请重新配置', {
+          description: `仓库 ${owner}/${repo} 已不存在`,
+          duration: 6000,
+        })
+      }
+    }
+  }, [error, owner, repo, configStore])
+
   debugLog('[Images Hook] Query enabled:', !!token && !!owner && !!repo, { token: !!token, owner, repo, branch })
 
   // 用 ref 跟踪 images 变化，供 handleDelete 使用

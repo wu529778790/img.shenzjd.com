@@ -109,7 +109,7 @@ export function useUpload() {
       const result = await api.createOrUpdateFile(
         filePath,
         processedFile,
-        `[skip ci] https://img.shenzjd.com/`,
+        `[skip ci] Upload by https://img.shenzjd.com/`,
         config.branch,
         (progress) => {
           // 实时更新上传进度 (50% -> 90%)
@@ -191,10 +191,20 @@ export function useUpload() {
         status: err.response?.status,
       })
 
+      // 仓库被删除时清除本地配置
+      if (err.response?.status === 404) {
+        config.resetConfig()
+        localStorage.removeItem('config-storage')
+        toast.warning('检测到图床仓库已被删除，请重新配置', {
+          description: `仓库 ${config.owner}/${config.repo} 已不存在`,
+          duration: 6000,
+        })
+      }
+
       updateTask(taskId, {
         status: 'error',
         progress: 0,
-        error: err.message ?? 'Upload failed',
+        error: err.response?.status === 404 ? '仓库不存在，请重新配置图床' : (err.message ?? 'Upload failed'),
       })
     }
   }, [token, config, updateTask, queryClient])
