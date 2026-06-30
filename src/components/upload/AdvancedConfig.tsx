@@ -20,8 +20,8 @@ function ToggleRow({
   return (
     <div className="flex items-center justify-between gap-3 py-2">
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{label}</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>
+        <p className="text-sm font-medium">{label}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
       </div>
       <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
         <input
@@ -30,7 +30,7 @@ function ToggleRow({
           onChange={(e) => onChange(e.target.checked)}
           className="sr-only peer"
         />
-        <div className="w-10 h-[22px] bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+        <div className="w-10 h-[22px] bg-muted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-background after:border after:border-border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" />
       </label>
     </div>
   )
@@ -47,29 +47,29 @@ export function AdvancedConfig() {
     configStore.autoCopyAfterUpload
 
   return (
-    <div className="mt-5 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-sm overflow-hidden">
+    <div className="mt-5 rounded-2xl bg-card border shadow-sm overflow-hidden">
       {/* 折叠头部 */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-muted/50 transition-colors"
       >
         <div className="flex items-center gap-2.5">
-          <SlidersHorizontal className="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">高级配置</span>
+          <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">高级配置</span>
           {hasAdvancedSettings && (
             <span className="w-1.5 h-1.5 rounded-full bg-primary" aria-hidden="true" />
           )}
         </div>
         {expanded ? (
-          <ChevronDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
         ) : (
-          <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden="true" />
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
         )}
       </button>
 
       {/* 折叠内容 */}
       {expanded && (
-        <div className="px-5 pb-5 space-y-1 border-t border-gray-100 dark:border-gray-700/50">
+        <div className="px-5 pb-5 space-y-1 border-t">
           {/* 自动压缩 */}
           <ToggleRow
             label="自动压缩"
@@ -81,7 +81,7 @@ export function AdvancedConfig() {
           {configStore.compressionEnabled && (
             <div className="pl-4 pr-2 py-2 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500 dark:text-gray-400">压缩质量</span>
+                <span className="text-xs text-muted-foreground">压缩质量</span>
                 <span className="text-xs font-mono font-semibold text-primary">
                   {configStore.compressionQuality}%
                 </span>
@@ -120,7 +120,7 @@ export function AdvancedConfig() {
                 value={configStore.watermarkText}
                 onChange={(e) => configStore.updateConfig({ watermarkText: e.target.value })}
                 placeholder="输入水印文字"
-                className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full px-3 py-1.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
           )}
@@ -143,7 +143,7 @@ export function AdvancedConfig() {
           {/* 复制格式 */}
           {configStore.autoCopyAfterUpload && (
             <div className="pl-4 pr-2 py-2 flex items-center justify-between gap-3">
-              <span className="text-xs text-gray-500 dark:text-gray-400">复制格式</span>
+              <span className="text-xs text-muted-foreground">复制格式</span>
               <Select
                 value={configStore.copyFormat}
                 onValueChange={(value) => configStore.updateConfig({ copyFormat: value as 'markdown' | 'html' | 'bbcode' | 'url' })}
@@ -164,8 +164,8 @@ export function AdvancedConfig() {
           {/* CDN 加速 */}
           <div className="flex items-center justify-between gap-3 py-2">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">CDN 加速</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              <p className="text-sm font-medium">CDN 加速</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {configStore.cdn === 'github' && 'GitHub 原始链接'}
                 {configStore.cdn === 'jsdelivr' && 'jsDelivr CDN（全球加速）'}
                 {configStore.cdn === 'jsdmirror' && 'jsDMirror CDN（国内推荐）'}

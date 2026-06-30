@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Poppins } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/providers/SessionProvider";
@@ -16,10 +16,9 @@ const inter = Inter({
   display: 'swap',
 });
 
-const poppins = Poppins({
-  weight: ['400', '500', '600', '700'],
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: '--font-heading',
+  variable: '--font-mono',
   display: 'swap',
 });
 
@@ -34,8 +33,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" suppressHydrationWarning data-scroll-behavior="smooth" className={`${inter.variable} ${poppins.variable}`}>
-      <body className={`${inter.className} antialiased min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-50 dark:from-slate-950 dark:via-gray-950 dark:to-slate-950 transition-colors duration-300`}>
+    <html lang="zh-CN" suppressHydrationWarning data-scroll-behavior="smooth" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+      <body className={`${inter.className} antialiased min-h-screen bg-background text-foreground transition-colors duration-300`}>
         <ReactQueryProvider>
           <AuthProvider>
             <SyncGitHubTokenToLocalStorage />

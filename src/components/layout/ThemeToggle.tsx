@@ -26,14 +26,14 @@ export function ThemeToggle() {
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(
-          'p-2 rounded-lg transition-colors',
-          'hover:bg-gray-100 dark:hover:bg-gray-800',
-          'text-gray-600 dark:text-gray-400',
+          'inline-flex items-center justify-center h-9 w-9 rounded-lg transition-colors',
+          'hover:bg-muted',
+          'text-muted-foreground',
           'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-900'
         )}
         aria-label="切换主题"
       >
-        <CurrentIcon className="h-5 w-5 flex-shrink-0" />
+        <CurrentIcon className="h-5 w-5" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-36">
         {themeOptions.map((option) => {

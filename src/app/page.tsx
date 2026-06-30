@@ -40,12 +40,12 @@ export default function HomePage() {
   }, [session, openLoginDialog, addFiles])
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl mx-auto">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">
       <PageTransition>
-        {/* 优化：上传区域 - 增强卡片样式和阴影 */}
+        {/* 上传区域 */}
         <CardAnimation
           delay={0.1}
-          className="p-6 sm:p-8 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 shadow-lg backdrop-blur-sm"
+          className="p-6 sm:p-8 rounded-2xl bg-card border shadow-sm"
         >
           <UploadArea onFilesSelected={handleFilesSelected} />
 
@@ -64,7 +64,7 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.1 }}
-                  className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200 dark:border-gray-700"
+                  className="flex items-center justify-between mb-4 pb-3 border-b"
                 >
                   <div className="flex items-center gap-2">
                     <Zap className="h-5 w-5 text-primary" aria-hidden="true" />

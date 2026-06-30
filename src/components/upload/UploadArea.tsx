@@ -105,17 +105,14 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       className={cn(
-        'relative min-h-[200px]',
-        'border-2 border-dashed rounded-2xl px-6 py-10 text-center cursor-pointer',
-        'transition-all duration-200 ease-[var(--easing-default)]',
+        'relative min-h-[220px]',
+        'border-2 border-dashed rounded-2xl px-6 py-12 text-center cursor-pointer',
+        'transition-all duration-200',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-        // 优化：增强拖拽状态的视觉反馈
         isDragActive || isDragging
           ? 'border-primary bg-primary/[0.06] shadow-lg scale-[1.01] border-solid'
-          : 'border-gray-300 dark:border-gray-600 hover:border-primary/60 hover:bg-primary/[0.03] active:bg-primary/[0.05]',
-        // 优化：改进禁用状态（0.38-0.5 透明度）
-        disabled && 'opacity-[0.38] cursor-not-allowed hover:border-gray-300 dark:hover:border-gray-600 hover:bg-transparent',
-        // 优化：改进点击反馈（更明显）
+          : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/[0.02]',
+        disabled && 'opacity-40 cursor-not-allowed',
         isClicking && 'scale-[0.98]',
         pasteFlash && 'border-green-500 bg-green-50 dark:bg-green-950/30 scale-[1.01] shadow-md',
       )}
