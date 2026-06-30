@@ -195,8 +195,8 @@ export function useUpload() {
         }
       }
 
-      // 刷新图片列表
-      queryClient.invalidateQueries({ queryKey: ['images', config.owner, config.repo, config.branch] })
+      // 刷新图片列表（前缀匹配，确保不同 config 的 images 查询都能失效）
+      queryClient.invalidateQueries({ queryKey: ['images'] })
     } catch (error) {
       debugError('[Upload] ❌ GitHub API error:', error)
       const err = error as { message?: string; response?: { data?: unknown; status?: number } }
