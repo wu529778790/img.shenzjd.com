@@ -59,10 +59,14 @@ export function Header() {
   const queryClient = useQueryClient()
 
   const handleLogout = async () => {
-    // 先清除本地 token，防止任何竞态
+    // 清除本地 token
     localStorage.removeItem('github_token')
-    // 使用 NextAuth 内置跳转，确保 cookie 清除后再回到首页
-    await signOut({ callbackUrl: '/' })
+    // 清除 React Query 缓存，防止残留用户数据
+    queryClient.clear()
+    // 先调用 NextAuth 服务端清除 cookie（不自动跳转）
+    await signOut({ redirect: false })
+    // 再硬跳转首页，确保页面完全刷新、session 重新获取
+    window.location.href = '/'
   }
 
   // 预加载管理页面数据
