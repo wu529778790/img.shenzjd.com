@@ -12,7 +12,7 @@ export interface ImageFile {
   height?: number
   type: 'file' | 'dir'
   created_at?: string
-  uploaded_at?: Date
+  uploaded_at?: string
 }
 
 // GitHub API 原始文件信息（API 层，与业务层 ImageFile 解耦）

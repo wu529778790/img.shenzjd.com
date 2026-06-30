@@ -1,6 +1,16 @@
 import type { GitHubFileInfo } from '@/types/image'
 import { debugLog, debugWarn, debugError } from './debug'
 
+/**
+ * 浏览器兼容的 UTF-8 base64 编码（替代 Buffer.from）
+ * 确保非 ASCII 字符（如中文文件名）正确编码
+ */
+function encodeBase64(str: string): string {
+  const bytes = new TextEncoder().encode(str)
+  const binary = Array.from(bytes, (byte) => String.fromCharCode(byte)).join('')
+  return btoa(binary)
+}
+
 export interface GitHubRepo {
   id: number
   name: string
@@ -67,16 +77,6 @@ export interface GitHubFileCreateUpdateResponse {
   }
 }
 
-export interface GitHubCommit {
-  sha: string
-  commit: {
-    committer: { date: string; name: string; email: string }
-    author: { date: string; name: string; email: string }
-    message: string
-  }
-  html_url: string
-}
-
 interface GitHubAPIError extends Error {
   response?: {
     status: number
@@ -97,6 +97,8 @@ export class GitHubAPI {
   public repo: string
   private branch: string
   private token: string
+  // API 请求超时（毫秒）
+  static readonly REQUEST_TIMEOUT = 30_000
 
   constructor(token: string, owner: string, repo: string, branch: string = 'main') {
     this.owner = owner
@@ -118,26 +120,45 @@ export class GitHubAPI {
       ...options.headers,
     }
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    })
+    // 添加超时控制，防止请求无限挂起
+    const controller = new AbortController()
+    const timeoutId = setTimeout(
+      () => controller.abort(),
+      GitHubAPI.REQUEST_TIMEOUT
+    )
 
-    if (!response.ok) {
-      const error: GitHubAPIError = new Error(`GitHub API error: ${response.statusText}`)
-      error.response = {
-        status: response.status,
-        data: await response.json().catch(() => null),
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers,
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        const error: GitHubAPIError = new Error(`GitHub API error: ${response.statusText}`)
+        error.response = {
+          status: response.status,
+          data: await response.json().catch(() => null),
+        }
+        throw error
       }
-      throw error
-    }
 
-    // 对于 204 No Content 响应，不解析 JSON
-    if (response.status === 204) {
-      return undefined as T
-    }
+      // 对于 204 No Content 响应，不解析 JSON
+      if (response.status === 204) {
+        return undefined as T
+      }
 
-    return response.json()
+      return response.json()
+    } catch (err) {
+      clearTimeout(timeoutId)
+      // 如果是 AbortController 超时，抛出更友好的错误
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new Error(`GitHub API request timeout (${GitHubAPI.REQUEST_TIMEOUT}ms)`)
+      }
+      throw err
+    }
   }
 
   // 获取当前用户信息
@@ -289,7 +310,7 @@ export class GitHubAPI {
       onProgress?.(50) // 报告 50% 进度（Base64 编码完成）
       debugLog('[GitHub Progress] Reporting 50%')
     } else {
-      contentBase64 = Buffer.from(content).toString('base64')
+      contentBase64 = encodeBase64(content)
       onProgress?.(50)
       debugLog('[GitHub Progress] Reporting 50% (string content)')
     }
@@ -403,41 +424,6 @@ export class GitHubAPI {
     return { successful, failed }
   }
 
-  // 搜索仓库内容
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- _query 是公共 API 占位参数，暂未实现搜索逻辑
-  async searchContent(_query: string): Promise<unknown> {
-    const response = await this.request<unknown>('/search/code', {
-      method: 'GET',
-    })
-    return response
-  }
-
-  // 获取文件的最后提交时间（已废弃，不再使用）
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- _branch 是公共 API 占位参数，方法体未按分支过滤
-  async getFileCommitTime(path: string, _branch?: string): Promise<Date | null> {
-    try {
-      const response = await this.request<GitHubCommit[]>(`/repos/${this.owner}/${this.repo}/commits`, {
-        method: 'GET',
-      })
-
-      if (response && Array.isArray(response) && response.length > 0) {
-        const commitDate = response[0]?.commit?.committer?.date
-        return commitDate ? new Date(commitDate) : null
-      }
-
-      return null
-    } catch (error) {
-      // 如果是速率限制错误，直接抛出以便上层处理
-      if (getErrorStatus(error) === 403) {
-        debugWarn(`[GitHub] Rate limited when fetching commit time for ${path}`)
-        throw error
-      }
-      // 其他错误只记录日志，返回 null
-      debugError(`[GitHub] Failed to get commit time for ${path}:`, (error as Error).message)
-      return null
-    }
-  }
-
   private async blobToBase64(blob: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
@@ -449,9 +435,4 @@ export class GitHubAPI {
       reader.readAsDataURL(blob)
     })
   }
-}
-
-// 工厂函数
-export function createGitHubAPI(token: string, owner: string, repo: string, branch?: string) {
-  return new GitHubAPI(token, owner, repo, branch)
 }

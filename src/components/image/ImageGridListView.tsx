@@ -2,6 +2,7 @@
 
 import { Eye } from 'lucide-react'
 import { formatFileSize } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
 
 interface ImageGridListViewProps {
@@ -17,14 +18,16 @@ export function ImageGridListView({ images, selectedIds, onSelect, selectionMode
       {images.map((image, index) => (
         <div
           key={`${image.id}-${image.path}-${index}`}
-          className="flex items-center gap-4 p-4 rounded-xl border-2
-            bg-white dark:bg-gray-800
-            border-gray-200 dark:border-gray-700
-            hover:border-primary/30 dark:hover:border-primary/30
-            hover:bg-primary/5 dark:hover:bg-primary/10
-            transition-all duration-200 cursor-pointer
-            group
-            ${selectedIds.has(image.id) ? 'border-primary bg-primary/5 dark:bg-primary/10' : ''}"
+          className={cn(
+            'flex items-center gap-4 p-4 rounded-xl border-2',
+            'bg-white dark:bg-gray-800',
+            'border-gray-200 dark:border-gray-700',
+            'hover:border-primary/30 dark:hover:border-primary/30',
+            'hover:bg-primary/5 dark:hover:bg-primary/10',
+            'transition-all duration-200 cursor-pointer',
+            'group',
+            selectedIds.has(image.id) && 'border-primary bg-primary/5 dark:bg-primary/10'
+          )}
           onClick={() => selectionMode && onSelect(image.id, !selectedIds.has(image.id))}
         >
           {selectionMode && (

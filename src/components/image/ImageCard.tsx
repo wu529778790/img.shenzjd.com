@@ -6,6 +6,7 @@ import { MoreVertical, Trash2, Link2 } from 'lucide-react'
 import { formatFileSize } from '@/lib/utils'
 import { generateLink } from '@/lib/link'
 import { getWebPUrl } from '@/lib/webp'
+import { cn } from '@/lib/utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,7 +33,21 @@ interface ImageCardProps {
   onPreview?: (image: ImageFile) => void
 }
 
-export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, selected, selectable, priority, onPreview }: ImageCardProps) {
+/**
+ * 自定义比较函数：当 image 的 id、sha、cdnUrl 未改变时跳过重渲染
+ * 默认浅比较会因每次传入新对象引用而失效
+ */
+function imageCardAreEqual(prev: { image: ImageFile }, next: { image: ImageFile }): boolean {
+  return (
+    prev.image.id === next.image.id &&
+    prev.image.sha === next.image.sha &&
+    prev.image.cdnUrl === next.image.cdnUrl &&
+    prev.image.name === next.image.name &&
+    prev.image.path === next.image.path
+  )
+}
+
+function ImageCardInner({ image, onDelete, onSelect, selected, selectable, priority, onPreview }: ImageCardProps) {
   const { data: session } = useSession()
   const token = session?.accessToken || ''
   const configStore = useConfigStore()
@@ -100,20 +115,20 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
     <>
       {/* 图片卡片 - 简化动画，只保留必要的hover效果 */}
       <div
-        className="
-          group relative overflow-hidden rounded-xl
-          bg-white/80 dark:bg-gray-800/80
-          border border-gray-200/80 dark:border-gray-700/50
-          shadow-modern-sm hover:shadow-modern-md
-          backdrop-blur-sm
-          transition-all duration-200 ease-out
-          cursor-pointer
-          focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
-          dark:focus-visible:ring-offset-gray-900
-          aria-checked:ring-2 aria-checked:ring-primary
-          aria-checked:ring-offset-2 dark:aria-checked:ring-offset-gray-900
-          ${selected ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-900' : ''}
-        "
+        className={cn(
+          'group relative overflow-hidden rounded-xl',
+          'bg-white/80 dark:bg-gray-800/80',
+          'border border-gray-200/80 dark:border-gray-700/50',
+          'shadow-modern-sm hover:shadow-modern-md',
+          'backdrop-blur-sm',
+          'transition-all duration-200 ease-out',
+          'cursor-pointer',
+          'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+          'dark:focus-visible:ring-offset-gray-900',
+          'aria-checked:ring-2 aria-checked:ring-primary',
+          'aria-checked:ring-offset-2 dark:aria-checked:ring-offset-gray-900',
+          selected && 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-900'
+        )}
         style={{
           // 优化重绘性能
           contain: 'layout style',
@@ -240,4 +255,6 @@ export const ImageCard = memo(function ImageCard({ image, onDelete, onSelect, se
 
     </>
   )
-})
+}
+
+export const ImageCard = memo(ImageCardInner, imageCardAreEqual)

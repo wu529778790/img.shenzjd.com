@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useConfigStore } from '@/stores/configStore'
 import type { Config } from '@/types/config'
-import { debugError } from '@/lib/debug'
+import { debugLog, debugError, debugWarn } from '@/lib/debug'
 
 interface SaveConfigResponse {
   success: boolean
@@ -15,6 +15,22 @@ interface LoadConfigResponse {
   success: boolean
   config?: Config
   message?: string
+}
+
+/**
+ * 使用 TextEncoder/TextDecoder 进行 UTF-8 安全的 base64 编解码
+ * 替代已废弃的 escape/unescape，避免非 ASCII 字符损坏
+ */
+function encodeConfigToBase64(content: string): string {
+  const bytes = new TextEncoder().encode(content)
+  const binary = Array.from(bytes, (byte) => String.fromCharCode(byte)).join('')
+  return btoa(binary)
+}
+
+function decodeConfigFromBase64(base64: string): string {
+  const binary = atob(base64)
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
+  return new TextDecoder().decode(bytes)
 }
 
 /**
@@ -34,7 +50,7 @@ async function saveConfigToGitHub(
   }
 
   const configContent = JSON.stringify(config, null, 2)
-  const contentBase64 = btoa(unescape(encodeURIComponent(configContent)))
+  const contentBase64 = encodeConfigToBase64(configContent)
 
   // 编码路径（处理 .imgx-config 等含特殊字符的路径）
   const encodedPath = path.split('/').map(encodeURIComponent).join('/')
@@ -47,11 +63,20 @@ async function saveConfigToGitHub(
       const existing = await fetch(`${apiUrl}?ref=${branch}`, {
         headers: { 'Authorization': `token ${token}` },
       })
+
       if (existing.ok) {
         const existingData = await existing.json()
         effectiveSha = existingData.sha
+      } else if (existing.status === 404) {
+        // 文件不存在，继续创建
+        debugLog('[ConfigSync] Remote config not found (404), will create')
+      } else {
+        debugWarn('[ConfigSync] Unexpected response when checking remote config:', existing.status)
       }
-    } catch { /* 文件不存在，继续创建 */ }
+    } catch (err) {
+      // 网络错误，记录日志后继续尝试创建
+      debugWarn('[ConfigSync] Network error when checking remote config:', err)
+    }
   }
 
   const body: { message: string; content: string; branch: string; sha?: string } = {
@@ -124,7 +149,7 @@ async function loadConfigFromGitHub(
     }
 
     const data = await response.json()
-    const content = decodeURIComponent(escape(atob(data.content)))
+    const content = decodeConfigFromBase64(data.content)
     const config = JSON.parse(content) as Config
 
     return { success: true, config }

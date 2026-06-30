@@ -49,7 +49,8 @@ export function useImages() {
       // 过滤出图片文件 - 使用 Set 提高性能
       const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'])
       const imageFiles = allFiles.filter((file) => {
-        const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'))
+        const lastDot = file.name.lastIndexOf('.')
+        const ext = lastDot > 0 ? file.name.toLowerCase().slice(lastDot) : ''
         debugLog('[Images] Checking file:', { name: file.name, ext, path: file.path, size: file.size })
         return imageExtensions.has(ext)
       })

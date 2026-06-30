@@ -5,6 +5,7 @@ import { Eye } from 'lucide-react'
 import { LazyImageGrid } from './LazyImageGrid'
 import { ErrorBoundary } from '@/components/error/ErrorBoundary'
 import { formatFileSize } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { IMAGE_GRID_CONFIG } from '@/lib/constants'
 import type { ImageFile } from '@/types/image'
 
@@ -97,16 +98,16 @@ export function ImageGrid({
               return (
                 <div
                   key={image.id}
-                  className={`
-                    flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3 rounded-xl border-2
-                    bg-white dark:bg-gray-800
-                    border-gray-200 dark:border-gray-700
-                    hover:border-primary/30 dark:hover:border-primary/30
-                    hover:bg-primary/5 dark:hover:bg-primary/10
-                    transition-all duration-200 cursor-pointer
-                    group
-                    ${selectedIds.has(image.id) ? 'border-primary bg-primary/5 dark:bg-primary/10' : ''}
-                  `}
+                  className={cn(
+                    'flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3 rounded-xl border-2',
+                    'bg-white dark:bg-gray-800',
+                    'border-gray-200 dark:border-gray-700',
+                    'hover:border-primary/30 dark:hover:border-primary/30',
+                    'hover:bg-primary/5 dark:hover:bg-primary/10',
+                    'transition-all duration-200 cursor-pointer',
+                    'group',
+                    selectedIds.has(image.id) && 'border-primary bg-primary/5 dark:bg-primary/10'
+                  )}
                   onClick={handleRowClick}
                 >
                   <input

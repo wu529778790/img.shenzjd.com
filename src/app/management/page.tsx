@@ -152,11 +152,24 @@ export default function ManagementPage() {
 
   const handleBulkCopy = useCallback(async () => {
     const count = selectedIds.size
-    const { toast } = await import('sonner')
-    toast.success(`已复制 ${count} 个链接`)
-    setCopiedIds(new Set(selectedIds))
-    setTimeout(() => setCopiedIds(new Set()), 2000)
-  }, [selectedIds])
+    if (count === 0) return
+
+    // 从 filteredImages 中查找选中的图片并生成链接
+    const selectedImages = filteredImages.filter((img) => selectedIds.has(img.id))
+    const urls = selectedImages.map((img) => img.cdnUrl || img.download_url)
+    const text = urls.join('\n')
+
+    try {
+      await navigator.clipboard.writeText(text)
+      const { toast } = await import('sonner')
+      toast.success(`已复制 ${count} 个链接`)
+      setCopiedIds(new Set(selectedIds))
+      setTimeout(() => setCopiedIds(new Set()), 2000)
+    } catch {
+      const { toast } = await import('sonner')
+      toast.error('复制失败，请重试')
+    }
+  }, [selectedIds, filteredImages])
 
   const handleBulkDeleteWithConfirm = useCallback(() => {
     if (selectedIds.size === 0) return

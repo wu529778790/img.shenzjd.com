@@ -6,6 +6,15 @@ import { useConfigStore } from '@/stores/configStore'
 import type { Config } from '@/types/config'
 import { debugLog, debugError } from '@/lib/debug'
 
+/**
+ * 使用 TextDecoder 进行 UTF-8 安全的 base64 解码
+ */
+function decodeConfigFromBase64(base64: string): string {
+  const binary = atob(base64)
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
+  return new TextDecoder().decode(bytes)
+}
+
 interface ConfigCheckResult extends Config {
   _remoteUpdatedAt?: string
 }
@@ -74,7 +83,7 @@ export function useConfigCheck() {
 
             // 解析配置
             if (!configFile.content) continue
-            const content = decodeURIComponent(escape(atob(configFile.content)))
+            const content = decodeConfigFromBase64(configFile.content)
             const config: Config = JSON.parse(content)
 
             // 获取文件的最后修改时间

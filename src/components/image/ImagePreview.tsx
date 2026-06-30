@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { generateLink } from '@/lib/link'
 import { useConfigStore } from '@/stores/configStore'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn, formatFileSize } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { debugError } from '@/lib/debug'
@@ -151,13 +151,6 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
 
   const handleOpenInNewTab = () => {
     window.open(image.download_url, '_blank', 'noopener,noreferrer')
-  }
-
-  // 格式化文件大小
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / 1024 / 1024).toFixed(2)} MB`
   }
 
   return (

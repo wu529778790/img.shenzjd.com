@@ -59,8 +59,9 @@ export function Header() {
   const queryClient = useQueryClient()
 
   const handleLogout = async () => {
-    // 清除本地 token
+    // 清除本地 token 和配置缓存
     localStorage.removeItem('github_token')
+    localStorage.removeItem('config-storage')
     // 清除 React Query 缓存，防止残留用户数据
     queryClient.clear()
     // 先调用 NextAuth 服务端清除 cookie（不自动跳转）

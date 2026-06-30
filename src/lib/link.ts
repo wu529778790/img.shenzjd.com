@@ -1,7 +1,7 @@
 import type { LinkOptions } from '@/types/image'
 
 export function generateLink(options: LinkOptions): string {
-  const { format, cdn, owner, repo, branch, path, fileName, useRaw = false } = options
+  const { format, cdn, owner, repo, branch, path, fileName, useRaw = true } = options
 
   // 生成基础 URL（先清理 path 中的查询参数）
   // 防止 path 已经包含 ?format=webp 导致重复
@@ -54,16 +54,3 @@ export function generateLink(options: LinkOptions): string {
   }
 }
 
-export function generateLinks(
-  paths: string[],
-  baseOptions: Omit<LinkOptions, 'path'>
-): string[] {
-  return paths.map((path) => {
-    const fileName = path.split('/').pop() || path
-    return generateLink({
-      ...baseOptions,
-      path,
-      fileName,
-    })
-  })
-}
