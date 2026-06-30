@@ -123,12 +123,11 @@ export function ConfigDiscovery() {
               })
             }
           } else {
-            // 无远程配置 → 自动创建仓库 + 写入默认配置
+            // 无远程配置 → 静默自动创建仓库 + 写入默认配置
             try {
               const provisioned = await provision()
               if (provisioned) {
                 store.updateConfig(provisioned)
-                toast.success('已自动完成图床配置，可以开始上传了！', { duration: 4000 })
               }
             } catch (provisionErr) {
               debugError('[ConfigDiscovery] Auto-provision failed:', provisionErr)

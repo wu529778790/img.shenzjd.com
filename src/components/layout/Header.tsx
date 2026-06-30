@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
-import { Upload, Image, Settings, FolderGit, LogOut, User, Menu, X, RotateCcw } from 'lucide-react'
+import { Upload, Image, FolderGit, LogOut, User, Menu, X, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 import { useConfigStore } from '@/stores/configStore'
 import {
@@ -25,7 +25,6 @@ import { useFramerMotion } from '@/hooks/useFramerMotion'
 const navigation = [
   { name: '上传图片', href: '/', icon: Upload },
   { name: '图片管理', href: '/management', icon: Image },
-  { name: '设置', href: '/settings', icon: Settings },
 ]
 
 // 移动端菜单动画配置
