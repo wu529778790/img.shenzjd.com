@@ -75,7 +75,7 @@ export function Header() {
     if (owner && repo && branch) {
       queryClient.prefetchQuery({
         queryKey: ['images', owner, repo, branch],
-        staleTime: 60 * 1000,
+        staleTime: 0, // 与 useImages 保持一致，避免预取后的缓存覆盖
       })
     }
   }
