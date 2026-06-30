@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ChevronDown, ChevronRight, SlidersHorizontal } from 'lucide-react'
 import { useConfigStore } from '@/stores/configStore'
 import { Slider } from '@/components/ui/slider'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 function ToggleRow({
   label,
@@ -133,6 +134,26 @@ export function AdvancedConfig() {
             checked={configStore.autoCopyAfterUpload}
             onChange={(checked) => configStore.updateConfig({ autoCopyAfterUpload: checked })}
           />
+          {/* 复制格式 */}
+          {configStore.autoCopyAfterUpload && (
+            <div className="pl-4 pr-2 py-2 flex items-center justify-between gap-3">
+              <span className="text-xs text-gray-500 dark:text-gray-400">复制格式</span>
+              <Select
+                value={configStore.copyFormat}
+                onValueChange={(value) => configStore.updateConfig({ copyFormat: value as 'markdown' | 'html' | 'bbcode' | 'url' })}
+              >
+                <SelectTrigger className="w-[120px] h-8 text-xs rounded-lg">
+                  <SelectValue placeholder="选择格式" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="markdown">Markdown</SelectItem>
+                  <SelectItem value="url">纯链接</SelectItem>
+                  <SelectItem value="html">HTML</SelectItem>
+                  <SelectItem value="bbcode">BBCode</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
       )}
     </div>
