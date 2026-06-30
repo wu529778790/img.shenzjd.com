@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
-import { FolderGit, LogOut, User, Settings, ChevronDown, Image as ImageIcon } from 'lucide-react'
+import { FolderGit, LogOut, User, Settings, Image as ImageIcon, Menu, X } from 'lucide-react'
+import { useState } from 'react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,23 +17,14 @@ import { Button } from '@/components/ui/button'
 import { useQueryClient } from '@tanstack/react-query'
 import { ThemeToggle } from './ThemeToggle'
 import { useAuthDialog } from '@/components/auth'
-
-const navLinks = [
-  { name: '首页', href: 'https://shenzjd.com' },
-  { name: '在线网盘', href: 'https://alist.shenzjd.com' },
-  { name: '网盘搜索', href: 'https://panhub.shenzjd.com' },
-  { name: '快链', href: 'https://duanlian.shenzjd.com' },
-  { name: '视频解析', href: 'https://parse.shenzjd.com' },
-  { name: '热点聚合', href: 'https://newshub.shenzjd.com' },
-  { name: '个人导航', href: 'https://navhub.shenzjd.com' },
-  { name: '必应壁纸', href: 'https://bing.shenzjd.com' },
-]
+import { navLinks } from '@/lib/constants'
 
 export function Header() {
   const { data: session } = useSession()
   const { openLoginDialog } = useAuthDialog()
   const user = session?.user
   const queryClient = useQueryClient()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleLogout = async () => {
     localStorage.removeItem('github_token')
@@ -45,39 +37,39 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="container mx-auto px-4 max-w-5xl">
-        <div className="flex h-14 items-center gap-4">
+        <div className="flex h-14 items-center gap-3">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group shrink-0">
+          <Link href="/" className="flex items-center gap-1.5 shrink-0">
             <FolderGit className="h-5 w-5 text-primary" />
             <span className="font-bold text-lg gradient-text">ImgX</span>
           </Link>
 
-          {/* 导航 */}
-          <nav className="flex items-center gap-1 ml-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md hover:bg-muted transition-colors">
-                导航
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-44">
-                {navLinks.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                  >
-                    {link.name}
-                  </a>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {/* 导航链接 - 直接展示 */}
+          <nav className="hidden md:flex items-center gap-0.5 ml-1">
+            {navLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2.5 py-1.5 text-[13px] font-medium text-muted-foreground rounded-md hover:bg-muted hover:text-foreground transition-colors"
+              >
+                {link.name}
+              </a>
+            ))}
           </nav>
 
           {/* 右侧 */}
           <div className="flex items-center gap-2 ml-auto">
             <ThemeToggle />
+
+            <button
+              className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="菜单"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
 
             {user ? (
               <DropdownMenu>
@@ -141,6 +133,26 @@ export function Header() {
             )}
           </div>
         </div>
+
+        {/* 移动端导航 */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t py-3">
+            <div className="grid grid-cols-4 gap-1">
+              {navLinks.map((link) => (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center px-2 py-2 text-xs font-medium text-muted-foreground rounded-md hover:bg-muted hover:text-foreground transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {link.name}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   )

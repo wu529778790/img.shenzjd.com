@@ -48,3 +48,20 @@ export const DIRECTORY_CONFIG = {
   DEBOUNCE_MS: 300,       // 目录切换防抖延迟
   MAX_DIRECTORIES: 50,    // 最大目录显示数量
 } as const
+
+export const socialLinks = [
+  { name: 'Telegram', href: 'https://t.me/shenzjd_com', icon: 'telegram' },
+  { name: 'GitHub', href: 'https://github.com/wu529778790', icon: 'github' },
+  { name: 'X', href: 'https://x.com/shenzujiudi', icon: 'x' },
+] as const
+
+export const navLinks = [
+  { name: '首页', href: 'https://shenzjd.com' },
+  { name: '在线网盘', href: 'https://alist.shenzjd.com' },
+  { name: '网盘搜索', href: 'https://panhub.shenzjd.com' },
+  { name: '快链', href: 'https://duanlian.shenzjd.com' },
+  { name: '视频解析', href: 'https://parse.shenzjd.com' },
+  { name: '热点聚合', href: 'https://newshub.shenzjd.com' },
+  { name: '个人导航', href: 'https://navhub.shenzjd.com' },
+  { name: '必应壁纸', href: 'https://bing.shenzjd.com' },
+] as const
