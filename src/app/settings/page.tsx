@@ -3,10 +3,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Trash2, Link2, Globe, Image, Info, RefreshCw, Check, FolderGit, Loader2, Plus } from 'lucide-react'
+import { Trash2, Link2, Globe, Info, RefreshCw, Check, FolderGit, Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Slider } from '@/components/ui/slider'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { useConfigStore, type ConfigState } from '@/stores/configStore'
@@ -25,11 +24,6 @@ import { GitHubAPI } from '@/lib/github'
 const CARD_BASE_CLASSES = 'p-6 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-modern-sm'
 const SECTION_HEADER_CLASSES = 'flex items-center gap-2 mb-4 pb-3 border-b border-gray-200/80 dark:border-gray-700/50'
 const SECTION_TITLE_CLASSES = 'text-xl font-semibold'
-const SUBSECTION_HEADER_CLASSES = 'text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3'
-const ROW_CLASSES = 'flex items-start sm:items-center justify-between gap-4 py-3'
-const ROW_CONTENT_CLASSES = 'flex-1 mr-4'
-const ROW_LABEL_CLASSES = 'font-medium text-sm'
-const ROW_DESCRIPTION_CLASSES = 'text-xs text-gray-500 dark:text-gray-400 mt-1'
 const INPUT_CLASSES = 'w-full px-3 py-2 text-sm font-mono rounded-lg border border-gray-200/80 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
 
 // ── 可复用子组件 ───────────────────────────────────────────────────────────────
@@ -61,145 +55,6 @@ function Toggle({
 }
 
 // ── Section components (defined outside SettingsPage for stable identity) ─────
-
-function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
-  const { updateConfig } = configStore
-
-  return (
-    <CardAnimation delay={0} className={CARD_BASE_CLASSES}>
-      <div className={SECTION_HEADER_CLASSES}>
-        {/* Lucide SVG icon, not an HTML <img> */}
-        {/* eslint-disable-next-line jsx-a11y/alt-text */}
-        <Image className="h-5 w-5 text-primary" aria-hidden="true" />
-        <h2 className={SECTION_TITLE_CLASSES}>图片处理</h2>
-      </div>
-
-      <div className="space-y-6">
-        {/* 压缩设置 */}
-        <div className="space-y-3">
-          <h3 className={SUBSECTION_HEADER_CLASSES}>压缩设置</h3>
-
-          {/* 压缩质量 */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-3 px-2 -mx-2 rounded-lg hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
-            <div className="flex-1 mr-4">
-              <p className={ROW_LABEL_CLASSES}>
-                默认压缩质量
-                <span className="ml-2 font-mono font-semibold text-primary">{configStore.compressionQuality}%</span>
-              </p>
-              <p className={ROW_DESCRIPTION_CLASSES}>
-                调整上传时默认的图片压缩质量
-              </p>
-            </div>
-            <div className="w-full sm:w-48 flex-shrink-0 mt-3 sm:mt-0 py-2">
-              <Slider
-                min={10}
-                max={100}
-                step={10}
-                value={[configStore.compressionQuality]}
-                onValueChange={(value) => updateConfig({ compressionQuality: (value as number[])[0] })}
-              />
-            </div>
-          </div>
-
-          {/* 自动压缩 */}
-          <div className={ROW_CLASSES}>
-            <div className={ROW_CONTENT_CLASSES}>
-              <p className={ROW_LABEL_CLASSES}>自动压缩</p>
-              <p className={ROW_DESCRIPTION_CLASSES}>
-                上传时自动压缩图片以节省空间
-              </p>
-            </div>
-            <Toggle
-              checked={configStore.compressionEnabled}
-              onChange={(checked) => updateConfig({ compressionEnabled: checked })}
-            />
-          </div>
-        </div>
-
-        {/* 水印设置 */}
-        <div className="space-y-3 pt-4 border-t border-gray-100 dark:border-gray-700/50">
-          <h3 className={SUBSECTION_HEADER_CLASSES}>水印设置</h3>
-
-          {/* 默认水印 */}
-          <div className={ROW_CLASSES}>
-            <div className={ROW_CONTENT_CLASSES}>
-              <p className={ROW_LABEL_CLASSES}>默认水印</p>
-              <p className={ROW_DESCRIPTION_CLASSES}>
-                {configStore.watermarkText || '未设置'}
-              </p>
-            </div>
-            <Toggle
-              checked={configStore.watermarkEnabled}
-              onChange={(checked) => updateConfig({ watermarkEnabled: checked })}
-            />
-          </div>
-        </div>
-
-        {/* 文件名设置 */}
-        <div className="space-y-3 pt-4 border-t border-gray-100 dark:border-gray-700/50">
-          <h3 className={SUBSECTION_HEADER_CLASSES}>文件名设置</h3>
-
-          {/* 使用原始文件名 */}
-          <div className={ROW_CLASSES}>
-            <div className={ROW_CONTENT_CLASSES}>
-              <p className={ROW_LABEL_CLASSES}>保留原始文件名</p>
-              <p className={ROW_DESCRIPTION_CLASSES}>
-                关闭时自动使用时间戳命名（推荐）
-              </p>
-            </div>
-            <Toggle
-              checked={configStore.useOriginalFileName}
-              onChange={(checked) => updateConfig({ useOriginalFileName: checked })}
-            />
-          </div>
-        </div>
-
-        {/* 复制链接设置 */}
-        <div className="space-y-3 pt-4 border-t border-gray-100 dark:border-gray-700/50">
-          <h3 className={SUBSECTION_HEADER_CLASSES}>复制链接</h3>
-
-          {/* 自动复制开关 */}
-          <div className={ROW_CLASSES}>
-            <div className={ROW_CONTENT_CLASSES}>
-              <p className={ROW_LABEL_CLASSES}>上传后自动复制</p>
-              <p className={ROW_DESCRIPTION_CLASSES}>
-                上传成功后自动复制链接到剪贴板
-              </p>
-            </div>
-            <Toggle
-              checked={configStore.autoCopyAfterUpload}
-              onChange={(checked) => updateConfig({ autoCopyAfterUpload: checked })}
-            />
-          </div>
-
-          {/* 复制格式 */}
-          <div className={ROW_CLASSES}>
-            <div className={ROW_CONTENT_CLASSES}>
-              <p className={ROW_LABEL_CLASSES}>复制格式</p>
-              <p className={ROW_DESCRIPTION_CLASSES}>
-                选择复制到剪贴板的链接格式
-              </p>
-            </div>
-            <Select
-              value={configStore.copyFormat}
-              onValueChange={(value) => updateConfig({ copyFormat: value as 'markdown' | 'html' | 'bbcode' | 'url' })}
-            >
-              <SelectTrigger className="w-[160px] h-9 rounded-lg">
-                <SelectValue placeholder="选择格式" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="markdown">Markdown</SelectItem>
-                <SelectItem value="url">纯链接</SelectItem>
-                <SelectItem value="html">HTML</SelectItem>
-                <SelectItem value="bbcode">BBCode</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
-    </CardAnimation>
-  )
-}
 
 function ConfigSyncSection({ configStore }: { configStore: ConfigState }) {
   const saveMutation = useSaveConfigToGitHub()
@@ -720,7 +575,6 @@ export default function SettingsPage() {
 
   const sections = [
     { id: 'github-config', label: '图床配置', icon: FolderGit, description: '配置 GitHub 仓库' },
-    { id: 'image',        label: '图片处理', icon: Image, description: '压缩和水印' },
     { id: 'network',      label: 'CDN',      icon: Globe, description: '加速服务' },
     { id: 'config-sync',  label: '配置同步', icon: RefreshCw, description: '同步到 GitHub' },
     { id: 'about',        label: '关于',     icon: Info, description: '版本信息' },
@@ -845,14 +699,13 @@ export default function SettingsPage() {
                 </div>
 
                 {activeSection === 0 && <ConfigSection configStore={configStore} onClearConfig={handleClearConfig} />}
-                {activeSection === 1 && <ImageProcessingSection configStore={configStore} />}
-                {activeSection === 2 && (
+                {activeSection === 1 && (
                   <NetworkSection configStore={configStore} onCdnChange={handleCdnChange} />
                 )}
-                {activeSection === 3 && (
+                {activeSection === 2 && (
                   <ConfigSyncSection configStore={configStore} />
                 )}
-                {activeSection === 4 && <AboutSection />}
+                {activeSection === 3 && <AboutSection />}
               </motion.div>
             </AnimatePresence>
           </main>
