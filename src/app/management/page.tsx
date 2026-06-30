@@ -4,6 +4,7 @@ import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useConfigStore } from '@/stores/configStore'
 import { useImages } from '@/hooks/useImages'
 import { ImageGrid } from '@/components/image/ImageGrid'
@@ -18,7 +19,6 @@ import type { ImageFile } from '@/types/image'
 
 type SortField = 'name' | 'size' | 'path'
 type SortOrder = 'asc' | 'desc'
-type ViewMode = 'grid' | 'list'
 
 export default function ManagementPage() {
   const router = useRouter()
@@ -33,7 +33,6 @@ export default function ManagementPage() {
   const [selectedDirectory, setSelectedDirectory] = useState<string>('')
   const [sortField, setSortField] = useState<SortField>('name')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
-  const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set())
@@ -203,8 +202,6 @@ export default function ManagementPage() {
             directories={directories}
             selectedDirectory={selectedDirectory}
             onDirectoryChange={handleDirectoryChange}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
             selectionMode={selectionMode}
             onToggleSelectionMode={handleToggleSelectionMode}
             selectedCount={selectedIds.size}
@@ -217,6 +214,31 @@ export default function ManagementPage() {
           />
         </div>
 
+        {/* CDN 选择 */}
+        <div className="mb-4 flex items-center gap-3">
+          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">CDN</span>
+          <Select
+            value={configStore.cdn}
+            onValueChange={(value) => configStore.updateConfig({ cdn: value as 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages' })}
+          >
+            <SelectTrigger className="h-8 text-xs rounded-lg w-[160px]">
+              <SelectValue placeholder="选择 CDN" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="github">GitHub 原始</SelectItem>
+              <SelectItem value="jsdelivr">jsDelivr</SelectItem>
+              <SelectItem value="jsdmirror">jsDMirror</SelectItem>
+              <SelectItem value="github-pages">GitHub Pages</SelectItem>
+            </SelectContent>
+          </Select>
+          <span className="text-xs text-gray-400 dark:text-gray-500">
+            {configStore.cdn === 'github' && '原始链接'}
+            {configStore.cdn === 'jsdelivr' && '全球加速'}
+            {configStore.cdn === 'jsdmirror' && '国内加速'}
+            {configStore.cdn === 'github-pages' && 'Pages 托管'}
+          </span>
+        </div>
+
         {/* 图片网格 - 移除 PageTransition 和动画，减少性能开销 */}
         <div className="transition-opacity duration-200">
           <ImageGrid
@@ -224,7 +246,7 @@ export default function ManagementPage() {
             onDelete={handleDelete}
             onBulkDelete={handleBulkDelete}
             isLoading={isLoading}
-            viewMode={viewMode}
+            viewMode="grid"
             selectionMode={selectionMode}
             selectedIds={selectedIds}
             onSelect={(id, selected) => {

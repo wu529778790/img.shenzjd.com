@@ -11,6 +11,7 @@ interface WatermarkWorkerMessage {
     color?: string
     size?: number
     position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+    fileType?: string
   }
 }
 
@@ -44,6 +45,7 @@ self.onmessage = async (e: MessageEvent<WatermarkWorkerMessage>) => {
       color = '#ffffff',
       size = 24,
       position = 'bottom-right',
+      fileType = file.type,
     } = options
 
     ctx.font = `bold ${size}px Arial`
@@ -86,9 +88,9 @@ self.onmessage = async (e: MessageEvent<WatermarkWorkerMessage>) => {
     // 绘制文字
     ctx.fillText(text, x, y)
 
-    // 转换为 Blob
+    // 转换为 Blob（保留原图格式）
     const watermarkedBlob = await canvas.convertToBlob({
-      type: 'image/jpeg',
+      type: fileType,
       quality: 0.9,
     })
 

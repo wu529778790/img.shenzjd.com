@@ -8,8 +8,6 @@ import {
   ArrowUp,
   ArrowDown,
   FolderOpen,
-  LayoutGrid,
-  List,
   CheckSquare,
   Square,
   Copy,
@@ -54,9 +52,6 @@ interface ManagementToolbarProps {
   directories: string[]
   selectedDirectory: string
   onDirectoryChange: (dir: string) => void
-  // 视图
-  viewMode: ViewMode
-  onViewModeChange: (mode: ViewMode) => void
   // 多选
   selectionMode: boolean
   onToggleSelectionMode: () => void
@@ -86,8 +81,6 @@ export function ManagementToolbar({
   directories,
   selectedDirectory,
   onDirectoryChange,
-  viewMode,
-  onViewModeChange,
   selectionMode,
   onToggleSelectionMode,
   selectedCount,
@@ -338,31 +331,6 @@ export function ManagementToolbar({
           {selectionMode ? '退出多选' : '多选'}
         </span>
       </Button>
-
-      {/* 分隔线 */}
-      <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 shrink-0" />
-
-      {/* 视图切换 */}
-      <div className="flex items-center rounded-lg border border-gray-200 dark:border-gray-700 p-0.5 bg-gray-50 dark:bg-gray-900 shrink-0">
-        <Button
-          size="sm"
-          variant={viewMode === 'grid' ? 'default' : 'ghost'}
-          onClick={() => onViewModeChange('grid')}
-          className="h-7 w-7 p-0"
-          title="网格视图"
-        >
-          <LayoutGrid className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          size="sm"
-          variant={viewMode === 'list' ? 'default' : 'ghost'}
-          onClick={() => onViewModeChange('list')}
-          className="h-7 w-7 p-0"
-          title="列表视图"
-        >
-          <List className="h-3.5 w-3.5" />
-        </Button>
-      </div>
     </div>
   )
 }

@@ -47,7 +47,7 @@ export function AdvancedConfig() {
     configStore.autoCopyAfterUpload
 
   return (
-    <div className="mt-8 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-sm overflow-hidden">
+    <div className="mt-5 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-sm overflow-hidden">
       {/* 折叠头部 */}
       <button
         onClick={() => setExpanded(!expanded)}
@@ -154,6 +154,33 @@ export function AdvancedConfig() {
               </Select>
             </div>
           )}
+
+          {/* CDN 加速 */}
+          <div className="flex items-center justify-between gap-3 py-2">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">CDN 加速</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                {configStore.cdn === 'github' && 'GitHub 原始链接'}
+                {configStore.cdn === 'jsdelivr' && 'jsDelivr CDN（全球加速）'}
+                {configStore.cdn === 'jsdmirror' && 'jsDMirror CDN（国内推荐）'}
+                {configStore.cdn === 'github-pages' && 'GitHub Pages'}
+              </p>
+            </div>
+            <Select
+              value={configStore.cdn}
+              onValueChange={(value) => configStore.updateConfig({ cdn: value as 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages' })}
+            >
+              <SelectTrigger className="w-[120px] h-8 text-xs rounded-lg">
+                <SelectValue placeholder="选择 CDN" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="github">GitHub 原始</SelectItem>
+                <SelectItem value="jsdelivr">jsDelivr</SelectItem>
+                <SelectItem value="jsdmirror">jsDMirror</SelectItem>
+                <SelectItem value="github-pages">GitHub Pages</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       )}
     </div>

@@ -4,8 +4,7 @@ import { debugLog, debugError } from './debug'
 export interface CompressionOptions extends Partial<Options> {
   maxSizeMB?: number
   maxWidthOrHeight?: number
-  useWebWorker?: boolean // ✅ 明确指定是否使用 Web Worker
-  fileType?: 'image/jpeg' | 'image/png' | 'image/webp'
+  useWebWorker?: boolean
   initialQuality?: number
 }
 
@@ -19,10 +18,9 @@ export async function compressImage(
 ): Promise<File> {
   // ✅ 优化默认配置：确保使用 Web Worker
   const defaultOptions: Options = {
-    maxSizeMB: options.maxSizeMB ?? 1,
+    maxSizeMB: options.maxSizeMB ?? 100,
     maxWidthOrHeight: options.maxWidthOrHeight ?? 1920,
-    useWebWorker: options.useWebWorker ?? true, // 默认启用 Web Worker
-    fileType: options.fileType ?? 'image/jpeg',
+    useWebWorker: options.useWebWorker ?? true,
     initialQuality: options.initialQuality ?? 0.8,
   }
 

@@ -3,10 +3,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Trash2, Link2, Globe, Info, RefreshCw, Check, FolderGit, Loader2, Plus } from 'lucide-react'
+import { Trash2, RefreshCw, Check, FolderGit, Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { useConfigStore, type ConfigState } from '@/stores/configStore'
 import { useQueryClient } from '@tanstack/react-query'
@@ -25,6 +24,7 @@ const CARD_BASE_CLASSES = 'p-6 rounded-2xl bg-white/80 dark:bg-gray-800/50 borde
 const SECTION_HEADER_CLASSES = 'flex items-center gap-2 mb-4 pb-3 border-b border-gray-200/80 dark:border-gray-700/50'
 const SECTION_TITLE_CLASSES = 'text-xl font-semibold'
 const INPUT_CLASSES = 'w-full px-3 py-2 text-sm font-mono rounded-lg border border-gray-200/80 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
+const ROW_LABEL_CLASSES = 'font-medium text-sm'
 
 // ── 可复用子组件 ───────────────────────────────────────────────────────────────
 
@@ -154,137 +154,6 @@ function ConfigSyncSection({ configStore }: { configStore: ConfigState }) {
             </p>
           )}
         </div>
-      </div>
-    </CardAnimation>
-  )
-}
-
-function NetworkSection({
-  configStore,
-  onCdnChange,
-}: {
-  configStore: ConfigState
-  onCdnChange: (value: string | null) => void
-}) {
-  return (
-    <CardAnimation delay={0} className={CARD_BASE_CLASSES}>
-      <div className={SECTION_HEADER_CLASSES}>
-        <Globe className="h-5 w-5 text-primary" />
-        <h2 className={SECTION_TITLE_CLASSES}>CDN 服务</h2>
-      </div>
-
-      <div className="space-y-3">
-        <Label htmlFor="cdn" className="flex items-center gap-2">
-          <Globe className="h-4 w-4" />
-          CDN 服务
-        </Label>
-        <p className="text-sm text-gray-500 dark:text-gray-400 -mt-2">
-          选择用于加速图片访问的 CDN 服务
-        </p>
-        <Select
-          value={configStore.cdn}
-          onValueChange={onCdnChange}
-        >
-          <SelectTrigger id="cdn" className="w-full h-11 rounded-xl">
-            <SelectValue placeholder="选择 CDN" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="github">
-              <div className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
-                <span>GitHub 原始链接</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="jsdelivr">
-              <div className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
-                <span>jsDelivr CDN</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="jsdmirror">
-              <div className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
-                <span>jsDMirror CDN（国内推荐）</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="github-pages">
-              <div className="flex items-center gap-2">
-                <Link2 className="h-4 w-4" />
-                <span>GitHub Pages</span>
-              </div>
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30">
-          <p className="text-xs text-gray-600 dark:text-gray-400">
-            {configStore.cdn === 'github' && '使用 GitHub 原始链接，直接从 GitHub 服务器加载'}
-            {configStore.cdn === 'jsdelivr' && '使用 jsDelivr CDN，全球加速访问'}
-            {configStore.cdn === 'jsdmirror' && '使用 jsDMirror CDN，国内加速访问（推荐国内用户）'}
-            {configStore.cdn === 'github-pages' && '使用 GitHub Pages 托管（需要启用 Pages）'}
-          </p>
-        </div>
-
-        {/* 使用 raw 链接 */}
-        {configStore.cdn === 'github' && (
-          <AnimatePresence mode="wait">
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.15 }}
-              className="flex items-start sm:items-center justify-between gap-4 p-4 rounded-xl -mx-2 transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-700/20"
-              style={{ minHeight: 80 }}
-            >
-              <div className="flex-1">
-                <p className={ROW_LABEL_CLASSES}>使用 Raw 链接</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  使用 raw.githubusercontent.com 而非 github.com
-                </p>
-              </div>
-              <Toggle
-                checked={configStore.useRaw}
-                onChange={(checked) => onCdnChange(checked ? 'github' : null)}
-              />
-            </motion.div>
-          </AnimatePresence>
-        )}
-      </div>
-    </CardAnimation>
-  )
-}
-
-function AboutSection() {
-  const infoItems = [
-    { label: '版本', value: '1.0.0', isCode: true },
-    { label: '描述', value: '基于 GitHub 的现代化图床服务', isCode: false },
-    { label: '技术栈', value: 'Next.js + TypeScript + Tailwind CSS', isCode: true },
-  ]
-
-  return (
-    <CardAnimation delay={0} className={CARD_BASE_CLASSES}>
-      <div className={SECTION_HEADER_CLASSES}>
-        <Info className="h-5 w-5 text-primary" />
-        <h2 className={SECTION_TITLE_CLASSES}>关于</h2>
-      </div>
-      <div className="space-y-3 text-sm">
-        {infoItems.map((item, index) => (
-          <motion.div
-            key={item.label}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className="flex items-start gap-3"
-          >
-            <span className="text-gray-500 dark:text-gray-400 min-w-[4rem] flex-shrink-0">{item.label}</span>
-            {item.isCode ? (
-              <span className="font-mono text-xs bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded break-all">
-                {item.value}
-              </span>
-            ) : (
-              <span className="break-all">{item.value}</span>
-            )}
-          </motion.div>
-        ))}
       </div>
     </CardAnimation>
   )
@@ -569,15 +438,12 @@ export default function SettingsPage() {
   const { data: session, status } = useSession()
   const { openLoginDialog } = useAuthDialog()
   const configStore: ConfigState = useConfigStore()
-  const queryClient = useQueryClient()
 
   const [activeSection, setActiveSection] = useState(0)
 
   const sections = [
     { id: 'github-config', label: '图床配置', icon: FolderGit, description: '配置 GitHub 仓库' },
-    { id: 'network',      label: 'CDN',      icon: Globe, description: '加速服务' },
     { id: 'config-sync',  label: '配置同步', icon: RefreshCw, description: '同步到 GitHub' },
-    { id: 'about',        label: '关于',     icon: Info, description: '版本信息' },
   ] as const
 
   // 未登录时自动打开登录弹窗
@@ -609,21 +475,6 @@ export default function SettingsPage() {
     configStore.resetConfig()
     toast.success('配置已清空')
     router.push('/config')
-  }
-
-  const handleCdnChange = (value: string | null) => {
-    if (value) {
-      configStore.updateConfig(
-        { cdn: value as 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages' },
-        () => {
-          const { owner, repo, branch } = configStore
-          if (owner && repo && branch) {
-            queryClient.invalidateQueries({ queryKey: ['images', owner, repo, branch] })
-          }
-        }
-      )
-      toast.success('CDN 已更新')
-    }
   }
 
   return (
@@ -700,12 +551,8 @@ export default function SettingsPage() {
 
                 {activeSection === 0 && <ConfigSection configStore={configStore} onClearConfig={handleClearConfig} />}
                 {activeSection === 1 && (
-                  <NetworkSection configStore={configStore} onCdnChange={handleCdnChange} />
-                )}
-                {activeSection === 2 && (
                   <ConfigSyncSection configStore={configStore} />
                 )}
-                {activeSection === 3 && <AboutSection />}
               </motion.div>
             </AnimatePresence>
           </main>

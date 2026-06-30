@@ -3,7 +3,8 @@ export interface WatermarkOptions {
   color?: string
   size?: number
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
-  useWorker?: boolean // ✅ 新增：是否使用 Web Worker
+  useWorker?: boolean
+  fileType?: string
 }
 
 import { debugWarn } from './debug'
@@ -15,22 +16,20 @@ export async function addWatermark(
   file: File,
   options: WatermarkOptions
 ): Promise<Blob> {
-  // 如果启用了 Worker，使用 Worker 版本
   if (options.useWorker !== false) {
     try {
       return await addWatermarkWithWorker(file, options)
     } catch (error) {
       debugWarn('Worker failed, falling back to main thread:', error)
-      // Worker 失败时回退到主线程版本
     }
   }
 
-  // 主线程实现（回退方案）
   const {
     text,
     color = '#ffffff',
     size = 24,
     position = 'bottom-right',
+    fileType = file.type,
   } = options
 
   return new Promise((resolve, reject) => {
@@ -89,7 +88,7 @@ export async function addWatermark(
       // 绘制文字
       ctx.fillText(text, x, y)
 
-      // 转换为 Blob
+      // 转换为 Blob（保留原图格式）
       canvas.toBlob(
         (blob) => {
           if (blob) {
@@ -98,7 +97,7 @@ export async function addWatermark(
             reject(new Error('Failed to create blob'))
           }
         },
-        'image/jpeg',
+        fileType,
         0.9
       )
     }
@@ -120,18 +119,15 @@ async function addWatermarkWithWorker(
   options: WatermarkOptions
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    // 创建 Worker
     const worker = new Worker('/workers/watermark.worker.ts', {
       type: 'module',
     })
 
-    // 设置超时（30秒）
     const timeout = setTimeout(() => {
       worker.terminate()
       reject(new Error('Watermark processing timeout'))
     }, 30000)
 
-    // 监听消息
     worker.onmessage = (e: MessageEvent) => {
       const { type, blob, error } = e.data
 
@@ -146,18 +142,19 @@ async function addWatermarkWithWorker(
       }
     }
 
-    // 监听错误
     worker.onerror = (error) => {
       clearTimeout(timeout)
       worker.terminate()
       reject(new Error(`Worker error: ${error.message}`))
     }
 
-    // 发送任务到 Worker
     worker.postMessage({
       type: 'watermark',
       file,
-      options,
+      options: {
+        ...options,
+        fileType: options.fileType || file.type,
+      },
     })
   })
 }

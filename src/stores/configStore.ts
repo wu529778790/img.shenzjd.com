@@ -22,7 +22,7 @@ const defaultConfig: Config = {
   repo: '',
   branch: 'main',
   directory: '',
-  compressionEnabled: true,
+  compressionEnabled: false,
   compressionQuality: 80,
   watermarkEnabled: false,
   watermarkText: '',
@@ -32,7 +32,7 @@ const defaultConfig: Config = {
   theme: 'system',
   cdn: 'jsdmirror',
   useRaw: true,
-  copyFormat: 'markdown',
+  copyFormat: 'url',
   autoCopyAfterUpload: true,
   // 上传时使用原始文件名（关闭则用时间戳重命名）
   useOriginalFileName: false,
