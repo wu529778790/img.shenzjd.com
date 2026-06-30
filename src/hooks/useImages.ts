@@ -98,7 +98,7 @@ export function useImages() {
       return Array.from(imageMap.values())
     },
     enabled: !!token && !!owner && !!repo,
-    staleTime: 2 * 60 * 1000, // 2 分钟
+    staleTime: 0, // 每次挂载都重新获取，确保上传后立即看到新图片
     gcTime: 5 * 60 * 1000, // 5 分钟
   })
 

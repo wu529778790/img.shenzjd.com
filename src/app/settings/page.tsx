@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { useConfigStore, type ConfigState } from '@/stores/configStore'
 import { useQueryClient } from '@tanstack/react-query'
@@ -496,7 +495,6 @@ function ConfigSection({ configStore, onClearConfig }: { configStore: ConfigStat
   }, [session?.user])
   const [repo, setRepo] = useState(() => configStore.repo || '')
   const [branch, setBranch] = useState(() => configStore.branch || 'main')
-  const [directory, setDirectory] = useState(() => configStore.directory || '')
 
   const { updateConfig } = configStore
 
@@ -543,7 +541,7 @@ function ConfigSection({ configStore, onClearConfig }: { configStore: ConfigStat
           owner: currentUser,
           repo: repoName,
           branch: 'main',
-          directory: 'images',
+          directory: '',
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ['images'] })
@@ -572,7 +570,7 @@ function ConfigSection({ configStore, onClearConfig }: { configStore: ConfigStat
         owner: currentUser,
         repo,
         branch,
-        directory,
+        directory: '',
       },
       () => {
         queryClient.invalidateQueries({ queryKey: ['images'] })
@@ -654,21 +652,6 @@ function ConfigSection({ configStore, onClearConfig }: { configStore: ConfigStat
                 )}
               </select>
             )}
-          </div>
-
-          {/* 图片目录 */}
-          <div>
-            <Label htmlFor="directory" className="mb-2 block">图片目录</Label>
-            <Input
-              id="directory"
-              value={directory}
-              onChange={(e) => setDirectory(e.target.value)}
-              placeholder="images"
-              className="mt-1"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              留空表示上传到仓库根目录
-            </p>
           </div>
 
           <Button onClick={handleManualConfig} className="w-full mt-6">

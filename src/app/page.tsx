@@ -1,16 +1,14 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { useUpload } from '@/hooks/useUpload'
-import { useRepoFolders, type RepoFolder } from '@/hooks/useRepoFolders'
 import { UploadArea } from '@/components/upload/UploadArea'
 import { UploadQueue } from '@/components/upload/UploadQueue'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Sparkles, Zap, FolderOpen } from 'lucide-react'
+import { Sparkles, Zap } from 'lucide-react'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { useAuthDialog, useConfigDialog } from '@/components/auth'
 import { toast } from 'sonner'
@@ -22,8 +20,6 @@ export default function HomePage() {
   const { openConfigDialog } = useConfigDialog()
   const configStore = useConfigStore()
   const { uploadQueue, addFiles, retryTask, retryAllFailed, removeTask } = useUpload()
-  const { data: folders = [] } = useRepoFolders()
-  const foldersList = folders as RepoFolder[]
 
   // ✅ 动态导入 framer-motion，减少首屏 JS 体积
   const Framer = useFramerMotion()
@@ -33,16 +29,6 @@ export default function HomePage() {
   // 检查配置是否完整
   const { owner, repo, branch } = configStore
   const isConfigured = owner && repo && branch
-
-  // 当前选择的文件夹路径
-  const [selectedFolder, setSelectedFolder] = useState(configStore.directory || '')
-
-  // 处理文件夹变更
-  const handleFolderChange = (folderPath: string | null) => {
-    const path = folderPath || ''
-    setSelectedFolder(path)
-    configStore.updateConfig({ directory: path })
-  }
 
   // 处理文件选择（需要登录）
   const handleFilesSelected = useCallback((files: File[]) => {
@@ -93,56 +79,6 @@ export default function HomePage() {
           className="p-8 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 shadow-modern-lg backdrop-blur-sm min-h-[400px]"
         >
           <UploadArea onFilesSelected={handleFilesSelected} />
-
-          {/* 文件夹选择 - 仅登录后显示 */}
-          {session && motion && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="mt-6"
-              aria-label="上传目标文件夹选择"
-            >
-              <div className="p-2.5 rounded-xl bg-gray-50/80 dark:bg-gray-800/30 border border-gray-200/80 dark:border-gray-700/50 backdrop-blur-sm">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <FolderOpen className="h-4 w-4 text-gray-600 dark:text-gray-400 shrink-0" aria-hidden="true" />
-                  <span className="text-xs text-gray-600 dark:text-gray-400">上传到</span>
-                  <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded" aria-label="当前仓库">
-                    {owner}/{repo}
-                  </span>
-                  <span className="text-xs text-gray-400" aria-hidden="true">/</span>
-                  <div className="flex items-center gap-1.5">
-                    <label htmlFor="folder-select" className="text-xs text-gray-600 dark:text-gray-400">
-                      文件夹
-                    </label>
-                    <Select
-                      value={selectedFolder}
-                      onValueChange={handleFolderChange}
-                    >
-                      <SelectTrigger id="folder-select" className="w-[110px] h-8">
-                        <SelectValue placeholder="根目录" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">
-                          <span className="text-gray-500">根目录</span>
-                        </SelectItem>
-                        {foldersList.map((folder) => (
-                          <SelectItem key={folder.path} value={folder.path}>
-                            <span className="font-mono text-sm">{folder.name}</span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {selectedFolder && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
-                      <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded font-mono text-xs" title={selectedFolder}>{selectedFolder}</code>
-                    </span>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
 
           {/* 上传队列 */}
           {AnimatePresence && motion && uploadQueue.length > 0 && (
