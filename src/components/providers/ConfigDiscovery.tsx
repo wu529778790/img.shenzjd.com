@@ -65,6 +65,7 @@ export function ConfigDiscovery() {
           const provisioned = await provision()
           if (provisioned) {
             configStoreRef.current.updateConfig(provisioned)
+            configStoreRef.current.setConfigInitialized()
             debugLog('[ConfigDiscovery] Auto-reprovisioned successfully')
           }
         } catch (provisionErr) {
@@ -144,8 +145,8 @@ export function ConfigDiscovery() {
             }
           }
 
+          await validateConfiguredRepo()
           store.setConfigInitialized()
-          validateConfiguredRepo()
         } catch (err) {
           debugError('[ConfigDiscovery] Error processing config:', err)
         } finally {
