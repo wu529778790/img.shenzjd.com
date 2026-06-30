@@ -157,12 +157,13 @@ async function loadConfigFromGitHub(
  */
 export function useSaveConfigToGitHub() {
   const queryClient = useQueryClient()
-  const configStore = useConfigStore()
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const { owner, repo, branch } = configStore
-      const configPath = configStore.configPath || '.imgx-config/config.json'
+      // 实时读取最新配置（避免 mutation 闭包捕获旧 branch）
+      const cfg = useConfigStore.getState()
+      const { owner, repo, branch } = cfg
+      const configPath = cfg.configPath || '.imgx-config/config.json'
 
       if (!owner || !repo || !branch) {
         return { success: false, message: '请先配置 GitHub 仓库' }
@@ -170,24 +171,24 @@ export function useSaveConfigToGitHub() {
 
       const currentConfig: Config = {
         owner, repo, branch,
-        directory: configStore.directory,
-        compressionEnabled: configStore.compressionEnabled,
-        compressionQuality: configStore.compressionQuality,
-        watermarkEnabled: configStore.watermarkEnabled,
-        watermarkText: configStore.watermarkText,
-        watermarkColor: configStore.watermarkColor,
-        watermarkSize: configStore.watermarkSize,
-        watermarkPosition: configStore.watermarkPosition,
-        theme: configStore.theme,
-        cdn: configStore.cdn,
-        useRaw: configStore.useRaw,
-        copyFormat: configStore.copyFormat,
-        autoCopyAfterUpload: configStore.autoCopyAfterUpload,
-        useOriginalFileName: configStore.useOriginalFileName,
-        configPath: configStore.configPath,
-        autoSync: configStore.autoSync,
-        lastSyncAt: configStore.lastSyncAt,
-        sha: configStore.sha,
+        directory: cfg.directory,
+        compressionEnabled: cfg.compressionEnabled,
+        compressionQuality: cfg.compressionQuality,
+        watermarkEnabled: cfg.watermarkEnabled,
+        watermarkText: cfg.watermarkText,
+        watermarkColor: cfg.watermarkColor,
+        watermarkSize: cfg.watermarkSize,
+        watermarkPosition: cfg.watermarkPosition,
+        theme: cfg.theme,
+        cdn: cfg.cdn,
+        useRaw: cfg.useRaw,
+        copyFormat: cfg.copyFormat,
+        autoCopyAfterUpload: cfg.autoCopyAfterUpload,
+        useOriginalFileName: cfg.useOriginalFileName,
+        configPath: cfg.configPath,
+        autoSync: cfg.autoSync,
+        lastSyncAt: cfg.lastSyncAt,
+        sha: cfg.sha,
       }
       return saveConfigToGitHub(currentConfig, owner, repo, branch, configPath)
     },
