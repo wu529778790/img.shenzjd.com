@@ -1,10 +1,11 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, Image as ImageIcon } from 'lucide-react'
+import { Upload, Image as ImageIcon, ClipboardPaste } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 interface UploadAreaProps {
   onFilesSelected: (files: File[]) => void
@@ -15,12 +16,12 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isClicking, setIsClicking] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [pasteFlash, setPasteFlash] = useState(false)
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       if (acceptedFiles.length > 0) {
         setIsProcessing(true)
-        // 短暂延迟以显示处理状态
         setTimeout(() => {
           onFilesSelected(acceptedFiles)
           setIsProcessing(false)
@@ -43,10 +44,46 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
     onDropRejected: () => setIsDragging(false),
   })
 
+  // 粘贴上传：监听全局粘贴事件
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      if (disabled) return
+
+      const items = e.clipboardData?.items
+      if (!items) return
+
+      const imageFiles: File[] = []
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile()
+          if (file) {
+            imageFiles.push(file)
+          }
+        }
+      }
+
+      if (imageFiles.length > 0) {
+        e.preventDefault()
+        setIsProcessing(true)
+        // 闪烁反馈
+        setPasteFlash(true)
+        setTimeout(() => setPasteFlash(false), 400)
+        setTimeout(() => {
+          onFilesSelected(imageFiles)
+          setIsProcessing(false)
+          toast.success(`已粘贴 ${imageFiles.length} 张图片`)
+        }, 100)
+      }
+    }
+
+    document.addEventListener('paste', handlePaste)
+    return () => document.removeEventListener('paste', handlePaste)
+  }, [disabled, onFilesSelected])
+
   const handleClick = useCallback(() => {
     if (disabled) return
 
-    // 添加点击反馈
     setIsClicking(true)
     setTimeout(() => setIsClicking(false), 150)
 
@@ -78,7 +115,8 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
           ? 'border-primary bg-primary/5 shadow-soft-lg scale-[1.01]'
           : 'border-gray-300 dark:border-gray-600 hover:border-primary hover:shadow-soft-md',
         disabled && 'opacity-50 cursor-not-allowed',
-        isClicking && 'scale-[0.98]'  // 点击反馈
+        isClicking && 'scale-[0.98]',  // 点击反馈
+        pasteFlash && 'border-green-500 bg-green-50 dark:bg-green-950/30 scale-[1.01]',
       )}
       role="button"
       tabIndex={disabled ? -1 : 0}
@@ -106,10 +144,16 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
           </>
         ) : (
           <>
-            <ImageIcon className="mx-auto h-12 w-12 text-gray-400" aria-hidden="true" />
+            <div className="flex items-center gap-3">
+              <ImageIcon className="h-12 w-12 text-gray-400" aria-hidden="true" />
+              <ClipboardPaste className="h-8 w-8 text-gray-300 dark:text-gray-600" aria-hidden="true" />
+            </div>
             <p className="mt-4 text-lg font-medium text-foreground">拖拽图片到此处，或点击选择文件</p>
             <p id="upload-help-text" className="text-sm text-muted-foreground mt-2">
               支持 PNG、JPG、JPEG、GIF、WEBP 格式，单文件最大 10MB
+            </p>
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              也可以直接 Ctrl+V / Cmd+V 粘贴截图
             </p>
             <Button
               type="button"
