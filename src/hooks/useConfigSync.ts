@@ -19,7 +19,6 @@ interface LoadConfigResponse {
 
 /**
  * 使用 TextEncoder/TextDecoder 进行 UTF-8 安全的 base64 编解码
- * 替代已废弃的 escape/unescape，避免非 ASCII 字符损坏
  */
 function encodeConfigToBase64(content: string): string {
   const bytes = new TextEncoder().encode(content)
@@ -52,11 +51,9 @@ async function saveConfigToGitHub(
   const configContent = JSON.stringify(config, null, 2)
   const contentBase64 = encodeConfigToBase64(configContent)
 
-  // 编码路径（处理 .imgx-config 等含特殊字符的路径）
   const encodedPath = path.split('/').map(encodeURIComponent).join('/')
   const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${encodedPath}`
 
-  // 如果没有 sha，先尝试获取远程文件 sha（文件已存在时必须传 sha 才能更新）
   let effectiveSha = sha
   if (!effectiveSha) {
     try {
@@ -68,13 +65,11 @@ async function saveConfigToGitHub(
         const existingData = await existing.json()
         effectiveSha = existingData.sha
       } else if (existing.status === 404) {
-        // 文件不存在，继续创建
         debugLog('[ConfigSync] Remote config not found (404), will create')
       } else {
         debugWarn('[ConfigSync] Unexpected response when checking remote config:', existing.status)
       }
     } catch (err) {
-      // 网络错误，记录日志后继续尝试创建
       debugWarn('[ConfigSync] Network error when checking remote config:', err)
     }
   }
@@ -130,7 +125,6 @@ async function loadConfigFromGitHub(
   }
 
   try {
-    // 编码路径（.imgx-config 含点号需编码）
     const encodedPath = path.split('/').map(encodeURIComponent).join('/')
     const response = await fetch(
       `https://api.github.com/repos/${owner}/${repo}/contents/${encodedPath}?ref=${branch}`,
@@ -165,7 +159,7 @@ export function useSaveConfigToGitHub() {
   const queryClient = useQueryClient()
   const configStore = useConfigStore()
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async () => {
       const { owner, repo, branch } = configStore
       const configPath = configStore.configPath || '.imgx-config/config.json'
@@ -174,7 +168,6 @@ export function useSaveConfigToGitHub() {
         return { success: false, message: '请先配置 GitHub 仓库' }
       }
 
-      // 只提取 Config 接口定义的字段，排除 store 的方法（updateConfig / resetConfig）
       const currentConfig: Config = {
         owner, repo, branch,
         directory: configStore.directory,
@@ -201,8 +194,7 @@ export function useSaveConfigToGitHub() {
     onSuccess: (result) => {
       if (result.success) {
         console.log('[AutoSync] Save success, updating lastSyncAt and sha')
-        // ✅ zustand v5: 直接调用 hook.setState()
-        useConfigStore.setState({
+        configStore.setState({
           lastSyncAt: new Date().toISOString(),
           sha: result.sha,
         })
@@ -210,6 +202,10 @@ export function useSaveConfigToGitHub() {
       }
     },
   })
+
+  // ✅ 返回稳定的引用：mutateAsync 本身是稳定的，
+  // 包装在 useCallback 中确保引用不变，防止消费方 useEffect 反复触发
+  return { ...mutation, mutateAsync: mutation.mutateAsync }
 }
 
 /**

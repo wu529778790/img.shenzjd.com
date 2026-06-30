@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { GitHubAPI } from '@/lib/github'
 import { useConfigStore } from '@/stores/configStore'
+import { debugError } from '@/lib/debug'
 import type { Config } from '@/types/config'
 
 function decodeConfigFromBase64(base64: string): string {
@@ -17,67 +18,59 @@ interface ConfigCheckResult extends Config {
 
 export function useConfigCheck() {
   const configStore = useConfigStore()
+  const configStoreRef = useRef(configStore)
+
+  // ✅ 在 effect 中更新 ref，不在 render 中更新
+  useEffect(() => {
+    configStoreRef.current = configStore
+  }, [configStore])
 
   const checkConfig = useCallback(
     async (force: boolean = false): Promise<ConfigCheckResult | null> => {
-      const startTime = performance.now()
-      console.log('[ConfigCheck] START', { force, cached: !force && !!configStore.configLastCheckedAt })
+      const store = configStoreRef.current
 
-      if (!force && configStore.configLastCheckedAt && !configStore.needsConfigCheck(5 * 60 * 1000)) {
-        console.log('[ConfigCheck] Cached, skipping')
+      if (!force && store.configLastCheckedAt && !store.needsConfigCheck(5 * 60 * 1000)) {
         return null
       }
 
       const token = typeof window !== 'undefined' ? localStorage.getItem('github_token') : null
-      if (!token) {
-        console.log('[ConfigCheck] No token, returning null')
-        return null
-      }
+      if (!token) return null
 
       let timedOut = false
       const timeoutHandle = setTimeout(() => {
         timedOut = true
-        console.warn('[ConfigCheck] TIMEOUT after 20s')
-        configStore.markConfigChecked('img.shenzjd.com', configStore.branch || 'main')
+        store.markConfigChecked('img.shenzjd.com', store.branch || 'main')
       }, 20000)
 
       try {
         const api = new GitHubAPI(token, '', '')
-        console.log('[ConfigCheck] Fetching current user...')
-        const t1 = performance.now()
         const currentUser = await api.getCurrentUser()
-        if (timedOut) { console.log('[ConfigCheck] Aborted (timed out user)'); return null }
-        console.log('[ConfigCheck] Got user:', currentUser.login, 'in', Math.round(performance.now() - t1), 'ms')
+        if (timedOut) return null
         const username = currentUser.login
 
         const repoName = 'img.shenzjd.com'
         const configPath = '.imgx-config/config.json'
 
         const branchesToTry = [
-          configStore.branch,
+          store.branch,
           'main',
           'master',
         ].filter((branch, index, arr) => branch && arr.indexOf(branch) === index)
 
-        console.log('[ConfigCheck] Trying branches:', branchesToTry)
-
         for (const branch of branchesToTry) {
           if (timedOut) break
           try {
-            console.log('[ConfigCheck] Trying branch:', branch)
             const configApi = new GitHubAPI(token, username, repoName, branch)
 
-            const t2 = performance.now()
             const configFile = await configApi.getFile(configPath, branch)
-            if (timedOut) { console.log('[ConfigCheck] Aborted (timed out file)'); break }
-            console.log('[ConfigCheck] Got file from', branch, 'in', Math.round(performance.now() - t2), 'ms')
+            if (timedOut) break
 
             if (!configFile.content) continue
             const content = decodeConfigFromBase64(configFile.content)
             const config: Config = JSON.parse(content)
 
             const fileUpdatedAt = configFile.commit?.commit?.committer?.date || null
-            const localUpdatedAt = configStore.lastSyncAt
+            const localUpdatedAt = store.lastSyncAt
 
             let shouldUseGitHub = true
             if (fileUpdatedAt && localUpdatedAt) {
@@ -86,7 +79,7 @@ export function useConfigCheck() {
               shouldUseGitHub = fileTime > localTime
             }
 
-            configStore.markConfigChecked(repoName, branch)
+            store.markConfigChecked(repoName, branch)
 
             if (shouldUseGitHub) {
               const result: ConfigCheckResult = {
@@ -95,32 +88,26 @@ export function useConfigCheck() {
                 repo: repoName,
                 branch: config.branch || branch,
               }
-              console.log('[ConfigCheck] Using GitHub config from:', branch, 'TOTAL:', Math.round(performance.now() - startTime), 'ms')
               return result
             } else {
-              console.log('[ConfigCheck] Using local config (GitHub older)')
-              console.log('[ConfigCheck] TOTAL:', Math.round(performance.now() - startTime), 'ms')
               return null
             }
-          } catch (err) {
-            console.log('[ConfigCheck] Branch', branch, 'failed:', err)
+          } catch {
             continue
           }
         }
 
-        console.log('[ConfigCheck] All branches failed/timed out, TOTAL:', Math.round(performance.now() - startTime), 'ms')
-        configStore.markConfigChecked(repoName, branchesToTry[0] || 'main')
+        store.markConfigChecked(repoName, branchesToTry[0] || 'main')
         return null
       } catch (error) {
-        console.error('[ConfigCheck] Failed:', error)
-        console.log('[ConfigCheck] TOTAL:', Math.round(performance.now() - startTime), 'ms')
-        configStore.markConfigChecked('img.shenzjd.com', configStore.branch || 'main')
+        debugError('[ConfigCheck] Failed:', error)
+        store.markConfigChecked('img.shenzjd.com', store.branch || 'main')
         return null
       } finally {
         clearTimeout(timeoutHandle)
       }
     },
-    [configStore]
+    [] // ✅ 空依赖数组：通过 ref 获取最新 configStore，避免每次 render 都重新创建
   )
 
   return { checkConfig }

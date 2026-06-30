@@ -27,10 +27,17 @@ export function ConfigDiscovery() {
   const { data: session, status } = useSession()
   const configStore = useConfigStore()
   const { checkConfig } = useConfigCheck()
-  const saveMutation = useSaveConfigToGitHub()
+  const { mutateAsync: saveMutateAsync } = useSaveConfigToGitHub()
   const validatedRef = useRef(false)
   const syncingRef = useRef(false)
-  const loadingRef = useRef(false) // 防止并发执行
+  const loadingRef = useRef(false)
+  const checkedSessionRef = useRef<string>('')
+
+  // ✅ 用 ref 持有最新的 configStore，避免将其放入依赖数组导致 effect 反复触发
+  const configStoreRef = useRef(configStore)
+  useEffect(() => {
+    configStoreRef.current = configStore
+  })
 
   // 验证已配置的仓库是否存在
   async function validateConfiguredRepo() {
@@ -38,7 +45,7 @@ export function ConfigDiscovery() {
     validatedRef.current = true
 
     const token = typeof window !== 'undefined' ? localStorage.getItem('github_token') : null
-    const { owner, repo } = configStore
+    const { owner, repo } = configStoreRef.current
     if (!token || !owner || !repo) return
 
     try {
@@ -61,24 +68,30 @@ export function ConfigDiscovery() {
 
   // 已登录时加载配置
   useEffect(() => {
-    // ✅ 防止并发执行：如果上一次还没完成，跳过
+    // ✅ 双重保护：
+    // 1. checkedSessionRef: 同一 session 只检查一次，防止 effect 重复触发
+    // 2. loadingRef: 防止上一次还没完成时并发执行
+    const sessionKey = session?.accessToken || status
+    if (checkedSessionRef.current === sessionKey) return
     if (loadingRef.current) return
 
     if (status === 'authenticated' && session?.accessToken) {
+      checkedSessionRef.current = sessionKey
       loadingRef.current = true
       checkConfig().then((config) => {
         try {
+          const store = configStoreRef.current
           if (config) {
             const { _remoteUpdatedAt } = config
 
             let hasRemoteUpdate = false
-            if (_remoteUpdatedAt && configStore.lastSyncAt) {
+            if (_remoteUpdatedAt && store.lastSyncAt) {
               const remoteTime = new Date(_remoteUpdatedAt).getTime()
-              const localTime = new Date(configStore.lastSyncAt).getTime()
+              const localTime = new Date(store.lastSyncAt).getTime()
               hasRemoteUpdate = remoteTime > localTime
             }
 
-            configStore.updateConfig({
+            store.updateConfig({
               owner: config.owner,
               repo: config.repo,
               branch: config.branch,
@@ -108,7 +121,7 @@ export function ConfigDiscovery() {
               })
             }
           } else {
-            configStore.updateConfig({
+            store.updateConfig({
               compressionEnabled: false,
               cdn: 'jsdmirror',
             })
@@ -117,13 +130,11 @@ export function ConfigDiscovery() {
           validateConfiguredRepo()
         } catch (err) {
           debugError('[ConfigDiscovery] Error processing config:', err)
-          console.error('[ConfigDiscovery] Error processing config:', err)
         } finally {
           loadingRef.current = false
         }
       }).catch((err) => {
         debugError('[ConfigDiscovery] checkConfig failed:', err)
-        console.error('[ConfigDiscovery] checkConfig failed:', err)
         loadingRef.current = false
       })
     }
@@ -136,23 +147,24 @@ export function ConfigDiscovery() {
 
     const handleConfigUpdate = async (e: Event) => {
       const detail = (e as CustomEvent).detail
-      console.log('[AutoSync] Event received:', !!detail, 'autoSync:', configStore.autoSync)
+      const store = configStoreRef.current
+      debugLog('[AutoSync] Event received:', !!detail, 'autoSync:', store.autoSync)
       if (!detail) return
 
-      if (configStore.autoSync === false) return
+      if (store.autoSync === false) return
 
       if (syncingRef.current) {
-        console.log('[AutoSync] Already syncing, skipping')
+        debugLog('[AutoSync] Already syncing, skipping')
         return
       }
       syncingRef.current = true
 
       try {
-        const { owner, repo, branch } = configStore
+        const { owner, repo, branch } = store
         if (!owner || !repo || !branch) return
 
         debugLog('[AutoSync] Saving config to GitHub...')
-        const result = await saveMutation.mutateAsync()
+        const result = await saveMutateAsync()
         if (result.success) {
           debugLog('[AutoSync] Config saved successfully')
         } else {
@@ -160,7 +172,6 @@ export function ConfigDiscovery() {
         }
       } catch {
         debugError('[AutoSync] Save error')
-        console.error('[AutoSync] Save error')
       } finally {
         syncingRef.current = false
       }
@@ -168,7 +179,8 @@ export function ConfigDiscovery() {
 
     window.addEventListener('config-updated', handleConfigUpdate)
     return () => window.removeEventListener('config-updated', handleConfigUpdate)
-  }, [status, session, configStore, saveMutation])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, session])
 
   return null
 }
