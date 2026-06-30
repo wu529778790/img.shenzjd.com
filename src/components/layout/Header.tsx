@@ -93,9 +93,9 @@ export function Header() {
                         href={repoUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground [&>svg]:size-4 [&>svg]:shrink-0"
+                        className="group/dropdown-menu-item relative flex cursor-pointer items-center gap-1.5 rounded-md px-1.5 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
                       >
-                        <LinkIcon className="mr-0 h-4 w-4" />
+                        <LinkIcon className="h-4 w-4" />
                         <span>查看仓库</span>
                       </a>
                     )}

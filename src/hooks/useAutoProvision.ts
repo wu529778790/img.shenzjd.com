@@ -72,7 +72,7 @@ async function autoProvisionConfig(): Promise<Config | null> {
 
   // 2. 尝试创建仓库（422 = 已存在，忽略错误）
   try {
-    await api.createRepo(REPO_NAME, 'Free image hosting powered by img.shenzjd.com', false)
+    await api.createRepo(REPO_NAME, 'Free image hosting powered by https://img.shenzjd.com', false)
   } catch (err) {
     const status = (err as { response?: { status?: number } })?.response?.status
     if (status === 422) {
