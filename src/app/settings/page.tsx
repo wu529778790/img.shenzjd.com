@@ -26,10 +26,10 @@ const CARD_BASE_CLASSES = 'p-6 rounded-2xl bg-white/80 dark:bg-gray-800/50 borde
 const SECTION_HEADER_CLASSES = 'flex items-center gap-2 mb-4 pb-3 border-b border-gray-200/80 dark:border-gray-700/50'
 const SECTION_TITLE_CLASSES = 'text-xl font-semibold'
 const SUBSECTION_HEADER_CLASSES = 'text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3'
-const ROW_CLASSES = 'flex items-center justify-between gap-4 py-2'
+const ROW_CLASSES = 'flex items-start sm:items-center justify-between gap-4 py-3'
 const ROW_CONTENT_CLASSES = 'flex-1 mr-4'
 const ROW_LABEL_CLASSES = 'font-medium text-sm'
-const ROW_DESCRIPTION_CLASSES = 'text-xs text-gray-500 dark:text-gray-400 mt-0.5'
+const ROW_DESCRIPTION_CLASSES = 'text-xs text-gray-500 dark:text-gray-400 mt-1'
 const INPUT_CLASSES = 'w-full px-3 py-2 text-sm font-mono rounded-lg border border-gray-200/80 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
 
 // ── 可复用子组件 ───────────────────────────────────────────────────────────────
@@ -80,11 +80,14 @@ function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
           <h3 className={SUBSECTION_HEADER_CLASSES}>压缩设置</h3>
 
           {/* 压缩质量 */}
-          <div className="flex items-start sm:items-center justify-between gap-4 py-3 px-2 -mx-2 rounded-lg hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-3 px-2 -mx-2 rounded-lg hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
             <div className="flex-1 mr-4">
-              <p className={ROW_LABEL_CLASSES}>默认压缩质量</p>
+              <p className={ROW_LABEL_CLASSES}>
+                默认压缩质量
+                <span className="ml-2 font-mono font-semibold text-primary">{configStore.compressionQuality}%</span>
+              </p>
               <p className={ROW_DESCRIPTION_CLASSES}>
-                当前: <span className="font-mono font-semibold text-primary">{configStore.compressionQuality}%</span>
+                调整上传时默认的图片压缩质量
               </p>
             </div>
             <div className="w-full sm:w-48 flex-shrink-0 mt-3 sm:mt-0 py-2">
@@ -114,7 +117,7 @@ function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
         </div>
 
         {/* 水印设置 */}
-        <div className="space-y-3 pt-5 border-t border-gray-100 dark:border-gray-700/50">
+        <div className="space-y-3 pt-4 border-t border-gray-100 dark:border-gray-700/50">
           <h3 className={SUBSECTION_HEADER_CLASSES}>水印设置</h3>
 
           {/* 默认水印 */}
@@ -133,7 +136,7 @@ function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
         </div>
 
         {/* 文件名设置 */}
-        <div className="space-y-3 pt-5 border-t border-gray-100 dark:border-gray-700/50">
+        <div className="space-y-3 pt-4 border-t border-gray-100 dark:border-gray-700/50">
           <h3 className={SUBSECTION_HEADER_CLASSES}>文件名设置</h3>
 
           {/* 使用原始文件名 */}
@@ -152,7 +155,7 @@ function ImageProcessingSection({ configStore }: { configStore: ConfigState }) {
         </div>
 
         {/* 复制链接设置 */}
-        <div className="space-y-3 pt-5 border-t border-gray-100 dark:border-gray-700/50">
+        <div className="space-y-3 pt-4 border-t border-gray-100 dark:border-gray-700/50">
           <h3 className={SUBSECTION_HEADER_CLASSES}>复制链接</h3>
 
           {/* 自动复制开关 */}
@@ -615,7 +618,7 @@ function ConfigSection({ configStore, onClearConfig }: { configStore: ConfigStat
         <h2 className={SECTION_TITLE_CLASSES}>图床配置</h2>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-5">
         {/* 一键配置 - 仅在未配置时显示 */}
         {!configStore.owner && (
           <motion.div
@@ -646,7 +649,7 @@ function ConfigSection({ configStore, onClearConfig }: { configStore: ConfigStat
         )}
 
         {/* 手动配置 */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <h3 className="text-lg font-semibold">手动配置</h3>
 
           {/* GitHub 仓库选择 */}
@@ -680,14 +683,14 @@ function ConfigSection({ configStore, onClearConfig }: { configStore: ConfigStat
             )}
           </div>
 
-          <Button onClick={handleManualConfig} className="w-full mt-6">
+          <Button onClick={handleManualConfig} className="w-full mt-4">
             保存配置
           </Button>
         </div>
       </div>
 
       {/* 清空配置 */}
-      <div className="mt-6 pt-6 border-t border-red-100 dark:border-red-900/30">
+      <div className="mt-4 pt-5 border-t border-red-100 dark:border-red-900/30">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
             <p className="font-medium text-red-600 dark:text-red-400">清空配置</p>
