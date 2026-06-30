@@ -41,7 +41,7 @@ export function ConfigDiscovery() {
     configStoreRef.current = configStore
   })
 
-  // 验证已配置的仓库是否存在
+  // 验证已配置的仓库是否存在，不存在则自动重建
   async function validateConfiguredRepo() {
     if (validatedRef.current) return
     validatedRef.current = true
@@ -57,13 +57,19 @@ export function ConfigDiscovery() {
     } catch (error) {
       const status = (error as { response?: { status?: number } })?.response?.status
       if (status === 404) {
-        debugLog('[ConfigDiscovery] Repo not found, clearing config:', `${owner}/${repo}`)
+        debugLog('[ConfigDiscovery] Repo not found, auto-reprovisioning:', `${owner}/${repo}`)
+        // 仓库被删除 → 清除本地配置并静默重建
         configStore.resetConfig()
         localStorage.removeItem('config-storage')
-        toast.warning('检测到图床仓库已被删除，请重新配置', {
-          description: `仓库 ${owner}/${repo} 不存在，已清除本地配置`,
-          duration: 6000,
-        })
+        try {
+          const provisioned = await provision()
+          if (provisioned) {
+            configStoreRef.current.updateConfig(provisioned)
+            debugLog('[ConfigDiscovery] Auto-reprovisioned successfully')
+          }
+        } catch (provisionErr) {
+          debugError('[ConfigDiscovery] Auto-reprovision failed:', provisionErr)
+        }
       }
     }
   }
