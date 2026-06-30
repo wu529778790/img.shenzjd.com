@@ -4,14 +4,13 @@ import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useConfigStore } from '@/stores/configStore'
 import { useImages } from '@/hooks/useImages'
 import { ImageGrid } from '@/components/image/ImageGrid'
 import { ImagePreview } from '@/components/image/ImagePreview'
 import { ManagementToolbar } from '@/components/image/ManagementToolbar'
 import { ManagementSkeleton } from '@/components/loading/Skeleton'
-import { useAuthDialog, useConfigDialog } from '@/components/auth'
+import { useAuthDialog } from '@/components/auth'
 import { Image as ImageIcon } from 'lucide-react'
 import { SEARCH_CONFIG } from '@/lib/constants'
 import { debugLog } from '@/lib/debug'
@@ -24,7 +23,6 @@ export default function ManagementPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
   const { openLoginDialog } = useAuthDialog()
-  const { openConfigDialog } = useConfigDialog()
   const configStore = useConfigStore()
 
   const { images, isLoading, handleDelete, handleBulkDelete } = useImages()
@@ -211,32 +209,9 @@ export default function ManagementPage() {
             onBulkCopy={handleBulkCopy}
             onBulkDelete={handleBulkDeleteWithConfirm}
             copied={copiedIds.size > 0}
+            cdn={configStore.cdn}
+            onCdnChange={(value) => value && configStore.updateConfig({ cdn: value as 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages' })}
           />
-        </div>
-
-        {/* CDN 选择 */}
-        <div className="mb-4 flex items-center gap-3">
-          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">CDN</span>
-          <Select
-            value={configStore.cdn}
-            onValueChange={(value) => configStore.updateConfig({ cdn: value as 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages' })}
-          >
-            <SelectTrigger className="h-8 text-xs rounded-lg w-[160px]">
-              <SelectValue placeholder="选择 CDN" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="github">GitHub 原始</SelectItem>
-              <SelectItem value="jsdelivr">jsDelivr</SelectItem>
-              <SelectItem value="jsdmirror">jsDMirror</SelectItem>
-              <SelectItem value="github-pages">GitHub Pages</SelectItem>
-            </SelectContent>
-          </Select>
-          <span className="text-xs text-gray-400 dark:text-gray-500">
-            {configStore.cdn === 'github' && '原始链接'}
-            {configStore.cdn === 'jsdelivr' && '全球加速'}
-            {configStore.cdn === 'jsdmirror' && '国内加速'}
-            {configStore.cdn === 'github-pages' && 'Pages 托管'}
-          </span>
         </div>
 
         {/* 图片网格 - 移除 PageTransition 和动画，减少性能开销 */}
@@ -281,14 +256,12 @@ export default function ManagementPage() {
                   : '上传您的第一张图片开始使用'}
               </p>
               {!isConfigured ? (
-                <Button onClick={openConfigDialog} className="mt-4">
-                  去配置
-                </Button>
-              ) : !searchQuery && !selectedDirectory && (
+                <p className="text-xs text-gray-400 dark:text-gray-500">请先配置您的 GitHub 仓库</p>
+              ) : !searchQuery && !selectedDirectory ? (
                 <Button onClick={() => router.push('/')} className="mt-4">
                   上传图片
                 </Button>
-              )}
+              ) : null}
             </div>
           </div>
         )}

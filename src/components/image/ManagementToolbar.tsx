@@ -28,6 +28,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { formatFileSize } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
@@ -52,6 +53,9 @@ interface ManagementToolbarProps {
   directories: string[]
   selectedDirectory: string
   onDirectoryChange: (dir: string) => void
+  // CDN
+  cdn: string
+  onCdnChange: (value: string | null) => void
   // 多选
   selectionMode: boolean
   onToggleSelectionMode: () => void
@@ -81,6 +85,8 @@ export function ManagementToolbar({
   directories,
   selectedDirectory,
   onDirectoryChange,
+  cdn,
+  onCdnChange,
   selectionMode,
   onToggleSelectionMode,
   selectedCount,
@@ -331,6 +337,22 @@ export function ManagementToolbar({
           {selectionMode ? '退出多选' : '多选'}
         </span>
       </Button>
+
+      {/* 分隔线 */}
+      <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 shrink-0" />
+
+      {/* CDN 选择 */}
+      <Select value={cdn} onValueChange={onCdnChange}>
+        <SelectTrigger className="h-7 w-[120px] text-xs rounded-md border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <SelectValue placeholder="CDN" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="github">GitHub 原始</SelectItem>
+          <SelectItem value="jsdelivr">jsDelivr</SelectItem>
+          <SelectItem value="jsdmirror">jsDMirror</SelectItem>
+          <SelectItem value="github-pages">GitHub Pages</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
   )
 }

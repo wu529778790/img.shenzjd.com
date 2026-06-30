@@ -4,9 +4,10 @@ import { useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { useConfigCheck } from '@/hooks/useConfigCheck'
+import { useSaveConfigToGitHub } from '@/hooks/useConfigSync'
 import { toast } from 'sonner'
 import { GitHubAPI } from '@/lib/github'
-import { debugLog } from '@/lib/debug'
+import { debugLog, debugError, debugWarn } from '@/lib/debug'
 
 /**
  * 配置发现组件
@@ -26,7 +27,9 @@ export function ConfigDiscovery() {
   const { data: session, status } = useSession()
   const configStore = useConfigStore()
   const { checkConfig } = useConfigCheck()
+  const saveMutation = useSaveConfigToGitHub()
   const validatedRef = useRef(false)
+  const syncingRef = useRef(false)
 
   // 已登录时加载配置
   useEffect(() => {
@@ -50,7 +53,7 @@ export function ConfigDiscovery() {
             repo: config.repo,
             branch: config.branch,
             directory: config.directory || '',
-            compressionEnabled: config.compressionEnabled ?? true,
+            compressionEnabled: config.compressionEnabled ?? false,
             compressionQuality: config.compressionQuality ?? 80,
             watermarkEnabled: config.watermarkEnabled ?? false,
             watermarkText: config.watermarkText || '',
@@ -83,6 +86,45 @@ export function ConfigDiscovery() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, session, checkConfig])
+
+  // 自动同步配置到 GitHub
+  useEffect(() => {
+    if (status !== 'authenticated' || !session?.accessToken) return
+
+    const timer: ReturnType<typeof setTimeout> | null = null
+
+    const handleConfigUpdate = async (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail) return
+
+      // 如果 autoSync 为 false，跳过
+      if (configStore.autoSync === false) return
+
+      // 防抖：避免短时间内多次保存
+      if (syncingRef.current) return
+      syncingRef.current = true
+
+      try {
+        const { owner, repo, branch } = configStore
+        if (!owner || !repo || !branch) return
+
+        debugLog('[AutoSync] Saving config to GitHub...')
+        const result = await saveMutation.mutateAsync()
+        if (result.success) {
+          debugLog('[AutoSync] Config saved successfully')
+        } else {
+          debugWarn('[AutoSync] Save failed:', result.message)
+        }
+      } catch {
+        debugError('[AutoSync] Save error')
+      } finally {
+        syncingRef.current = false
+      }
+    }
+
+    window.addEventListener('config-updated', handleConfigUpdate)
+    return () => window.removeEventListener('config-updated', handleConfigUpdate)
+  }, [status, session, configStore, saveMutation])
 
   // 验证已配置的仓库是否存在
   async function validateConfiguredRepo() {

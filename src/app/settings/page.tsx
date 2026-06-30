@@ -3,14 +3,13 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Trash2, RefreshCw, Check, FolderGit, Loader2, Plus } from 'lucide-react'
+import { Trash2, FolderGit, Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { useConfigStore, type ConfigState } from '@/stores/configStore'
 import { useQueryClient } from '@tanstack/react-query'
 import { useQuery } from '@tanstack/react-query'
-import { useSaveConfigToGitHub } from '@/hooks/useConfigSync'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
 import { motion, AnimatePresence } from 'framer-motion'
 import { debugLog, debugError } from '@/lib/debug'
@@ -23,141 +22,6 @@ import { GitHubAPI } from '@/lib/github'
 const CARD_BASE_CLASSES = 'p-6 rounded-2xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/50 shadow-modern-sm'
 const SECTION_HEADER_CLASSES = 'flex items-center gap-2 mb-4 pb-3 border-b border-gray-200/80 dark:border-gray-700/50'
 const SECTION_TITLE_CLASSES = 'text-xl font-semibold'
-const INPUT_CLASSES = 'w-full px-3 py-2 text-sm font-mono rounded-lg border border-gray-200/80 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
-const ROW_LABEL_CLASSES = 'font-medium text-sm'
-
-// ── 可复用子组件 ───────────────────────────────────────────────────────────────
-
-/**
- * Toggle 开关组件 - 统一开关样式
- */
-function Toggle({
-  checked,
-  onChange,
-  disabled = false,
-}: {
-  checked: boolean
-  onChange: (checked: boolean) => void
-  disabled?: boolean
-}) {
-  return (
-    <label className={cn('relative inline-flex items-center cursor-pointer', disabled && 'cursor-not-allowed opacity-50')}>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        disabled={disabled}
-        className="sr-only peer"
-      />
-      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary peer-disabled:cursor-not-allowed"></div>
-    </label>
-  )
-}
-
-// ── Section components (defined outside SettingsPage for stable identity) ─────
-
-function ConfigSyncSection({ configStore }: { configStore: ConfigState }) {
-  const saveMutation = useSaveConfigToGitHub()
-  const [configPath, setConfigPath] = useState(configStore.configPath || '.imgx-config/config.json')
-  const { updateConfig } = configStore
-
-  const handleSyncToGitHub = async () => {
-    try {
-      const result = await saveMutation.mutateAsync()
-      if (result.success) {
-        toast.success(result.message)
-      } else {
-        toast.error(result.message)
-      }
-    } catch {
-      toast.error('同步失败')
-    }
-  }
-
-  const handleConfigPathChange = (value: string) => {
-    setConfigPath(value)
-    updateConfig({ configPath: value })
-  }
-
-  return (
-    <CardAnimation delay={0} className={CARD_BASE_CLASSES}>
-      <div className={SECTION_HEADER_CLASSES}>
-        <RefreshCw className="h-5 w-5 text-primary" />
-        <h2 className={SECTION_TITLE_CLASSES}>配置同步</h2>
-      </div>
-
-      <div className="space-y-6">
-        {/* 配置路径 */}
-        <div className="flex items-start sm:items-center justify-between gap-4 p-4 rounded-xl -mx-2 transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-700/20">
-          <div className="flex-1">
-            <p className={ROW_LABEL_CLASSES}>配置路径</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              配置将保存到 GitHub 仓库的此路径下
-            </p>
-          </div>
-          <div className="w-full sm:w-64 flex-shrink-0 mt-2 sm:mt-0">
-            <input
-              type="text"
-              value={configPath}
-              onChange={(e) => handleConfigPathChange(e.target.value)}
-              className={INPUT_CLASSES}
-              placeholder=".imgx-config/config.json"
-            />
-          </div>
-        </div>
-
-        {/* 自动同步开关 */}
-        <div className="flex items-start sm:items-center justify-between gap-4 p-4 rounded-xl -mx-2 transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-700/20">
-          <div className="flex-1">
-            <p className={ROW_LABEL_CLASSES}>自动同步</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              配置变更时自动同步到 GitHub
-            </p>
-          </div>
-          <Toggle
-            checked={configStore.autoSync ?? true}
-            onChange={(checked) => updateConfig({ autoSync: checked })}
-          />
-        </div>
-
-        {/* 上次同步时间 */}
-        {configStore.lastSyncAt && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-start gap-3 p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/30"
-          >
-            <Check className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="font-medium text-green-600 dark:text-green-400">已同步</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                上次同步: {new Date(configStore.lastSyncAt).toLocaleString('zh-CN')}
-              </p>
-            </div>
-          </motion.div>
-        )}
-
-        {/* 手动同步按钮 */}
-        <div className="pt-4 border-t border-gray-100 dark:border-gray-700/50">
-          <Button
-            onClick={handleSyncToGitHub}
-            disabled={saveMutation.isPending || !configStore.owner || !configStore.repo}
-            className="w-full"
-            variant="default"
-          >
-            <RefreshCw className={cn('h-4 w-4 mr-2', saveMutation.isPending && 'animate-spin')} />
-            {saveMutation.isPending ? '同步中...' : '立即同步配置到 GitHub'}
-          </Button>
-          {(!configStore.owner || !configStore.repo) && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center">
-              请先在&quot;图床配置&quot;中配置 GitHub 仓库
-            </p>
-          )}
-        </div>
-      </div>
-    </CardAnimation>
-  )
-}
 
 // ── Config Section (moved from /config page) ────────────────────────────────────
 
@@ -443,7 +307,6 @@ export default function SettingsPage() {
 
   const sections = [
     { id: 'github-config', label: '图床配置', icon: FolderGit, description: '配置 GitHub 仓库' },
-    { id: 'config-sync',  label: '配置同步', icon: RefreshCw, description: '同步到 GitHub' },
   ] as const
 
   // 未登录时自动打开登录弹窗
@@ -550,9 +413,6 @@ export default function SettingsPage() {
                 </div>
 
                 {activeSection === 0 && <ConfigSection configStore={configStore} onClearConfig={handleClearConfig} />}
-                {activeSection === 1 && (
-                  <ConfigSyncSection configStore={configStore} />
-                )}
               </motion.div>
             </AnimatePresence>
           </main>
