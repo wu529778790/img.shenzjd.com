@@ -24,19 +24,33 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
   const configStore = useConfigStore()
 
   const modalRef = useRef<HTMLDivElement>(null)
+  // 跟踪每张图片的加载状态，已加载的图片切换时无需等待
+  const loadedImagesRef = useRef<Set<string>>(new Set())
   const [imageLoaded, setImageLoaded] = useState(false)
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null)
 
+  // 当前图片 ID
+  const currentImageId = image.id
+
   // 计算当前图片索引
-  const currentIndex = images?.findIndex(img => img.id === image.id) ?? -1
+  const currentIndex = images?.findIndex(img => img.id === currentImageId) ?? -1
   const hasPrevious = currentIndex > 0
   const hasNext = currentIndex < (images?.length ?? 0) - 1
+
+  // 图片加载完成时标记
+  const handleImageLoad = useCallback(() => {
+    loadedImagesRef.current.add(currentImageId)
+    setImageLoaded(true)
+  }, [currentImageId])
 
   // 切换到指定索引的图片
   const navigateToImage = useCallback((index: number) => {
     if (images?.[index] && index !== currentIndex) {
-      setImageLoaded(false)
-      onImageChange?.(images[index])
+      const targetImage = images[index]
+      // 如果目标图片已经加载过，立即显示
+      const alreadyLoaded = loadedImagesRef.current.has(targetImage.id)
+      setImageLoaded(alreadyLoaded)
+      onImageChange?.(targetImage)
     }
   }, [images, currentIndex, onImageChange])
 
@@ -54,7 +68,45 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
     }
   }, [hasNext, currentIndex, navigateToImage])
 
-  // 键盘导航
+  // 预加载相邻图片，使切换更流畅
+  useEffect(() => {
+    if (!images || images.length <= 1) return
+
+    const prevIdx = currentIndex - 1
+    const nextIdx = currentIndex + 1
+
+    const toPreload: ImageFile[] = []
+    if (prevIdx >= 0 && !loadedImagesRef.current.has(images[prevIdx].id)) {
+      toPreload.push(images[prevIdx])
+    }
+    if (nextIdx < images.length && !loadedImagesRef.current.has(images[nextIdx].id)) {
+      toPreload.push(images[nextIdx])
+    }
+
+    toPreload.forEach((img) => {
+      const url = img.cdnUrl || img.download_url
+      const preloadLink = document.createElement('link')
+      preloadLink.rel = 'preload'
+      preloadLink.as = 'image'
+      preloadLink.href = url
+      document.head.appendChild(preloadLink)
+      // 加载完成后移除 preload link
+      const imgEl = new window.Image()
+      imgEl.src = url
+      imgEl.onload = () => {
+        loadedImagesRef.current.add(img.id)
+        document.head.removeChild(preloadLink)
+      }
+    })
+
+    return () => {
+      toPreload.forEach((img) => {
+        const url = img.cdnUrl || img.download_url
+        const links = document.head.querySelectorAll(`link[rel="preload"][href="${url}"]`)
+        links.forEach((link) => document.head.removeChild(link))
+      })
+    }
+  }, [currentIndex, images])
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
@@ -303,10 +355,10 @@ export function ImagePreview({ image, images, onClose, onImageChange }: ImagePre
               priority
               quality={85}
               unoptimized={!!image.cdnUrl}
-              onLoad={() => setImageLoaded(true)}
+              onLoad={handleImageLoad}
               onError={() => {
                 debugError('Failed to load image:', image.cdnUrl || image.download_url)
-                setImageLoaded(true) // 即使失败也隐藏加载状态
+                handleImageLoad() // 即使失败也标记为已处理
               }}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
             />
