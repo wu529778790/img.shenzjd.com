@@ -73,7 +73,7 @@ export function useImages() {
       imageFiles.forEach((file) => {
         const cdnUrl = generateLink({
           format: 'url',
-          cdn: cdn || 'github',
+          cdn: cdn,
           owner,
           repo,
           branch,

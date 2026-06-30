@@ -145,7 +145,7 @@ export default function HomePage() {
                 支持多种格式上传
               </p>
               <p className="text-sm text-blue-700 dark:text-blue-300">
-                PNG、JPG、JPEG、GIF、WEBP 格式，单文件最大 10MB，支持批量上传和 Ctrl+V / Cmd+V 粘贴
+                PNG、JPG、JPEG、GIF、WEBP 格式，单文件最大 100MB，支持批量上传和 Ctrl+V / Cmd+V 粘贴
               </p>
             </div>
           </div>

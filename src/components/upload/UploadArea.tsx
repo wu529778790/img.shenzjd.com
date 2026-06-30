@@ -162,7 +162,7 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
               支持 PNG、JPG、JPEG、GIF、WEBP 格式
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-1.5 flex items-center justify-center gap-2">
-              <span>单文件最大 10MB</span>
+              <span>单文件最大 100MB</span>
               <span className="w-1 h-1 rounded-full bg-gray-400" aria-hidden="true" />
               <span>支持批量上传</span>
               <span className="w-1 h-1 rounded-full bg-gray-400" aria-hidden="true" />

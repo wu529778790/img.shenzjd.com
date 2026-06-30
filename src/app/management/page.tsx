@@ -10,7 +10,7 @@ import { ImageGrid } from '@/components/image/ImageGrid'
 import { ImagePreview } from '@/components/image/ImagePreview'
 import { ManagementToolbar } from '@/components/image/ManagementToolbar'
 import { ManagementSkeleton } from '@/components/loading/Skeleton'
-import { useAuthDialog } from '@/components/auth'
+import { useAuthDialog, useConfigDialog } from '@/components/auth'
 import { Image as ImageIcon } from 'lucide-react'
 import { SEARCH_CONFIG } from '@/lib/constants'
 import { debugLog } from '@/lib/debug'
@@ -23,6 +23,7 @@ export default function ManagementPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
   const { openLoginDialog } = useAuthDialog()
+  const { openConfigDialog } = useConfigDialog()
   const configStore = useConfigStore()
 
   const { images, isLoading, handleDelete, handleBulkDelete } = useImages()
@@ -42,14 +43,18 @@ export default function ManagementPage() {
   // 检查配置是否完整
   const isConfigured = configStore.owner && configStore.repo && configStore.branch
 
-  // 未登录时自动打开登录弹窗
+  // 未登录时自动打开登录弹窗，已登录但未配置时打开配置弹窗
   useEffect(() => {
-    debugLog('[Management] Status changed:', status, 'Session:', !!session)  // Debug
+    debugLog('[Management] Status changed:', status, 'Session:', !!session)
     if (status === 'unauthenticated') {
-      debugLog('[Management] Opening login dialog')  // Debug
+      debugLog('[Management] Opening login dialog')
       openLoginDialog()
+    } else if (status === 'authenticated' && !isConfigured) {
+      debugLog('[Management] Opening config dialog')
+      // 稍微延迟，让页面先渲染完成
+      setTimeout(() => openConfigDialog(), 300)
     }
-  }, [status, openLoginDialog, session])
+  }, [status, openLoginDialog, openConfigDialog, session, isConfigured])
 
   // 使用 useMemo 缓存过滤和排序结果
   const filteredImages = useMemo(() => {

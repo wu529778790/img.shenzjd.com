@@ -154,8 +154,8 @@ export function useUpload() {
 
       // 生成链接并自动复制到剪贴板
       const linkOptions: LinkOptions = {
-        format: config.copyFormat || 'markdown',
-        cdn: config.cdn || 'github',
+        format: config.copyFormat,
+        cdn: config.cdn,
         owner: config.owner,
         repo: config.repo,
         branch: config.branch,

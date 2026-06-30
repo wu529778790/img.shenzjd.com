@@ -11,10 +11,9 @@ import { useConfigStore, type ConfigState } from '@/stores/configStore'
 import { useQueryClient } from '@tanstack/react-query'
 import { useQuery } from '@tanstack/react-query'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { debugLog, debugError } from '@/lib/debug'
 import { useAuthDialog } from '@/components/auth'
-import { cn } from '@/lib/utils'
 import { GitHubAPI } from '@/lib/github'
 
 // ── 统一样式常量 ───────────────────────────────────────────────────────────────
@@ -303,12 +302,6 @@ export default function SettingsPage() {
   const { openLoginDialog } = useAuthDialog()
   const configStore: ConfigState = useConfigStore()
 
-  const [activeSection, setActiveSection] = useState(0)
-
-  const sections = [
-    { id: 'github-config', label: '图床配置', icon: FolderGit, description: '配置 GitHub 仓库' },
-  ] as const
-
   // 未登录时自动打开登录弹窗
   useEffect(() => {
     debugLog('[Settings] Status changed:', status, 'Session:', !!session)
@@ -343,80 +336,7 @@ export default function SettingsPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <PageTransition>
-        <div className="flex gap-6">
-          {/* Desktop sidebar */}
-          <aside className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-24">
-              <nav className="space-y-1">
-                {sections.map((section, index) => {
-                  const Icon = section.icon
-                  const isActive = activeSection === index
-                  return (
-                    <motion.button
-                      key={section.id}
-                      whileHover={{ x: 4 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setActiveSection(index)}
-                      className={cn(
-                        'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
-                        isActive
-                          ? 'bg-primary/10 text-primary shadow-sm'
-                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                      <div className="flex-1 text-left">
-                        <div>{section.label}</div>
-                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                          {section.description}
-                        </div>
-                      </div>
-                    </motion.button>
-                  )
-                })}
-              </nav>
-            </div>
-          </aside>
-
-          {/* Main content */}
-          <main className="flex-1 min-w-0">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeSection}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.15, ease: 'easeInOut' }}
-                className="space-y-6"
-              >
-                {/* Mobile top tabs */}
-                <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 lg:hidden scrollbar-hide">
-                  {sections.map((section, index) => {
-                    const Icon = section.icon
-                    const isActive = activeSection === index
-                    return (
-                      <button
-                        key={section.id}
-                        onClick={() => setActiveSection(index)}
-                        className={cn(
-                          'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
-                          isActive
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800'
-                        )}
-                      >
-                        <Icon className="h-4 w-4" />
-                        {section.label}
-                      </button>
-                    )
-                  })}
-                </div>
-
-                {activeSection === 0 && <ConfigSection configStore={configStore} onClearConfig={handleClearConfig} />}
-              </motion.div>
-            </AnimatePresence>
-          </main>
-        </div>
+        <ConfigSection configStore={configStore} onClearConfig={handleClearConfig} />
       </PageTransition>
     </div>
   )

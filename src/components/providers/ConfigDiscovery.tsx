@@ -42,8 +42,8 @@ export function ConfigDiscovery() {
           // 检查是否有更新的远程配置
           let hasRemoteUpdate = false
           if (_remoteUpdatedAt && configStore.lastSyncAt) {
-            const remoteTime = new Date(_remoteUpdatedAt)
-            const localTime = new Date(configStore.lastSyncAt)
+            const remoteTime = new Date(_remoteUpdatedAt).getTime()
+            const localTime = new Date(configStore.lastSyncAt).getTime()
             hasRemoteUpdate = remoteTime > localTime
           }
 
@@ -61,9 +61,9 @@ export function ConfigDiscovery() {
             watermarkSize: config.watermarkSize ?? 24,
             watermarkPosition: config.watermarkPosition || 'bottom-right',
             theme: config.theme || 'system',
-            cdn: config.cdn || 'github',
+            cdn: config.cdn || 'jsdmirror',
             useRaw: config.useRaw ?? true,
-            copyFormat: config.copyFormat || 'markdown',
+            copyFormat: config.copyFormat || 'url',
             autoCopyAfterUpload: config.autoCopyAfterUpload ?? true,
             useOriginalFileName: config.useOriginalFileName ?? false,
             configPath: config.configPath || '.imgx-config/config.json',
@@ -78,6 +78,12 @@ export function ConfigDiscovery() {
               duration: 3000,
             })
           }
+        } else {
+          // 远程配置不存在，确保本地使用正确的默认值
+          configStore.updateConfig({
+            compressionEnabled: false,
+            cdn: 'jsdmirror',
+          })
         }
 
         // 验证本地配置的仓库是否仍然存在（每次登录只验证一次）
