@@ -1,27 +1,24 @@
 'use client'
 
-import { motion, Variants } from 'framer-motion'
+import { useFramerMotion } from '@/hooks/useFramerMotion'
 
-// 动画配置常量
+// ===== 动画变体（纯数据，不依赖 framer-motion） =====
+
 export const ANIMATION_CONFIG = {
-  // 基础持续时间 (ms)
   duration: {
-    fast: 100,   // 优化：150 → 100
-    normal: 200, // 优化：250 → 200
-    slow: 300,   // 优化：400 → 300
+    fast: 100,
+    normal: 200,
+    slow: 300,
   },
-  // 交错延迟 (ms) - 优化性能，减少延迟并设置上限
   stagger: {
-    small: 5,    // 优化：30 → 5（极大减少）
-    medium: 10,  // 优化：50 → 10
-    large: 20,   // 优化：80 → 20
+    small: 5,
+    medium: 10,
+    large: 20,
   },
-  // 缩放效果
   scale: {
     hover: 1.02,
     tap: 0.98,
   },
-  // 缓动函数
   easing: {
     easeOut: 'easeOut',
     easeIn: 'easeIn',
@@ -29,73 +26,23 @@ export const ANIMATION_CONFIG = {
   },
 } as const
 
-// 页面进入动画
-export const pageVariants: Variants = {
-  initial: {
-    opacity: 0,
-    y: 20,
-  },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: ANIMATION_CONFIG.duration.normal / 1000,
-      ease: ANIMATION_CONFIG.easing.easeOut,
-    },
-  },
-  exit: {
-    opacity: 0,
-    y: -20,
-    transition: {
-      duration: ANIMATION_CONFIG.duration.fast / 1000,
-      ease: ANIMATION_CONFIG.easing.easeIn,
-    },
-  },
+export const pageVariants = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
 }
 
-// 卡片进入动画
-export const cardVariants: Variants = {
-  initial: {
-    opacity: 0,
-    y: 30,
-    scale: 0.95,
-  },
-  animate: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      duration: ANIMATION_CONFIG.duration.normal / 1000,
-      ease: ANIMATION_CONFIG.easing.easeOut,
-    },
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.95,
-    transition: {
-      duration: ANIMATION_CONFIG.duration.fast / 1000,
-    },
-  },
+export const cardVariants = {
+  initial: { opacity: 0, y: 30, scale: 0.95 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, scale: 0.95 },
 }
 
-// 列表项交错进入动画
-export const listItemVariants: Variants = {
-  initial: {
-    opacity: 0,
-    y: 20,
-  },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: ANIMATION_CONFIG.duration.normal / 1000,
-      ease: ANIMATION_CONFIG.easing.easeOut,
-    },
-  },
+export const listItemVariants = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
 }
 
-// 创建一个交错动画的列表
-// baseDelay: 交错延迟（ms），用于 staggerChildren，值越大列表越长动画越慢
 export function createStaggerVariants(baseDelay: number = ANIMATION_CONFIG.stagger.small) {
   return {
     animate: {
@@ -106,25 +53,56 @@ export function createStaggerVariants(baseDelay: number = ANIMATION_CONFIG.stagg
   }
 }
 
+export const fadeVariants = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+}
+
+export const scaleVariants = {
+  initial: { scale: 0.9, opacity: 0 },
+  animate: { scale: 1, opacity: 1 },
+  exit: { scale: 0.9, opacity: 0 },
+}
+
+export const slideInRightVariants = {
+  initial: { x: 100, opacity: 0 },
+  animate: { x: 0, opacity: 1 },
+  exit: { x: 100, opacity: 0 },
+}
+
+export const slideInUpVariants = {
+  initial: { y: 50, opacity: 0 },
+  animate: { y: 0, opacity: 1 },
+  exit: { y: 50, opacity: 0 },
+}
+
+// ===== 动画组件（使用动态加载的 framer-motion） =====
+
 interface PageTransitionProps {
   children: React.ReactNode
   className?: string
 }
 
-/**
- * 页面过渡包装器
- */
 export function PageTransition({ children, className }: PageTransitionProps) {
+  const Framer = useFramerMotion()
+  const motion = Framer?.motion
+
+  if (!motion) {
+    return <div className={className}>{children}</div>
+  }
+
+  const MotionDiv = motion.div
   return (
-    <motion.div
+    <MotionDiv
       initial="initial"
       animate="animate"
       exit="exit"
-      variants={pageVariants}
+      variants={pageVariants as any}
       className={className}
     >
       {children}
-    </motion.div>
+    </MotionDiv>
   )
 }
 
@@ -134,21 +112,26 @@ interface CardAnimationProps {
   delay?: number
 }
 
-/**
- * 带动画的卡片容器
- */
 export function CardAnimation({ children, className, delay = 0 }: CardAnimationProps) {
+  const Framer = useFramerMotion()
+  const motion = Framer?.motion
+
+  if (!motion) {
+    return <div className={className}>{children}</div>
+  }
+
+  const MotionDiv = motion.div
   return (
-    <motion.div
+    <MotionDiv
       initial="initial"
       animate="animate"
       exit="exit"
-      variants={cardVariants}
+      variants={cardVariants as any}
       transition={{ delay: delay / 1000 }}
       className={className}
     >
       {children}
-    </motion.div>
+    </MotionDiv>
   )
 }
 
@@ -157,19 +140,24 @@ interface AnimatedListProps {
   className?: string
 }
 
-/**
- * 带动画列表容器（需要配合 stagger 使用）
- */
 export function AnimatedList({ children, className }: AnimatedListProps) {
+  const Framer = useFramerMotion()
+  const motion = Framer?.motion
+
+  if (!motion) {
+    return <div className={className}>{children}</div>
+  }
+
+  const MotionDiv = motion.div
   return (
-    <motion.div
+    <MotionDiv
       initial="initial"
       animate="animate"
       variants={createStaggerVariants()}
       className={className}
     >
       {children}
-    </motion.div>
+    </MotionDiv>
   )
 }
 
@@ -178,41 +166,18 @@ interface AnimatedListItemProps {
   className?: string
 }
 
-/**
- * 列表项动画
- */
 export function AnimatedListItem({ children, className }: AnimatedListItemProps) {
+  const Framer = useFramerMotion()
+  const motion = Framer?.motion
+
+  if (!motion) {
+    return <div className={className}>{children}</div>
+  }
+
+  const MotionDiv = motion.div
   return (
-    <motion.div variants={listItemVariants} className={className}>
+    <MotionDiv variants={listItemVariants} className={className}>
       {children}
-    </motion.div>
+    </MotionDiv>
   )
-}
-
-// 淡入淡出动画
-export const fadeVariants: Variants = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-}
-
-// 缩放动画
-export const scaleVariants: Variants = {
-  initial: { scale: 0.9, opacity: 0 },
-  animate: { scale: 1, opacity: 1 },
-  exit: { scale: 0.9, opacity: 0 },
-}
-
-// 滑入动画（从右侧）
-export const slideInRightVariants: Variants = {
-  initial: { x: 100, opacity: 0 },
-  animate: { x: 0, opacity: 1 },
-  exit: { x: 100, opacity: 0 },
-}
-
-// 滑入动画（从下方）
-export const slideInUpVariants: Variants = {
-  initial: { y: 50, opacity: 0 },
-  animate: { y: 0, opacity: 1 },
-  exit: { y: 50, opacity: 0 },
 }

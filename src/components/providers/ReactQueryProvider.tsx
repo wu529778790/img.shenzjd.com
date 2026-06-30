@@ -1,5 +1,7 @@
 'use client'
 
+console.log('[APP] ReactQueryProvider mounting')
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactNode, useState } from 'react'
 

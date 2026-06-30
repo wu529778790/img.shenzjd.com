@@ -1,5 +1,7 @@
 'use client'
 
+console.log('[APP] SessionProvider mounting')
+
 import { SessionProvider } from 'next-auth/react'
 import { ReactNode } from 'react'
 
