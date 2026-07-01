@@ -27,7 +27,7 @@ const defaultConfig: Config = {
   directory: '',
   compressionEnabled: false,
   compressionQuality: 80,
-  watermarkEnabled: true,
+  watermarkEnabled: false,
   watermarkText: 'by img.shenzjd.com',
   watermarkColor: '#ffffff',
   watermarkSize: 24,
