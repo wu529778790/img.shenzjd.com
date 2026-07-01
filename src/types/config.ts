@@ -19,6 +19,8 @@ export interface Config {
   autoCopyAfterUpload: boolean
   // 上传时使用原始文件名（关闭则用时间戳重命名）
   useOriginalFileName: boolean
+  // 上传时转换为 WebP 格式
+  convertToWebp: boolean
   // 配置同步
   configPath?: string          // GitHub 上的配置路径，如 '.imgx-config/config.json'
   autoSync?: boolean           // 是否自动同步配置到 GitHub

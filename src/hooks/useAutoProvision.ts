@@ -18,8 +18,8 @@ function getDefaultConfig(owner: string): Config {
     directory: '',
     compressionEnabled: false,
     compressionQuality: 80,
-    watermarkEnabled: false,
-    watermarkText: '',
+    watermarkEnabled: true,
+    watermarkText: 'by img.shenzjd.com',
     watermarkColor: '#ffffff',
     watermarkSize: 24,
     watermarkPosition: 'bottom-right',
@@ -29,6 +29,7 @@ function getDefaultConfig(owner: string): Config {
     copyFormat: 'url',
     autoCopyAfterUpload: true,
     useOriginalFileName: false,
+    convertToWebp: true,
     configPath: CONFIG_PATH,
     autoSync: true,
   }

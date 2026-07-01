@@ -3,7 +3,7 @@
 import { useCallback, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { compressImage } from '@/lib/compress'
+import { compressImage, convertToWebp } from '@/lib/compress'
 import { addWatermark } from '@/lib/watermark'
 import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
@@ -81,6 +81,20 @@ export function useUpload() {
         } catch (error) {
           debugError('Compression failed:', error)
           toast.error(`${file.name} 压缩失败，将上传原图`)
+        }
+      }
+
+      // 1.5 转换为 WebP
+      if (cfg.convertToWebp && !processedFile.name.endsWith('.webp')) {
+        try {
+          debugLog('[Upload] Converting to WebP:', processedFile.name)
+          updateTask(taskId, { progress: 25 })
+          await new Promise(resolve => setTimeout(resolve, 300))
+          processedFile = await convertToWebp(processedFile, cfg.compressionQuality / 100)
+          debugLog('[Upload] WebP conversion done:', processedFile.name)
+        } catch (error) {
+          debugError('[WebP] Conversion failed:', error)
+          toast.error(`${file.name} WebP 转换失败，将上传原格式`)
         }
       }
 

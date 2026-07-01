@@ -44,7 +44,8 @@ export function AdvancedConfig() {
     configStore.compressionEnabled ||
     configStore.watermarkEnabled ||
     configStore.useOriginalFileName ||
-    configStore.autoCopyAfterUpload
+    configStore.autoCopyAfterUpload ||
+    !configStore.convertToWebp
 
   return (
     <div className="mt-5 rounded-2xl bg-card border shadow-sm overflow-hidden">
@@ -124,6 +125,14 @@ export function AdvancedConfig() {
               />
             </div>
           )}
+
+          {/* 转换为 WebP */}
+          <ToggleRow
+            label="转换为 WebP"
+            description="上传时自动转换为 WebP 格式以减小体积"
+            checked={configStore.convertToWebp}
+            onChange={(checked) => configStore.updateConfig({ convertToWebp: checked })}
+          />
 
           {/* 保留原始文件名 */}
           <ToggleRow

@@ -27,7 +27,7 @@ const defaultConfig: Config = {
   directory: '',
   compressionEnabled: false,
   compressionQuality: 80,
-  watermarkEnabled: false,
+  watermarkEnabled: true,
   watermarkText: 'by img.shenzjd.com',
   watermarkColor: '#ffffff',
   watermarkSize: 24,
@@ -38,6 +38,7 @@ const defaultConfig: Config = {
   copyFormat: 'url',
   autoCopyAfterUpload: true,
   useOriginalFileName: false,
+  convertToWebp: true,
   configPath: '.imgx-config/config.json',
   autoSync: true,
 }
@@ -67,6 +68,7 @@ export const useConfigStore = create<ConfigState>()(
             'watermarkSize', 'watermarkPosition',
             'theme', 'cdn', 'useRaw', 'copyFormat',
             'autoCopyAfterUpload', 'useOriginalFileName',
+            'convertToWebp',
             'configPath', 'autoSync',
           ]
           const hasUserConfigChange = syncKeys.some((key) => key in updates)
