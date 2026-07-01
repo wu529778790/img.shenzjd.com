@@ -1,6 +1,5 @@
 'use client'
 
-import { useCallback } from 'react'
 import { Eye } from 'lucide-react'
 import { LazyImageGrid } from './LazyImageGrid'
 import { ErrorBoundary } from '@/components/error/ErrorBoundary'
@@ -16,11 +15,8 @@ interface ImageGridProps {
   onDelete?: (id: string) => void
   onBulkDelete?: (ids: string[]) => void
   isLoading?: boolean
-  // 从外部接收的视图和选择状态
+  // 视图模式
   viewMode?: ViewMode
-  selectionMode?: boolean
-  selectedIds?: Set<string>
-  onSelect?: (id: string, selected: boolean) => void
   onPreview?: (image: ImageFile) => void
   onImageChange?: (image: ImageFile) => void
 }
@@ -30,22 +26,10 @@ export function ImageGrid({
   onDelete,
   isLoading = false,
   viewMode: externalViewMode,
-  selectionMode: externalSelectionMode,
-  selectedIds: externalSelectedIds,
-  onSelect,
   onPreview,
   onImageChange,
 }: ImageGridProps) {
-  // 使用外部状态或内部状态
   const viewMode = externalViewMode ?? 'grid'
-  const selectionMode = externalSelectionMode ?? false
-  const selectedIds = externalSelectedIds ?? new Set<string>()
-
-  const handleSelect = useCallback((id: string, selected: boolean) => {
-    if (onSelect) {
-      onSelect(id, selected)
-    }
-  }, [onSelect])
 
   return (
     <>
@@ -65,9 +49,6 @@ export function ImageGrid({
               <LazyImageGrid
                 images={images}
                 onDelete={onDelete}
-                onSelect={handleSelect}
-                selectedIds={selectedIds}
-                selectable={selectionMode}
                 onImageChange={onImageChange}
                 initialLoadCount={images.length <= IMAGE_GRID_CONFIG.VIRTUALIZATION_THRESHOLD ? images.length : IMAGE_GRID_CONFIG.INITIAL_LOAD_COUNT}
                 batchSize={IMAGE_GRID_CONFIG.BATCH_SIZE}
@@ -78,20 +59,8 @@ export function ImageGrid({
           // 列表视图
           <div className="space-y-2">
             {images.map((image) => {
-              // 根据是否在选择模式决定点击行为
-              const handleRowClick = () => {
-                if (selectionMode) {
-                  // 选择模式：点击整行用于选择
-                  onSelect?.(image.id, !selectedIds.has(image.id))
-                } else {
-                  // 普通模式：点击整行用于预览
-                  onPreview?.(image)
-                }
-              }
-
               const handleEyeClick = (e: React.MouseEvent) => {
                 e.stopPropagation()
-                // 眼睛图标始终用于预览，无论是否在选择模式
                 onPreview?.(image)
               }
 
@@ -105,21 +74,10 @@ export function ImageGrid({
                     'hover:border-primary/30 dark:hover:border-primary/30',
                     'hover:bg-primary/5 dark:hover:bg-primary/10',
                     'transition-all duration-200 cursor-pointer',
-                    'group',
-                    selectedIds.has(image.id) && 'border-primary bg-primary/5 dark:bg-primary/10'
+                    'group'
                   )}
-                  onClick={handleRowClick}
+                  onClick={() => onPreview?.(image)}
                 >
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.has(image.id)}
-                    onChange={(e) => {
-                      e.stopPropagation()
-                      onSelect?.(image.id, e.target.checked)
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer transition-all"
-                  />
                   <div className="flex-1 min-w-0 text-sm">
                     <p className="font-medium truncate group-hover:text-primary transition-colors leading-tight">
                       {image.name}
@@ -128,7 +86,7 @@ export function ImageGrid({
                       {formatFileSize(image.size)}
                     </p>
                   </div>
-                  {/* 眼睛图标 - 始终显示并可用于预览 */}
+                  {/* 眼睛图标 - 预览 */}
                   <button
                     onClick={handleEyeClick}
                     className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex-shrink-0"

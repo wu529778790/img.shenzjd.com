@@ -14,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { toast } from 'sonner'
 import { ImageCardDeleteConfirm } from './ImageCardDeleteConfirm'
@@ -26,9 +25,6 @@ const IMAGE_PLACEHOLDER_B64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAA
 interface ImageCardProps {
   image: ImageFile
   onDelete?: (id: string) => void
-  onSelect?: (id: string, selected: boolean) => void
-  selected?: boolean
-  selectable?: boolean
   priority?: boolean
   onPreview?: (image: ImageFile) => void
 }
@@ -47,9 +43,7 @@ function imageCardAreEqual(prev: { image: ImageFile }, next: { image: ImageFile 
   )
 }
 
-function ImageCardInner({ image, onDelete, onSelect, selected, selectable, priority, onPreview }: ImageCardProps) {
-  const { data: session } = useSession()
-  const token = session?.accessToken || ''
+function ImageCardInner({ image, onDelete, priority, onPreview }: ImageCardProps) {
   const configStore = useConfigStore()
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -91,25 +85,15 @@ function ImageCardInner({ image, onDelete, onSelect, selected, selectable, prior
     if (isDeletingRef.current || showDeleteConfirm) {
       return
     }
-    if (selectable) {
-      onSelect?.(image.id, !selected)
-    } else {
-      onPreview?.(image)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: depend on image.id only to avoid re-creating callback on every image prop change
-  }, [selectable, selected, image.id, onSelect, onPreview, showDeleteConfirm])
+    onPreview?.(image)
+  }, [image.id, onPreview, showDeleteConfirm])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
-      if (selectable) {
-        onSelect?.(image.id, !selected)
-      } else {
-        onPreview?.(image)
-      }
+      onPreview?.(image)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: depend on image.id only to avoid re-creating callback on every image prop change
-  }, [selectable, selected, image.id, onSelect, onPreview])
+  }, [image.id, onPreview])
 
   return (
     <>
@@ -125,9 +109,6 @@ function ImageCardInner({ image, onDelete, onSelect, selected, selectable, prior
           'cursor-pointer',
           'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
           'dark:focus-visible:ring-offset-gray-900',
-          'aria-checked:ring-2 aria-checked:ring-primary',
-          'aria-checked:ring-offset-2 dark:aria-checked:ring-offset-gray-900',
-          selected && 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-900'
         )}
         style={{
           // 优化重绘性能
@@ -139,8 +120,7 @@ function ImageCardInner({ image, onDelete, onSelect, selected, selectable, prior
         onKeyDown={handleKeyDown}
         role="button"
         tabIndex={0}
-        aria-label={`${selected ? '取消选择' : '选择'}图片: ${image.name}`}
-        aria-pressed={selectable ? selected : undefined}
+        aria-label={`预览图片: ${image.name}`}
       >
         {/* 图片预览区域 */}
         <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-900">
@@ -161,20 +141,6 @@ function ImageCardInner({ image, onDelete, onSelect, selected, selectable, prior
             }}
           />
 
-          {/* 选中状态指示器 */}
-          <div
-            className="absolute top-3 right-3 transition-all duration-200"
-            style={{
-              transform: selected ? 'scale(1)' : 'scale(0)',
-              opacity: selected ? 1 : 0,
-            }}
-          >
-            <div className="h-6 w-6 rounded-full bg-primary text-white flex items-center justify-center shadow-modern-lg">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-          </div>
         </div>
 
         {/* 文件信息 */}

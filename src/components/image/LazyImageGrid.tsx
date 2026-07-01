@@ -9,9 +9,6 @@ import { IMAGE_GRID_CONFIG } from '@/lib/constants'
 interface LazyImageGridProps {
   images: ImageFile[]
   onDelete?: (id: string) => void
-  onSelect?: (id: string, selected: boolean) => void
-  selectedIds?: Set<string>
-  selectable?: boolean
   onImageChange?: (image: ImageFile) => void
   initialLoadCount?: number  // 初始加载数量
   batchSize?: number  // 每次加载的数量
@@ -24,9 +21,6 @@ interface LazyImageGridProps {
 export function LazyImageGrid({
   images,
   onDelete,
-  onSelect,
-  selectedIds = new Set(),
-  selectable = false,
   onImageChange,
   initialLoadCount: initialLoadCountProp,
   batchSize = IMAGE_GRID_CONFIG.BATCH_SIZE,
@@ -108,9 +102,6 @@ export function LazyImageGrid({
             <ImageCard
               image={image}
               onDelete={onDelete}
-              onSelect={onSelect}
-              selected={selectedIds.has(image.id)}
-              selectable={selectable}
               priority={index < resolvedInitialLoadCount}
               onPreview={handleSetPreviewImage}
             />

@@ -30,9 +30,6 @@ export default function ManagementPage() {
   const [selectedDirectory, setSelectedDirectory] = useState<string>('')
   const [sortField, setSortField] = useState<SortField>('name')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
-  const [selectionMode, setSelectionMode] = useState(false)
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set())
   const [previewImage, setPreviewImage] = useState<ImageFile | null>(null)
 
   // 防抖定时器 ref
@@ -120,57 +117,6 @@ export default function ManagementPage() {
     }
   }, [])
 
-  // 多选相关
-  const handleToggleSelectionMode = useCallback(() => {
-    if (selectionMode) {
-      setSelectedIds(new Set())
-    }
-    setSelectionMode((prev) => !prev)
-  }, [selectionMode])
-
-  const handleSelectAll = useCallback(() => {
-    if (selectedIds.size === filteredImages.length) {
-      setSelectedIds(new Set())
-    } else {
-      setSelectedIds(new Set(filteredImages.map((img) => img.id)))
-    }
-  }, [filteredImages, selectedIds.size])
-
-  const handleClearSelection = useCallback(() => {
-    setSelectedIds(new Set())
-    setSelectionMode(false)
-  }, [])
-
-  const handleBulkCopy = useCallback(async () => {
-    const count = selectedIds.size
-    if (count === 0) return
-
-    // 从 filteredImages 中查找选中的图片并生成链接
-    const selectedImages = filteredImages.filter((img) => selectedIds.has(img.id))
-    const urls = selectedImages.map((img) => img.cdnUrl || img.download_url)
-    const text = urls.join('\n')
-
-    try {
-      await navigator.clipboard.writeText(text)
-      const { toast } = await import('sonner')
-      toast.success(`已复制 ${count} 个链接`)
-      setCopiedIds(new Set(selectedIds))
-      setTimeout(() => setCopiedIds(new Set()), 2000)
-    } catch {
-      const { toast } = await import('sonner')
-      toast.error('复制失败，请重试')
-    }
-  }, [selectedIds, filteredImages])
-
-  const handleBulkDeleteWithConfirm = useCallback(() => {
-    if (selectedIds.size === 0) return
-    handleBulkDelete(Array.from(selectedIds))
-    setSelectedIds(new Set())
-    setSelectionMode(false)
-  }, [selectedIds, handleBulkDelete])
-
-  const allSelected = filteredImages.length > 0 && selectedIds.size === filteredImages.length
-
   // 如果正在加载或未登录，显示骨架屏
   // 注意：未配置时不显示骨架屏，而是显示"去配置"按钮
   if (status === 'loading' || !session) {
@@ -194,15 +140,6 @@ export default function ManagementPage() {
             directories={directories}
             selectedDirectory={selectedDirectory}
             onDirectoryChange={handleDirectoryChange}
-            selectionMode={selectionMode}
-            onToggleSelectionMode={handleToggleSelectionMode}
-            selectedCount={selectedIds.size}
-            allSelected={allSelected}
-            onSelectAll={handleSelectAll}
-            onClearSelection={handleClearSelection}
-            onBulkCopy={handleBulkCopy}
-            onBulkDelete={handleBulkDeleteWithConfirm}
-            copied={copiedIds.size > 0}
             cdn={configStore.cdn}
             onCdnChange={(value) => value && configStore.updateConfig({ cdn: value as 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages' })}
           />
@@ -216,16 +153,6 @@ export default function ManagementPage() {
             onBulkDelete={handleBulkDelete}
             isLoading={isLoading}
             viewMode="grid"
-            selectionMode={selectionMode}
-            selectedIds={selectedIds}
-            onSelect={(id, selected) => {
-              setSelectedIds((prev) => {
-                const newSet = new Set(prev)
-                if (selected) newSet.add(id)
-                else newSet.delete(id)
-                return newSet
-              })
-            }}
             onPreview={(image) => setPreviewImage(image)}
           />
         </div>

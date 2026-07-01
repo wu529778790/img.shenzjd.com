@@ -8,11 +8,6 @@ import {
   ArrowUp,
   ArrowDown,
   FolderOpen,
-  CheckSquare,
-  Square,
-  Copy,
-  Check,
-  Trash2,
   HardDrive,
   Images,
 } from 'lucide-react'
@@ -35,7 +30,6 @@ import type { ImageFile } from '@/types/image'
 
 type SortField = 'name' | 'size' | 'path'
 type SortOrder = 'asc' | 'desc'
-type ViewMode = 'grid' | 'list'
 
 interface ManagementToolbarProps {
   // 统计
@@ -56,16 +50,6 @@ interface ManagementToolbarProps {
   // CDN
   cdn: string
   onCdnChange: (value: string | null) => void
-  // 多选
-  selectionMode: boolean
-  onToggleSelectionMode: () => void
-  selectedCount: number
-  allSelected: boolean
-  onSelectAll: () => void
-  onClearSelection: () => void
-  onBulkCopy: () => void
-  onBulkDelete: () => void
-  copied: boolean
 }
 
 const SORT_OPTIONS: { field: SortField; label: string }[] = [
@@ -87,15 +71,6 @@ export function ManagementToolbar({
   onDirectoryChange,
   cdn,
   onCdnChange,
-  selectionMode,
-  onToggleSelectionMode,
-  selectedCount,
-  allSelected,
-  onSelectAll,
-  onClearSelection,
-  onBulkCopy,
-  onBulkDelete,
-  copied,
 }: ManagementToolbarProps) {
   // 控制目录下拉菜单的开关状态
   const [directoryMenuOpen, setDirectoryMenuOpen] = useState(false)
@@ -267,79 +242,6 @@ export function ManagementToolbar({
 
       {/* 弹性空间 */}
       <div className="flex-1 min-w-0" />
-
-      {/* 批量操作（多选模式下有选中时显示） */}
-      {selectionMode && selectedCount > 0 && (
-        <div className="flex items-center gap-1.5 overflow-hidden shrink-0">
-          <span className="text-xs text-primary font-medium px-1">
-            {selectedCount} 项
-          </span>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onClearSelection}
-            className="h-7 px-2 text-xs gap-1"
-          >
-            取消
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onBulkCopy}
-            className="h-7 px-2 text-xs gap-1"
-          >
-            {copied ? (
-              <Check className="h-3 w-3 text-green-600" />
-            ) : (
-              <Copy className="h-3 w-3" />
-            )}
-          </Button>
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={onBulkDelete}
-            className="h-7 px-2 text-xs gap-1"
-          >
-            <Trash2 className="h-3 w-3" />
-          </Button>
-        </div>
-      )}
-
-      {/* 多选模式下显示全选 */}
-      {selectionMode && (
-        <div className="overflow-hidden shrink-0">
-          <label className="flex items-center gap-1.5 text-xs cursor-pointer group px-1">
-            <input
-              type="checkbox"
-              checked={allSelected}
-              onChange={onSelectAll}
-              className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer transition-all"
-            />
-            <span className="group-hover:text-primary transition-colors">全选</span>
-          </label>
-        </div>
-      )}
-
-      {/* 多选按钮 */}
-      <Button
-        size="sm"
-        variant={selectionMode ? 'default' : 'ghost'}
-        onClick={onToggleSelectionMode}
-        className="h-8 px-2 gap-1 shrink-0"
-        title={selectionMode ? '退出多选' : '多选模式'}
-      >
-        {selectionMode ? (
-          <CheckSquare className="h-4 w-4" />
-        ) : (
-          <Square className="h-4 w-4" />
-        )}
-        <span className="hidden md:inline text-xs">
-          {selectionMode ? '退出多选' : '多选'}
-        </span>
-      </Button>
-
-      {/* 分隔线 */}
-      <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 shrink-0" />
 
       {/* CDN 选择 */}
       <Select value={cdn} onValueChange={onCdnChange}>
