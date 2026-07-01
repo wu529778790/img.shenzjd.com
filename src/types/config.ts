@@ -11,7 +11,7 @@ export interface Config {
   watermarkSize: number
   watermarkPosition: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
   theme: 'light' | 'dark' | 'system'
-  cdn: 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages'
+  cdn: 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages' | 'statically' | 'jsd-onmicrosoft' | 'gitmirror' | 'ghproxy'
   useRaw: boolean
   // 复制链接格式
   copyFormat: 'markdown' | 'html' | 'bbcode' | 'url'

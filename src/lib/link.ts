@@ -35,6 +35,18 @@ export function generateLink(options: LinkOptions): string {
     case 'github-pages':
       baseUrl = `https://${owner}.github.io/${repo}/${cleanPath}`
       break
+    case 'statically':
+      baseUrl = `https://cdn.statically.io/gh/${owner}/${repo}/${branch}/${cleanPath}`
+      break
+    case 'jsd-onmicrosoft':
+      baseUrl = `https://jsd.onmicrosoft.cn/gh/${owner}/${repo}@${branch}/${cleanPath}`
+      break
+    case 'gitmirror':
+      baseUrl = `https://raw.gitmirror.com/${owner}/${repo}/${branch}/${cleanPath}`
+      break
+    case 'ghproxy':
+      baseUrl = `https://ghproxy.com/https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${cleanPath}`
+      break
     default:
       throw new Error(`Unsupported CDN: ${cdn}`)
   }

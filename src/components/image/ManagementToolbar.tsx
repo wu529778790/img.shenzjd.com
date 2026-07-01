@@ -245,13 +245,17 @@ export function ManagementToolbar({
 
       {/* CDN 选择 */}
       <Select value={cdn} onValueChange={onCdnChange}>
-        <SelectTrigger className="h-7 w-[120px] text-xs rounded-md border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <SelectTrigger className="h-7 w-[130px] text-xs rounded-md border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <SelectValue placeholder="CDN" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="github">GitHub 原始</SelectItem>
-          <SelectItem value="jsdelivr">jsDelivr</SelectItem>
+          <SelectItem value="jsd-onmicrosoft">jsdelivr (微软国内)</SelectItem>
           <SelectItem value="jsdmirror">jsDMirror</SelectItem>
+          <SelectItem value="jsdelivr">jsDelivr</SelectItem>
+          <SelectItem value="gitmirror">GitMirror</SelectItem>
+          <SelectItem value="statically">Statically</SelectItem>
+          <SelectItem value="ghproxy">GhProxy</SelectItem>
           <SelectItem value="github-pages">GitHub Pages</SelectItem>
         </SelectContent>
       </Select>

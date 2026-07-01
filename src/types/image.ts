@@ -47,7 +47,7 @@ export interface FileWithPreview extends File {
 
 export interface LinkOptions {
   format: 'markdown' | 'html' | 'bbcode' | 'url'
-  cdn: 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages'
+  cdn: 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages' | 'statically' | 'jsd-onmicrosoft' | 'gitmirror' | 'ghproxy'
   owner: string
   repo: string
   branch: string

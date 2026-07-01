@@ -33,7 +33,7 @@ const defaultConfig: Config = {
   watermarkSize: 24,
   watermarkPosition: 'bottom-right',
   theme: 'system',
-  cdn: 'jsdmirror',
+  cdn: 'jsd-onmicrosoft',
   useRaw: true,
   copyFormat: 'url',
   autoCopyAfterUpload: true,

@@ -179,19 +179,27 @@ export function AdvancedConfig() {
                 {configStore.cdn === 'jsdelivr' && 'jsDelivr CDN（全球加速）'}
                 {configStore.cdn === 'jsdmirror' && 'jsDMirror CDN（国内推荐）'}
                 {configStore.cdn === 'github-pages' && 'GitHub Pages'}
+                {configStore.cdn === 'statically' && 'Statically CDN'}
+                {configStore.cdn === 'jsd-onmicrosoft' && 'jsdelivr (微软国内)'}
+                {configStore.cdn === 'gitmirror' && 'GitMirror 国内镜像'}
+                {configStore.cdn === 'ghproxy' && 'GhProxy 代理'}
               </p>
             </div>
             <Select
               value={configStore.cdn}
-              onValueChange={(value) => configStore.updateConfig({ cdn: value as 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages' })}
+              onValueChange={(value) => configStore.updateConfig({ cdn: value as 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages' | 'statically' | 'jsd-onmicrosoft' | 'gitmirror' | 'ghproxy' })}
             >
-              <SelectTrigger className="w-[120px] h-8 text-xs rounded-lg">
+              <SelectTrigger className="w-[130px] h-8 text-xs rounded-lg">
                 <SelectValue placeholder="选择 CDN" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="github">GitHub 原始</SelectItem>
-                <SelectItem value="jsdelivr">jsDelivr</SelectItem>
+                <SelectItem value="jsd-onmicrosoft">jsdelivr (微软国内)</SelectItem>
                 <SelectItem value="jsdmirror">jsDMirror</SelectItem>
+                <SelectItem value="jsdelivr">jsDelivr</SelectItem>
+                <SelectItem value="gitmirror">GitMirror</SelectItem>
+                <SelectItem value="statically">Statically</SelectItem>
+                <SelectItem value="ghproxy">GhProxy</SelectItem>
                 <SelectItem value="github-pages">GitHub Pages</SelectItem>
               </SelectContent>
             </Select>

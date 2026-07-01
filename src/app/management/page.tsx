@@ -141,7 +141,7 @@ export default function ManagementPage() {
             selectedDirectory={selectedDirectory}
             onDirectoryChange={handleDirectoryChange}
             cdn={configStore.cdn}
-            onCdnChange={(value) => value && configStore.updateConfig({ cdn: value as 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages' })}
+            onCdnChange={(value) => value && configStore.updateConfig({ cdn: value as 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages' | 'statically' | 'jsd-onmicrosoft' | 'gitmirror' | 'ghproxy' })}
           />
         </div>
 
