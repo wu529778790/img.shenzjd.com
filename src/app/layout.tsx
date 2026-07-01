@@ -10,6 +10,7 @@ import { ConfigDiscovery } from "@/components/providers/ConfigDiscovery";
 import { AuthDialogProvider } from "@/components/auth";
 import { SkipLink } from "@/components/layout/SkipLink";
 import { OfflineIndicator } from "@/components/layout/OfflineIndicator";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,6 +37,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" suppressHydrationWarning data-scroll-behavior="smooth" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className={`${inter.className} antialiased min-h-screen bg-background text-foreground transition-colors duration-300`}>
+        <ThemeProvider />
         <OfflineIndicator />
         <ReactQueryProvider>
           <AuthProvider>
