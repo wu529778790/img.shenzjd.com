@@ -1,8 +1,12 @@
 'use client'
 
-import { CheckCircle, XCircle, Loader2, Trash2, AlertCircle, RefreshCw } from 'lucide-react'
+import { useState } from 'react'
+import { CheckCircle, XCircle, Loader2, Trash2, AlertCircle, RefreshCw, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useConfigStore } from '@/stores/configStore'
+import { generateLink } from '@/lib/link'
+import { toast } from 'sonner'
 import type { UploadTask } from '@/types/image'
 
 interface UploadQueueProps {
@@ -12,6 +16,34 @@ interface UploadQueueProps {
 }
 
 export function UploadQueue({ queue, onRemove, onRetry }: UploadQueueProps) {
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  const handleCopy = async (task: UploadTask) => {
+    let link = task.link
+    if (!link && task.result) {
+      const cfg = useConfigStore.getState()
+      link = generateLink({
+        format: cfg.copyFormat,
+        cdn: cfg.cdn,
+        owner: cfg.owner,
+        repo: cfg.repo,
+        branch: cfg.branch,
+        path: task.result.path,
+        fileName: task.result.name,
+        useRaw: cfg.useRaw ?? true,
+      })
+    }
+    if (!link) return
+
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopiedId(task.id)
+      setTimeout(() => setCopiedId(null), 2000)
+    } catch {
+      toast.error('复制失败')
+    }
+  }
+
   if (queue.length === 0) return null
 
   // 计算统计信息
@@ -73,10 +105,13 @@ export function UploadQueue({ queue, onRemove, onRetry }: UploadQueueProps) {
             'border border-gray-200 dark:border-gray-700/50',
             'shadow-sm transition-all duration-200',
             // 优化：失败任务添加红色边框强调
-            task.status === 'error' && 'border-red-300 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20'
+            task.status === 'error' && 'border-red-300 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20',
+            // 成功任务可点击复制
+            task.status === 'success' && 'cursor-pointer hover:border-green-300 dark:hover:border-green-700 hover:shadow-md'
           )}
           role="listitem"
           style={{ animationDelay: `${index * 50}ms` }} // 优化：交错动画延迟
+          onClick={task.status === 'success' ? () => handleCopy(task) : undefined}
         >
           {/* 优化：状态图标 - 添加动画和更好的视觉效果 */}
           <div className="flex-shrink-0 pt-0.5">
@@ -89,8 +124,15 @@ export function UploadQueue({ queue, onRemove, onRetry }: UploadQueueProps) {
             {task.status === 'uploading' && (
               <Loader2 className="h-5 w-5 animate-spin text-primary" aria-label="上传中" />
             )}
-            {task.status === 'success' && (
+            {task.status === 'success' && !task.thumbnailUrl && (
               <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-500" aria-label="上传成功" />
+            )}
+            {task.status === 'success' && task.thumbnailUrl && (
+              <img
+                src={task.thumbnailUrl}
+                alt={task.file.name}
+                className="h-10 w-10 rounded-md object-cover"
+              />
             )}
             {task.status === 'error' && (
               <XCircle className="h-5 w-5 text-red-600 dark:text-red-500" aria-label="上传失败" />
@@ -163,7 +205,22 @@ export function UploadQueue({ queue, onRemove, onRetry }: UploadQueueProps) {
           )}
 
           {/* 优化：操作按钮 - 更好的悬停效果和触摸目标 */}
-          <div className="flex-shrink-0 flex gap-1.5 sm:gap-2">
+          <div className="flex-shrink-0 flex gap-1.5 sm:gap-2" onClick={(e) => e.stopPropagation()}>
+            {task.status === 'success' && (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground pt-1">
+                {copiedId === task.id ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-green-500" />
+                    <span className="text-green-600 dark:text-green-400">已复制</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">点击复制</span>
+                  </>
+                )}
+              </span>
+            )}
             {task.status === 'error' && onRetry && (
               <Button
                 size="sm"
