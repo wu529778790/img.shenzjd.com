@@ -90,7 +90,7 @@ export function useUpload() {
           debugLog('[Upload] Converting to WebP:', processedFile.name)
           updateTask(taskId, { progress: 25 })
           await new Promise(resolve => setTimeout(resolve, 300))
-          processedFile = await convertToWebp(processedFile, 0.9)
+          processedFile = await convertToWebp(processedFile, 1)
           debugLog('[Upload] WebP conversion done:', processedFile.name)
         } catch (error) {
           debugError('[WebP] Conversion failed:', error)
