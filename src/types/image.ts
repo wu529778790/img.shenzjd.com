@@ -34,6 +34,10 @@ export interface UploadTask {
   progress: number
   error?: string
   result?: ImageFile
+  /** 本次会话缩略图 blob URL（刷新后失效） */
+  thumbnailUrl?: string
+  /** 上传成功后生成的链接 */
+  link?: string
 }
 
 // 带预览的 File 类型（用于客户端）

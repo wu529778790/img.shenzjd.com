@@ -6,6 +6,7 @@ import { useUpload } from '@/hooks/useUpload'
 import { UploadArea } from '@/components/upload/UploadArea'
 import { UploadQueue } from '@/components/upload/UploadQueue'
 import { AdvancedConfig } from '@/components/upload/AdvancedConfig'
+import { RecentUploads } from '@/components/upload/RecentUploads'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Zap, RefreshCw } from 'lucide-react'
@@ -98,6 +99,9 @@ export default function HomePage() {
 
         {/* 高级配置 */}
         <AdvancedConfig />
+
+        {/* 本次上传成功 */}
+        <RecentUploads />
       </PageTransition>
     </div>
   )

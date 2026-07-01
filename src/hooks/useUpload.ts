@@ -181,12 +181,8 @@ export function useUpload() {
       debugLog('[Upload] ✅ Upload completed successfully:', fileName)
       debugLog('[Upload] File URL:', result.html_url)
 
-      // 上传成功
-      debugLog('[Progress] Setting progress to 100% (upload complete)')
-      updateTask(taskId, {
-        status: 'success',
-        progress: 100,
-      })
+      // 生成缩略图 blob URL（用于首页展示）
+      const thumbnailUrl = URL.createObjectURL(processedFile)
 
       // 生成链接并自动复制到剪贴板
       const linkOptions: LinkOptions = {
@@ -201,6 +197,15 @@ export function useUpload() {
       }
 
       const link = generateLink(linkOptions)
+
+      // 上传成功
+      debugLog('[Progress] Setting progress to 100% (upload complete)')
+      updateTask(taskId, {
+        status: 'success',
+        progress: 100,
+        thumbnailUrl,
+        link,
+      })
 
       // 如果启用了自动复制，复制链接到剪贴板
       if (config.autoCopyAfterUpload) {
