@@ -44,23 +44,25 @@ export function Header() {
             <span className="font-bold text-lg gradient-text">ImgX</span>
           </Link>
 
-          {/* 导航链接 - 直接展示 */}
-          <nav className="hidden md:flex items-center gap-0.5 ml-1 h-full">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center h-8 px-2.5 text-[13px] font-medium text-muted-foreground rounded-md hover:bg-muted hover:text-foreground transition-colors"
-              >
-                {link.name}
-              </a>
-            ))}
+          {/* 导航链接 - 居中展示，空间不足时横向滚动 */}
+          <nav className="hidden md:flex flex-1 items-center justify-center h-full overflow-x-auto scrollbar-none">
+            <div className="flex items-center gap-0.5">
+              {navLinks.map((link) => (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center h-8 px-2.5 text-[13px] font-medium text-muted-foreground rounded-md hover:bg-muted hover:text-foreground transition-colors whitespace-nowrap shrink-0"
+                >
+                  {link.name}
+                </a>
+              ))}
+            </div>
           </nav>
 
           {/* 右侧 */}
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-2">
             <ThemeToggle />
 
             <button

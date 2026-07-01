@@ -56,12 +56,13 @@ export const socialLinks = [
 ] as const
 
 export const navLinks = [
-  { name: '首页', href: 'https://shenzjd.com' },
-  { name: '在线网盘', href: 'https://alist.shenzjd.com' },
+  { name: '网址导航', href: 'https://navhub.shenzjd.com' },
+  { name: '热门资源', href: 'https://shenzjd.com' },
   { name: '网盘搜索', href: 'https://panhub.shenzjd.com' },
-  { name: '快链', href: 'https://duanlian.shenzjd.com' },
+  { name: '在线网盘', href: 'https://alist.shenzjd.com' },
   { name: '视频解析', href: 'https://parse.shenzjd.com' },
+  { name: 'GIT 图床', href: 'https://img.shenzjd.com' },
+  { name: 'GIT 短链', href: 'https://duanlian.shenzjd.com' },
   { name: '热点聚合', href: 'https://newshub.shenzjd.com' },
-  { name: '个人导航', href: 'https://navhub.shenzjd.com' },
   { name: '必应壁纸', href: 'https://bing.shenzjd.com' },
 ] as const

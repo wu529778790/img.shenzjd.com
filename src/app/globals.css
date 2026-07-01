@@ -239,6 +239,15 @@
     background-color: rgb(var(--color-muted-foreground) / 0.5);
   }
 
+  /* 隐藏滚动条 */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Dark mode scrollbar - 确保对比度足够 */
   @media (prefers-color-scheme: dark) {
     .scrollbar-thin::-webkit-scrollbar-thumb {
