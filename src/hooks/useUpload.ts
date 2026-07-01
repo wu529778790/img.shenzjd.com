@@ -110,8 +110,8 @@ export function useUpload() {
             size: cfg.watermarkSize,
             position: cfg.watermarkPosition,
           })
-          processedFile = new File([watermarkedBlob], file.name, {
-            type: 'image/jpeg',
+          processedFile = new File([watermarkedBlob], processedFile.name, {
+            type: processedFile.type,
           })
           debugLog('[Progress] Setting progress to 40% (watermark done)')
           updateTask(taskId, { progress: 40 }) // 水印完成
