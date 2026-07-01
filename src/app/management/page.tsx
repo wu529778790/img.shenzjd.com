@@ -191,6 +191,7 @@ export default function ManagementPage() {
           images={filteredImages}
           onClose={() => setPreviewImage(null)}
           onDelete={(id) => handleDelete(id)}
+          onImageChange={(img) => setPreviewImage(img)}
         />
       )}
     </div>

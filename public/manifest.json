@@ -1,11 +1,15 @@
 {
-  "name": "ImgX",
+  "name": "ImgX - 现代化图床管理工具",
   "short_name": "ImgX",
-  "description": "基于 GitHub 的现代化图床服务",
+  "description": "基于 GitHub 的高性能图床服务，支持拖拽上传、自动压缩、水印添加、CDN 加速",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "zh-CN",
+  "categories": ["photo", "productivity", "utilities"],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -18,6 +22,23 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "上传图片",
+      "short_name": "上传",
+      "description": "快速上传图片",
+      "url": "/",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "图片管理",
+      "short_name": "管理",
+      "description": "管理已上传的图片",
+      "url": "/management",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

@@ -28,6 +28,18 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
   const { data: session } = useSession()
   const token = session?.accessToken || ''
 
+  // 实时计算 CDN URL，使切换 CDN 立即生效
+  const cdnUrl = generateLink({
+    format: 'url',
+    cdn: configStore.cdn,
+    owner: configStore.owner,
+    repo: configStore.repo,
+    branch: configStore.branch,
+    path: image.path,
+    fileName: image.name,
+    useRaw: configStore.useRaw ?? true,
+  })
+
   const modalRef = useRef<HTMLDivElement>(null)
   // 跟踪每张图片的加载状态，已加载的图片切换时无需等待
   const loadedImagesRef = useRef<Set<string>>(new Set())
@@ -89,7 +101,17 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
     }
 
     toPreload.forEach((img) => {
-      const url = img.cdnUrl || img.download_url
+      // 实时计算预加载 URL
+      const url = generateLink({
+        format: 'url',
+        cdn: configStore.cdn,
+        owner: configStore.owner,
+        repo: configStore.repo,
+        branch: configStore.branch,
+        path: img.path,
+        fileName: img.name,
+        useRaw: configStore.useRaw ?? true,
+      })
       const preloadLink = document.createElement('link')
       preloadLink.rel = 'preload'
       preloadLink.as = 'image'
@@ -106,12 +128,21 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
 
     return () => {
       toPreload.forEach((img) => {
-        const url = img.cdnUrl || img.download_url
+        const url = generateLink({
+          format: 'url',
+          cdn: configStore.cdn,
+          owner: configStore.owner,
+          repo: configStore.repo,
+          branch: configStore.branch,
+          path: img.path,
+          fileName: img.name,
+          useRaw: configStore.useRaw ?? true,
+        })
         const links = document.head.querySelectorAll(`link[rel="preload"][href="${url}"]`)
         links.forEach((link) => document.head.removeChild(link))
       })
     }
-  }, [currentIndex, images])
+  }, [currentIndex, images, configStore.cdn, configStore.owner, configStore.repo, configStore.branch, configStore.useRaw])
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
@@ -197,9 +228,8 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
   }
 
   const handleDownload = () => {
-    const url = image.cdnUrl || image.download_url
     const link = document.createElement('a')
-    link.href = url
+    link.href = cdnUrl
     link.download = image.name
     link.target = '_blank'
     document.body.appendChild(link)
@@ -208,8 +238,7 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
   }
 
   const handleOpenInNewTab = () => {
-    const url = image.cdnUrl || image.download_url
-    window.open(url, '_blank', 'noopener,noreferrer')
+    window.open(cdnUrl, '_blank', 'noopener,noreferrer')
   }
 
   // 删除图片
@@ -366,7 +395,7 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
 
             {/* 实际图片 */}
             <Image
-              src={image.cdnUrl || image.download_url}
+              src={cdnUrl}
               alt={image.name}
               fill
               className={cn(

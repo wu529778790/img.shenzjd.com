@@ -30,14 +30,13 @@ interface ImageCardProps {
 }
 
 /**
- * 自定义比较函数：当 image 的 id、sha、cdnUrl 未改变时跳过重渲染
- * 默认浅比较会因每次传入新对象引用而失效
+ * 自定义比较函数：当 image 的 id、sha 未改变时跳过重渲染
+ * CDN URL 是实时计算的，不需要比较
  */
 function imageCardAreEqual(prev: { image: ImageFile }, next: { image: ImageFile }): boolean {
   return (
     prev.image.id === next.image.id &&
     prev.image.sha === next.image.sha &&
-    prev.image.cdnUrl === next.image.cdnUrl &&
     prev.image.name === next.image.name &&
     prev.image.path === next.image.path
   )
@@ -49,6 +48,18 @@ function ImageCardInner({ image, onDelete, priority, onPreview }: ImageCardProps
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   // 使用 ref 跟踪删除操作状态，防止删除确认关闭时触发预览
   const isDeletingRef = useRef(false)
+
+  // 实时计算 CDN URL，使切换 CDN 立即生效
+  const cdnUrl = generateLink({
+    format: 'url',
+    cdn: configStore.cdn,
+    owner: configStore.owner,
+    repo: configStore.repo,
+    branch: configStore.branch,
+    path: image.path,
+    fileName: image.name,
+    useRaw: configStore.useRaw ?? true,
+  })
 
   // 使用 useCallback 优化函数稳定性
   const handleCopyLink = useCallback(async (format: 'markdown' | 'html' | 'bbcode' | 'url') => {
@@ -125,7 +136,7 @@ function ImageCardInner({ image, onDelete, priority, onPreview }: ImageCardProps
         {/* 图片预览区域 */}
         <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-900">
           <Image
-            src={getWebPUrl(image.cdnUrl || image.download_url)}
+            src={getWebPUrl(cdnUrl)}
             alt={image.name}
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
