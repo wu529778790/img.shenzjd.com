@@ -2,7 +2,7 @@
   "owner": "wu529778790",
   "repo": "img.shenzjd.com",
   "branch": "master",
-  "directory": "",
+  "directory": "blog",
   "compressionEnabled": false,
   "compressionQuality": 80,
   "watermarkEnabled": false,
@@ -19,6 +19,6 @@
   "convertToWebp": true,
   "configPath": ".imgx-config/config.json",
   "autoSync": true,
-  "lastSyncAt": "2026-07-01T09:35:46.056Z",
-  "sha": "cf354639302199883608ee4b81cbd2dc5cf32752"
+  "lastSyncAt": "2026-07-01T10:00:36.968Z",
+  "sha": "13a08a4dbf066df07a01b75bff680c50da4e78e4"
 }
