@@ -17,5 +17,7 @@
   "autoCopyAfterUpload": true,
   "useOriginalFileName": false,
   "configPath": ".imgx-config/config.json",
-  "autoSync": true
+  "autoSync": true,
+  "lastSyncAt": "2026-06-30T16:25:12.779Z",
+  "sha": "c7b6dd061f0a0c85fe1dac1b3193b2c563ff7862"
 }
