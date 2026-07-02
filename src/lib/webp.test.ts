@@ -32,6 +32,24 @@ describe('getWebPUrl', () => {
     });
   });
 
+  describe('Non-image files (isImage = false)', () => {
+    it('should return url unchanged for mp4 GitHub Raw', () => {
+      const url = 'https://raw.githubusercontent.com/user/repo/main/clip.mp4';
+      expect(getWebPUrl(url, false)).toBe(url);
+    });
+
+    it('should return url unchanged for pdf GitHub Raw', () => {
+      const url = 'https://raw.githubusercontent.com/user/repo/main/report.pdf';
+      expect(getWebPUrl(url, false)).toBe(url);
+    });
+
+    it('should add ?format=webp to ghproxy only when isImage=true', () => {
+      const url = 'https://ghproxy.com/https://raw.githubusercontent.com/user/repo/main/image.jpg';
+      expect(getWebPUrl(url, true)).toBe(`${url}?format=webp`);
+      expect(getWebPUrl(url, false)).toBe(url);
+    });
+  });
+
   describe('Non-GitHub CDN URLs (should NOT modify)', () => {
     it('should not modify jsDelivr URLs', () => {
       const url = 'https://cdn.jsdelivr.net/gh/user/repo@main/image.jpg';

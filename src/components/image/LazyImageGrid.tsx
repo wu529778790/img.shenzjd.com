@@ -127,7 +127,7 @@ export function LazyImageGrid({
       {/* 加载完成提示 */}
       {!hasMore && images.length > resolvedInitialLoadCount && (
         <div className="text-center py-4 text-sm text-gray-500 dark:text-gray-400">
-          已显示全部 {images.length} 张图片
+          已显示全部 {images.length} 个文件
         </div>
       )}
 

@@ -1,10 +1,18 @@
 'use client'
 
-import { useCallback, useState, useEffect } from 'react'
+import { useCallback, useState, useEffect, useMemo } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, Image as ImageIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import {
+  ALLOWED_EXTENSIONS,
+  MIME_BY_EXT,
+  isImage as isImageFile,
+  isVideo,
+  isAudio,
+  matchesAllowedExtensions,
+} from '@/lib/fileTypes'
 
 interface UploadAreaProps {
   onFilesSelected: (files: File[]) => void
@@ -16,6 +24,30 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
   const [isClicking, setIsClicking] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [pasteFlash, setPasteFlash] = useState(false)
+
+  // 内置白名单 — 图片/视频/音频/文档/压缩包统一支持。
+  // react-dropzone 的 accept 映射：未知扩展名用真实 MIME，否则浏览器会报 "Skipped" 警告。
+  const acceptMap = useMemo(() => {
+    const map: Record<string, string[]> = {}
+
+    const push = (mime: string, ext: string) => {
+      ;(map[mime] ??= []).push(ext)
+    }
+
+    ALLOWED_EXTENSIONS.forEach((ext) => {
+      if (isImageFile(`x${ext}`)) push('image/*', ext)
+      else if (isVideo(`x${ext}`)) push('video/*', ext)
+      else if (isAudio(`x${ext}`)) push('audio/*', ext)
+      else push(MIME_BY_EXT[ext] ?? 'application/octet-stream', ext)
+    })
+
+    return map
+  }, [])
+
+  const helpText = useMemo(
+    () => `支持 ${ALLOWED_EXTENSIONS.map((e) => e.replace('.', '').toUpperCase()).join('、')} 格式`,
+    []
+  )
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -32,9 +64,7 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'],
-    },
+    accept: acceptMap,
     multiple: true,
     disabled,
     onDragEnter: () => setIsDragging(true),
@@ -51,26 +81,24 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
       const items = e.clipboardData?.items
       if (!items) return
 
-      const imageFiles: File[] = []
+      const clipboardFiles: File[] = []
       for (let i = 0; i < items.length; i++) {
-        const item = items[i]
-        if (item.type.startsWith('image/')) {
-          const file = item.getAsFile()
-          if (file) {
-            imageFiles.push(file)
-          }
+        if (items[i].kind !== 'file') continue
+        const file = items[i].getAsFile()
+        if (file && matchesAllowedExtensions(file.name, ALLOWED_EXTENSIONS)) {
+          clipboardFiles.push(file)
         }
       }
 
-      if (imageFiles.length > 0) {
+      if (clipboardFiles.length > 0) {
         e.preventDefault()
         setIsProcessing(true)
         setPasteFlash(true)
         setTimeout(() => setPasteFlash(false), 600) // 优化：延长闪光效果持续时间
         setTimeout(() => {
-          onFilesSelected(imageFiles)
+          onFilesSelected(clipboardFiles)
           setIsProcessing(false)
-          toast.success(`已粘贴 ${imageFiles.length} 张图片`)
+          toast.success(`已粘贴 ${clipboardFiles.length} 个文件`)
         }, 150) // 优化：延长处理延迟
       }
     }
@@ -118,7 +146,7 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
       )}
       role="button"
       tabIndex={disabled ? -1 : 0}
-      aria-label="上传图片区域，拖拽图片到此处或点击选择文件"
+      aria-label="上传区域，拖拽文件到此处或点击选择文件"
       aria-describedby="upload-help-text"
       // 优化：添加 touch-action 减少移动端延迟
       style={{ touchAction: 'manipulation' }}
@@ -153,10 +181,10 @@ export function UploadArea({ onFilesSelected, disabled }: UploadAreaProps) {
 
             {/* 优化：改进文案层级和对比度 */}
             <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
-              拖拽图片到此处，或点击选择文件
+              拖拽文件到此处，或点击选择文件
             </p>
             <p id="upload-help-text" className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              支持 PNG、JPG、JPEG、GIF、WEBP 格式
+              {helpText}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-1.5 flex items-center justify-center gap-2">
               <span>单文件最大 100MB</span>

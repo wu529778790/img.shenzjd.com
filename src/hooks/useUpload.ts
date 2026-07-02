@@ -10,6 +10,7 @@ import { useConfigStore } from '@/stores/configStore'
 import { useUploadStore } from '@/stores/uploadStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
+import { getFileCategory, isImage as isImageFile } from '@/lib/fileTypes'
 import { debugLog, debugError, debugWarn } from '@/lib/debug'
 import type { FileWithPreview, LinkOptions, UploadTask } from '@/types/image'
 
@@ -62,9 +63,9 @@ export function useUpload() {
       // 实时读取最新配置（避免 mutation 闭包捕获旧值）
       const cfg = useConfigStore.getState()
 
-      // 1. 压缩图片
+      // 1. 压缩图片（仅图片文件使用 Canvas 压缩）
       let processedFile = file
-      if (cfg.compressionEnabled) {
+      if (cfg.compressionEnabled && isImageFile(file.name)) {
         try {
           debugLog('[Progress] Setting progress to 10% (compression start)')
           updateTask(taskId, { progress: 10 }) // 压缩开始
@@ -82,10 +83,12 @@ export function useUpload() {
           debugError('Compression failed:', error)
           toast.error(`${file.name} 压缩失败，将上传原图`)
         }
+      } else if (cfg.compressionEnabled) {
+        debugLog('[Upload] Skipping compression (non-image):', file.name)
       }
 
-      // 1.5 转换为 WebP
-      if (cfg.convertToWebp && !processedFile.name.endsWith('.webp')) {
+      // 1.5 转换为 WebP（仅图片文件）
+      if (cfg.convertToWebp && !processedFile.name.endsWith('.webp') && isImageFile(processedFile.name)) {
         try {
           debugLog('[Upload] Converting to WebP:', processedFile.name)
           updateTask(taskId, { progress: 25 })
@@ -96,10 +99,12 @@ export function useUpload() {
           debugError('[WebP] Conversion failed:', error)
           toast.error(`${file.name} WebP 转换失败，将上传原格式`)
         }
+      } else if (cfg.convertToWebp && !processedFile.name.endsWith('.webp')) {
+        debugLog('[Upload] Skipping WebP conversion (non-image):', processedFile.name)
       }
 
-      // 2. 添加水印
-      if (cfg.watermarkEnabled && cfg.watermarkText) {
+      // 2. 添加水印（仅图片文件）
+      if (cfg.watermarkEnabled && cfg.watermarkText && isImageFile(processedFile.name)) {
         try {
           debugLog('[Progress] Setting progress to 30% (watermark start)')
           updateTask(taskId, { progress: 30 }) // 水印开始
@@ -121,6 +126,8 @@ export function useUpload() {
           debugError('Watermark failed:', error)
           toast.error(`${file.name} 水印添加失败`)
         }
+      } else if (cfg.watermarkEnabled && cfg.watermarkText) {
+        debugLog('[Upload] Skipping watermark (non-image):', file.name)
       }
 
       // 3. 生成文件路径（带品牌前缀和可读日期）
@@ -181,10 +188,13 @@ export function useUpload() {
       debugLog('[Upload] ✅ Upload completed successfully:', fileName)
       debugLog('[Upload] File URL:', result.html_url)
 
-      // 生成缩略图 blob URL（用于首页展示）
-      const thumbnailUrl = URL.createObjectURL(processedFile)
+      // 生成缩略图 blob URL（仅图片文件生成 blob 预览）
+      const thumbnailUrl = isImageFile(processedFile.name)
+        ? URL.createObjectURL(processedFile)
+        : undefined
 
       // 生成链接并自动复制到剪贴板
+      // 按文件类型分支：图片保留原有 WebP / <img> 行为，其他文件使用裸链 / <a>
       const linkOptions: LinkOptions = {
         format: config.copyFormat,
         cdn: config.cdn,
@@ -194,6 +204,7 @@ export function useUpload() {
         path: filePath,
         fileName: fileName,
         useRaw: config.useRaw ?? true,
+        category: getFileCategory(fileName),
       }
 
       const link = generateLink(linkOptions)

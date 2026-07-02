@@ -2,7 +2,7 @@
 
 import { useState, memo, useCallback, useRef } from 'react'
 import Image from 'next/image'
-import { MoreVertical, Trash2, Link2 } from 'lucide-react'
+import { MoreVertical, Trash2, Link2, Music, FileText, File } from 'lucide-react'
 import { formatFileSize } from '@/lib/utils'
 import { generateLink } from '@/lib/link'
 import { getWebPUrl } from '@/lib/webp'
@@ -17,6 +17,12 @@ import {
 import { useConfigStore } from '@/stores/configStore'
 import { toast } from 'sonner'
 import { ImageCardDeleteConfirm } from './ImageCardDeleteConfirm'
+import {
+  getFileCategory,
+  isVideo,
+  isAudio,
+  isDocument,
+} from '@/lib/fileTypes'
 import type { ImageFile } from '@/types/image'
 
 // 图片加载占位符 - 柔和的灰色渐变（小尺寸以减少 base64 长度）
@@ -49,6 +55,9 @@ function ImageCardInner({ image, onDelete, priority, onPreview }: ImageCardProps
   // 使用 ref 跟踪删除操作状态，防止删除确认关闭时触发预览
   const isDeletingRef = useRef(false)
 
+  const category = image.category ?? getFileCategory(image.name)
+  const imageIsImage = category === 'image'
+
   // 实时计算 CDN URL，使切换 CDN 立即生效
   const cdnUrl = generateLink({
     format: 'url',
@@ -59,6 +68,7 @@ function ImageCardInner({ image, onDelete, priority, onPreview }: ImageCardProps
     path: image.path,
     fileName: image.name,
     useRaw: configStore.useRaw ?? true,
+    category,
   })
 
   // 使用 useCallback 优化函数稳定性
@@ -74,6 +84,7 @@ function ImageCardInner({ image, onDelete, priority, onPreview }: ImageCardProps
       path: image.path,
       fileName: image.name,
       useRaw,
+      category,
     })
 
     try {
@@ -88,7 +99,7 @@ function ImageCardInner({ image, onDelete, priority, onPreview }: ImageCardProps
     } catch {
       toast.error('复制失败')
     }
-  }, [configStore, image.path, image.name])
+  }, [configStore, image.path, image.name, category])
 
   // 使用 useCallback 优化事件处理函数
   const handleClick = useCallback(() => {
@@ -97,14 +108,14 @@ function ImageCardInner({ image, onDelete, priority, onPreview }: ImageCardProps
       return
     }
     onPreview?.(image)
-  }, [image.id, onPreview, showDeleteConfirm])
+  }, [image, onPreview, showDeleteConfirm])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       onPreview?.(image)
     }
-  }, [image.id, onPreview])
+  }, [image, onPreview])
 
   return (
     <>
@@ -131,27 +142,42 @@ function ImageCardInner({ image, onDelete, priority, onPreview }: ImageCardProps
         onKeyDown={handleKeyDown}
         role="button"
         tabIndex={0}
-        aria-label={`预览图片: ${image.name}`}
+        aria-label={`预览文件: ${image.name}`}
       >
-        {/* 图片预览区域 */}
-        <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-900">
-          <Image
-            src={getWebPUrl(cdnUrl)}
-            alt={image.name}
-            fill
-            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-            priority={priority}
-            loading={priority ? 'eager' : 'lazy'}
-            unoptimized={!!image.cdnUrl}
-            placeholder="blur"
-            blurDataURL={IMAGE_PLACEHOLDER_B64}
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            style={{
-              // 优化重绘性能
-              contain: 'layout style paint',
-            }}
-          />
-
+        {/* 文件预览区域 — 按类别分别渲染缩略图/占位图标 */}
+        <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+          {imageIsImage ? (
+            <Image
+              src={getWebPUrl(cdnUrl, true)}
+              alt={image.name}
+              fill
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              priority={priority}
+              loading={priority ? 'eager' : 'lazy'}
+              unoptimized={!!image.cdnUrl}
+              placeholder="blur"
+              blurDataURL={IMAGE_PLACEHOLDER_B64}
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              style={{
+                // 优化重绘性能
+                contain: 'layout style paint',
+              }}
+            />
+          ) : isVideo(image.name) ? (
+            <video
+              src={cdnUrl}
+              preload="metadata"
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+            />
+          ) : isAudio(image.name) ? (
+            <Music className="h-12 w-12 text-primary" aria-hidden="true" />
+          ) : isDocument(image.name) ? (
+            <FileText className="h-12 w-12 text-primary" aria-hidden="true" />
+          ) : (
+            <File className="h-12 w-12 text-primary" aria-hidden="true" />
+          )}
         </div>
 
         {/* 文件信息 */}

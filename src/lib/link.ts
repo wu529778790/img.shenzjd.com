@@ -1,7 +1,11 @@
 import type { LinkOptions } from '@/types/image'
 
 export function generateLink(options: LinkOptions): string {
-  const { format, cdn, owner, repo, branch, path, fileName, useRaw = true } = options
+  const { format, cdn, owner, repo, branch, path, fileName, useRaw = true, category } = options
+
+  // 仅对图片保持原有行为（WebP 后缀 + <img> 标签）。
+  // 未传 category 时默认当作图片，向后兼容。
+  const treatAsImage = category === undefined || category === 'image'
 
   // 生成基础 URL（先清理 path 中的查询参数）
   // 防止 path 已经包含 ?format=webp 导致重复
@@ -14,11 +18,13 @@ export function generateLink(options: LinkOptions): string {
         // GitHub raw 链接 + WebP 格式参数
         baseUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${cleanPath}`
 
-        // GitHub Raw 支持动态 WebP 转换
+        // GitHub Raw 支持动态 WebP 转换，但仅对图片文件追加
         // 添加 ?format=webp 参数，GitHub 会自动转换为 WebP
         // 优点：不需要仓库里有 .webp 文件，动态转换
-        const hasQuery = baseUrl.includes('?')
-        baseUrl += hasQuery ? '&format=webp' : '?format=webp'
+        if (treatAsImage) {
+          const hasQuery = baseUrl.includes('?')
+          baseUrl += hasQuery ? '&format=webp' : '?format=webp'
+        }
       } else {
         baseUrl = `https://github.com/${owner}/${repo}/blob/${branch}/${cleanPath}`
       }
@@ -52,13 +58,16 @@ export function generateLink(options: LinkOptions): string {
   }
 
   // 根据格式生成链接
+  // 图片使用图片语法，其他文件使用裸链 / <a> 标签
   switch (format) {
     case 'markdown':
-      return `![${fileName}](${baseUrl})`
+      return treatAsImage ? `![${fileName}](${baseUrl})` : `[${fileName}](${baseUrl})`
     case 'html':
-      return `<img src="${baseUrl}" alt="${fileName}" />`
+      return treatAsImage
+        ? `<img src="${baseUrl}" alt="${fileName}" />`
+        : `<a href="${baseUrl}" target="_blank" rel="noopener noreferrer">${fileName}</a>`
     case 'bbcode':
-      return `[img]${baseUrl}[/img]`
+      return treatAsImage ? `[img]${baseUrl}[/img]` : `[url=${baseUrl}]${fileName}[/url]`
     case 'url':
       return baseUrl
     default:

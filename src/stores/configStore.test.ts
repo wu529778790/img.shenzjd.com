@@ -130,7 +130,7 @@ describe('configStore', () => {
       expect(state.owner).toBe('');
       expect(state.repo).toBe('');
       expect(state.cdn).toBe('jsdmirror');
-      expect(state.watermarkEnabled).toBe(true);
+      expect(state.watermarkEnabled).toBe(false);
       expect(state.configInitialized).toBe(false);
     });
   });

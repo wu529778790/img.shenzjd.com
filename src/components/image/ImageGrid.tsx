@@ -90,8 +90,8 @@ export function ImageGrid({
                   <button
                     onClick={handleEyeClick}
                     className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex-shrink-0"
-                    aria-label="预览图片"
-                    title="预览图片"
+                    aria-label="预览文件"
+                    title="预览文件"
                   >
                     <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   </button>

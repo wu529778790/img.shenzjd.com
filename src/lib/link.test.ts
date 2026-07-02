@@ -172,7 +172,79 @@ describe('generateLink', () => {
     });
   });
 
-  describe('Edge cases', () => {
+  describe('Non-image files (category !== "image")', () => {
+    it('should not append ?format=webp for documents on github CDN', () => {
+      const result = generateLink({
+        ...baseOptions,
+        cdn: 'github',
+        format: 'url',
+        category: 'document',
+      });
+      expect(result).toBe(
+        'https://raw.githubusercontent.com/testuser/test-repo/main/images/photo.jpg'
+      );
+    });
+
+    it('should not append ?format=webp for videos on github CDN', () => {
+      const result = generateLink({
+        ...baseOptions,
+        path: 'videos/clip.mp4',
+        fileName: 'clip.mp4',
+        cdn: 'github',
+        format: 'url',
+        category: 'video',
+      });
+      expect(result).not.toContain('?format=webp');
+    });
+
+    it('should emit markdown anchor (no !) for non-images', () => {
+      const result = generateLink({
+        ...baseOptions,
+        cdn: 'jsdmirror',
+        format: 'markdown',
+        category: 'video',
+      });
+      expect(result).toBe(
+        '[photo.jpg](https://cdn.jsdmirror.com/gh/testuser/test-repo@main/images/photo.jpg)'
+      );
+    });
+
+    it('should emit <a> tag for non-image HTML format', () => {
+      const result = generateLink({
+        ...baseOptions,
+        cdn: 'jsdmirror',
+        format: 'html',
+        category: 'document',
+      });
+      expect(result).toBe(
+        '<a href="https://cdn.jsdmirror.com/gh/testuser/test-repo@main/images/photo.jpg" target="_blank" rel="noopener noreferrer">photo.jpg</a>'
+      );
+    });
+
+    it('should emit [url=…]..[/url] for non-image BBCode format', () => {
+      const result = generateLink({
+        ...baseOptions,
+        cdn: 'jsdmirror',
+        format: 'bbcode',
+        category: 'audio',
+      });
+      expect(result).toBe(
+        '[url=https://cdn.jsdmirror.com/gh/testuser/test-repo@main/images/photo.jpg]photo.jpg[/url]'
+      );
+    });
+
+    it('should treat missing category as image (backward compat)', () => {
+      const result = generateLink({
+        ...baseOptions,
+        cdn: 'github',
+        format: 'url',
+        // category intentionally omitted
+      });
+      expect(result).toContain('?format=webp');
+    });
+  });
+
+describe('Edge cases', () => {
     it('should handle path with query parameters by cleaning them', () => {
       const result = generateLink({
         ...baseOptions,

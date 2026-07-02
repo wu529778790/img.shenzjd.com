@@ -9,6 +9,7 @@ import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
 import { BULK_DELETE_CONFIG } from '@/lib/constants'
 import { debugLog, debugError } from '@/lib/debug'
+import { getFileCategory, getExtension, ALLOWED_EXTENSIONS } from '@/lib/fileTypes'
 import type { ImageFile } from '@/types/image'
 
 export function useImages() {
@@ -47,20 +48,23 @@ export function useImages() {
       debugLog('[Images] Total files from GitHub API:', allFiles.length)
       debugLog('[Images] Sample files:', allFiles.slice(0, 5).map(f => ({ name: f.name, path: f.path, type: f.type, size: f.size })))
 
-      // 过滤出图片文件 - 使用 Set 提高性能
-      const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'])
-      const imageFiles = allFiles.filter((file) => {
-        const lastDot = file.name.lastIndexOf('.')
-        const ext = lastDot > 0 ? file.name.toLowerCase().slice(lastDot) : ''
-        debugLog('[Images] Checking file:', { name: file.name, ext, path: file.path, size: file.size })
-        return imageExtensions.has(ext)
+      // 按内置白名单过滤（图片/视频/音频/文档/压缩包）。
+      // 过滤掉 dotfiles（.gitignore 等）和非媒体/文档类文件。
+      const allowed = new Set(ALLOWED_EXTENSIONS)
+      const filterFiles = allFiles.filter((file) => {
+        const ext = getExtension(file.name)
+        const passes = allowed.has(ext)
+        if (!passes && ext) {
+          debugLog('[Images] Skipping file (not in ALLOWED_EXTENSIONS):', { name: file.name, ext })
+        }
+        return passes
       })
-      debugLog('[Images] Image files found:', imageFiles.length)
-      debugLog('[Images] Sample images:', imageFiles.slice(0, 5).map(f => ({ name: f.name, path: f.path })))
+      debugLog('[Images] Allowed files found:', filterFiles.length)
+      debugLog('[Images] Sample files:', filterFiles.slice(0, 5).map(f => ({ name: f.name, path: f.path })))
 
       // 调试：如果是空数组，显示所有文件帮助诊断
-      if (imageFiles.length === 0 && allFiles.length > 0) {
-        debugLog('[Images] ⚠️ No images found! All files:', allFiles.map(f => ({
+      if (filterFiles.length === 0 && allFiles.length > 0) {
+        debugLog('[Images] ⚠️ No allowed files found! All files:', allFiles.map(f => ({
           name: f.name,
           path: f.path,
           type: f.type,
@@ -70,8 +74,8 @@ export function useImages() {
 
       // 转换为业务层对象（不获取提交时间，使用文件名/大小/路径排序）
       // 使用 Map 去重，避免重复的 SHA 导致 React key 冲突
-      const imageMap = new Map<string, ImageFile>()
-      imageFiles.forEach((file) => {
+      const fileMap = new Map<string, ImageFile>()
+      filterFiles.forEach((file) => {
         const cdnUrl = generateLink({
           format: 'url',
           cdn: cdn,
@@ -81,6 +85,7 @@ export function useImages() {
           path: file.path,
           fileName: file.name,
           useRaw: useRaw ?? true,
+          category: getFileCategory(file.name),
         })
 
         const imageFile: ImageFile = {
@@ -89,15 +94,16 @@ export function useImages() {
           type: 'file' as const,
           uploaded_at: undefined, // 不使用提交时间
           cdnUrl,
+          category: getFileCategory(file.name),
         }
 
         // 使用 SHA 作为 key 去重
-        imageMap.set(file.sha, imageFile)
+        fileMap.set(file.sha, imageFile)
       })
 
-      debugLog('[Images] After deduplication:', imageMap.size, 'unique images out of', imageFiles.length)
+      debugLog('[Images] After deduplication:', fileMap.size, 'unique files out of', filterFiles.length)
 
-      return Array.from(imageMap.values())
+      return Array.from(fileMap.values())
       } catch (err) {
         // API 失败时返回空数组，避免 SSR crash 导致 503
         debugError('[Images] Query failed, returning empty array:', err)

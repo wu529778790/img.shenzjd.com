@@ -1,3 +1,5 @@
+import type { FileCategory } from '@/lib/fileTypes';
+
 export interface ImageFile {
   id: string
   name: string
@@ -13,6 +15,8 @@ export interface ImageFile {
   type: 'file' | 'dir'
   created_at?: string
   uploaded_at?: string
+  /** Derived category used for UI branching + link formatting. */
+  category?: FileCategory
 }
 
 // GitHub API 原始文件信息（API 层，与业务层 ImageFile 解耦）
@@ -54,4 +58,9 @@ export interface LinkOptions {
   path: string
   fileName: string
   useRaw?: boolean
+  /**
+   * Omit to treat the file as an image (backward-compatible behavior).
+   * Pass `getFileCategory(fileName)` to gate WebP / `<img>` generation.
+   */
+  category?: FileCategory
 }

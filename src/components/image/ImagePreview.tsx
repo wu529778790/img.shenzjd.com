@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import Image from 'next/image'
-import { X, Download, Copy, Check, ExternalLink, Info, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
+import { X, Download, Copy, Check, ExternalLink, Info, ChevronLeft, ChevronRight, Trash2, Music, FileText } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { ImageCardDeleteConfirm } from './ImageCardDeleteConfirm'
@@ -13,6 +12,13 @@ import { cn, formatFileSize } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { debugError } from '@/lib/debug'
+import {
+  getFileCategory,
+  isVideo,
+  isAudio,
+  isDocument,
+  getExtension,
+} from '@/lib/fileTypes'
 
 
 interface ImagePreviewProps {
@@ -25,8 +31,10 @@ interface ImagePreviewProps {
 
 export function ImagePreview({ image, images, onClose, onImageChange, onDelete }: ImagePreviewProps) {
   const configStore = useConfigStore()
-  const { data: session } = useSession()
-  const token = session?.accessToken || ''
+  useSession()
+
+  const category = image.category ?? getFileCategory(image.name)
+  const imageIsImage = category === 'image'
 
   // 实时计算 CDN URL，使切换 CDN 立即生效
   const cdnUrl = generateLink({
@@ -38,6 +46,7 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
     path: image.path,
     fileName: image.name,
     useRaw: configStore.useRaw ?? true,
+    category,
   })
 
   const modalRef = useRef<HTMLDivElement>(null)
@@ -85,9 +94,9 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
     }
   }, [hasNext, currentIndex, navigateToImage])
 
-  // 预加载相邻图片，使切换更流畅
+  // 预加载相邻图片，使切换更流畅 — 仅图片文件使用 image preload。
   useEffect(() => {
-    if (!images || images.length <= 1) return
+    if (!images || images.length <= 1 || !imageIsImage) return
 
     const prevIdx = currentIndex - 1
     const nextIdx = currentIndex + 1
@@ -142,6 +151,7 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
         links.forEach((link) => document.head.removeChild(link))
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, images, configStore.cdn, configStore.owner, configStore.repo, configStore.branch, configStore.useRaw])
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -215,6 +225,7 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
       path: image.path,
       fileName: image.name,
       useRaw,
+      category,
     })
 
     try {
@@ -255,7 +266,7 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
         onClick={onClose}
         role="dialog"
         aria-modal="true"
-        aria-label="图片预览"
+        aria-label="文件预览"
       >
         {/* 主容器 */}
         <motion.div
@@ -311,7 +322,7 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
                     variant="ghost"
                     onClick={() => setShowDeleteConfirm(true)}
                     className="h-9 px-3 text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                    aria-label="删除图片"
+                    aria-label="删除文件"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -343,10 +354,10 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
             </div>
           </div>
 
-          {/* 图片区域 */}
+          {/* 内容区域 */}
           <div className="flex-1 relative min-h-[300px] bg-gray-50 dark:bg-gray-800/50 flex items-center justify-center overflow-hidden">
-            {/* 加载占位符 */}
-            {!imageLoaded && (
+            {/* 加载占位符 — 仅图片文件显示 loading 骨架 */}
+            {!imageLoaded && imageIsImage && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 animate-pulse z-10">
                 <div className="text-gray-400 dark:text-gray-600">
                   <svg className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -391,25 +402,59 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
               </button>
             )}
 
-            {/* 实际图片 */}
-            <Image
-              src={cdnUrl}
-              alt={image.name}
-              fill
-              className={cn(
-                "object-contain transition-opacity duration-300",
-                imageLoaded ? "opacity-100" : "opacity-0"
-              )}
-              priority
-              quality={85}
-              unoptimized={!!image.cdnUrl}
-              onLoad={handleImageLoad}
-              onError={() => {
-                debugError('Failed to load image:', image.cdnUrl || image.download_url)
-                handleImageLoad() // 即使失败也标记为已处理
-              }}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
-            />
+            {/* 内容渲染 — 按类别选择不同元素 */}
+            {imageIsImage ? (
+              /* 图片：next/image */
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={cdnUrl}
+                alt={image.name}
+                className={cn(
+                  "max-w-full max-h-full object-contain transition-opacity duration-300",
+                  imageLoaded ? "opacity-100" : "opacity-0"
+                )}
+                onLoad={handleImageLoad}
+                onError={() => {
+                  debugError('Failed to load image:', image.cdnUrl || image.download_url)
+                  handleImageLoad()
+                }}
+              />
+            ) : isDocument(image.name) && getExtension(image.name) === '.pdf' ? (
+              /* PDF：内嵌 iframe 浏览器预览 */
+              <iframe
+                src={cdnUrl}
+                title={image.name}
+                className="w-full h-full border-0"
+              />
+            ) : isVideo(image.name) ? (
+              /* 视频：原生 video 控件 */
+              <video
+                src={cdnUrl}
+                controls
+                preload="metadata"
+                className="max-w-full max-h-full"
+              />
+            ) : isAudio(image.name) ? (
+              /* 音频：原生 audio 控件 */
+              <div className="flex flex-col items-center gap-4 p-8">
+                <Music className="h-16 w-16 text-primary" aria-hidden="true" />
+                <audio src={cdnUrl} controls preload="metadata" className="w-full max-w-md" />
+              </div>
+            ) : (
+              /* 其他（zip、doc、exe …）：下载按钮 + 文件信息 */
+              <div className="flex flex-col items-center gap-6 p-10 text-center">
+                <FileText className="h-20 w-20 text-primary/70" aria-hidden="true" />
+                <p className="text-lg font-medium text-gray-900 dark:text-gray-100 break-all">
+                  {image.name}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {formatFileSize(image.size)}
+                </p>
+                <Button onClick={handleDownload}>
+                  <Download className="mr-2 h-4 w-4" />下载文件
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* 底部工具栏：复制链接 */}

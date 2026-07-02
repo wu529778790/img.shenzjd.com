@@ -10,9 +10,11 @@
  * 其他 CDN（jsdmirror, jsdelivr, github-pages）需要实际 .webp 文件
  *
  * @param url 原始图片 URL
- * @returns WebP URL（仅 GitHub Raw）
+ * @param isImage 仅当 true 时追加 ?format=webp；非图片文件跳过，避免 next/image 解码失败
+ * @returns WebP URL（仅 GitHub Raw，且仅图片）
  */
-export function getWebPUrl(url: string): string {
+export function getWebPUrl(url: string, isImage = true): string {
+  if (!isImage) return url;
   // GitHub Raw: 支持动态 WebP 转换
   if (url.includes('raw.githubusercontent.com')) {
     const separator = url.includes('?') ? '&' : '?'

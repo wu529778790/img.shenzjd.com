@@ -165,18 +165,18 @@ export default function ManagementPage() {
                 <ImageIcon className="h-12 w-12 text-gray-400" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {searchQuery || selectedDirectory ? '没有找到图片' : '暂无图片'}
+                {searchQuery || selectedDirectory ? '没有找到文件' : '暂无文件'}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {searchQuery
-                  ? '没有找到匹配 "' + searchQuery + '" 的图片'
+                  ? '没有找到匹配 "' + searchQuery + '" 的文件'
                   : selectedDirectory
-                  ? '"' + selectedDirectory + '" 目录下没有图片'
-                  : '上传您的第一张图片开始使用'}
+                  ? '"' + selectedDirectory + '" 目录下没有文件'
+                  : '上传您的第一个文件开始使用'}
               </p>
               {!searchQuery && !selectedDirectory && (
                 <Button onClick={() => router.push('/')} className="mt-4">
-                  上传图片
+                  上传文件
                 </Button>
               )}
             </div>
