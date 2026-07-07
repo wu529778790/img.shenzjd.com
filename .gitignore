@@ -44,3 +44,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# WorkBuddy workspace memory (runtime data, not project source)
+.workbuddy/
