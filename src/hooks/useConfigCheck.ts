@@ -26,14 +26,13 @@ export function useConfigCheck() {
   }, [configStore])
 
   const checkConfig = useCallback(
-    async (force: boolean = false): Promise<ConfigCheckResult | null> => {
+    async (token?: string, force: boolean = false): Promise<ConfigCheckResult | null> => {
       const store = configStoreRef.current
 
       if (!force && store.configLastCheckedAt && !store.needsConfigCheck(5 * 60 * 1000)) {
         return null
       }
 
-      const token = typeof window !== 'undefined' ? localStorage.getItem('github_token') : null
       if (!token) return null
 
       let timedOut = false

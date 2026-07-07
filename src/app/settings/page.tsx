@@ -26,7 +26,7 @@ import { GitHubAPI } from '@/lib/github'
 const CARD_CLASSES = 'p-6 rounded-2xl bg-card border shadow-sm'
 
 export default function SettingsPage() {
-  const { status } = useSession()
+  const { data: session, status } = useSession()
   const { openLoginDialog } = useAuthDialog()
   const configStore = useConfigStore()
 
@@ -52,7 +52,7 @@ export default function SettingsPage() {
   const { data: branches = [], isLoading: loadingBranches } = useQuery({
     queryKey: ['branches-setting', configStore.owner, configStore.repo],
     queryFn: async () => {
-      const token = localStorage.getItem('github_token')
+      const token = session?.accessToken
       if (!token || !configStore.owner || !configStore.repo) return []
       const api = new GitHubAPI(token, configStore.owner, configStore.repo)
       try {
@@ -61,7 +61,7 @@ export default function SettingsPage() {
         return ['main']
       }
     },
-    enabled: !!configStore.owner && !!configStore.repo,
+    enabled: !!configStore.owner && !!configStore.repo && !!session?.accessToken,
   })
 
   if (status === 'loading') {

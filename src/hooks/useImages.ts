@@ -105,15 +105,21 @@ export function useImages() {
 
       return Array.from(fileMap.values())
       } catch (err) {
-        // API 失败时返回空数组，避免 SSR crash 导致 503
-        debugError('[Images] Query failed, returning empty array:', err)
-        return []
+        // 不再吞掉错误：抛出后 React Query 会记录 error，
+        // 404（仓库被删）/401（登录失效）/403（限流）才能被正确分类处理
+        debugError('[Images] Query failed:', err)
+        throw err
       }
     },
     enabled: !!token && !!owner && !!repo,
     staleTime: 0,
     gcTime: 5 * 60 * 1000,
-    retry: 2,
+    retry: (failureCount, error) => {
+      const status = (error as { response?: { status?: number } })?.response?.status
+      // 4xx 是确定性失败（鉴权/不存在/限流），不重试
+      if (status && status >= 400 && status < 500) return false
+      return failureCount < 2
+    },
     retryDelay: 1000,
   })
 

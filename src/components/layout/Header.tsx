@@ -27,7 +27,6 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleLogout = async () => {
-    localStorage.removeItem('github_token')
     localStorage.removeItem('config-storage')
     queryClient.clear()
     await signOut({ redirect: false })

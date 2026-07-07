@@ -24,7 +24,9 @@ export async function GET(request: NextRequest) { // eslint-disable-line @typesc
         Authorization: `token ${token}`,
         Accept: 'application/vnd.github.v3+json',
       },
-      next: { revalidate: 300 },
+      // 按用户鉴权的数据绝不能进共享缓存：Next fetch 缓存键通常不含 Authorization 头，
+      // 显式 revalidate 会导致 A 用户的仓库列表被返回给 B 用户
+      cache: 'no-store',
     })
 
     if (!response.ok) {

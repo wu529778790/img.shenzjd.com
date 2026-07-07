@@ -62,8 +62,7 @@ const README_CONTENT = `# 🚀 img.shenzjd.com
  * 自动配置：创建仓库 + 写入 README + 写入默认配置文件
  * 返回配置对象供 store 更新，失败返回 null
  */
-async function autoProvisionConfig(): Promise<Config | null> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('github_token') : null
+async function autoProvisionConfig(token?: string): Promise<Config | null> {
   if (!token) return null
 
   // 1. 获取当前用户
@@ -97,7 +96,7 @@ async function autoProvisionConfig(): Promise<Config | null> {
 
   // 4. 构建默认配置并写入 GitHub
   const config = getDefaultConfig(username)
-  const result = await saveConfigToGitHub(config, username, REPO_NAME, REPO_BRANCH, CONFIG_PATH)
+  const result = await saveConfigToGitHub(config, username, REPO_NAME, REPO_BRANCH, CONFIG_PATH, undefined, token)
 
   if (!result.success) {
     debugError('[AutoProvision] Failed to save config:', result.message)
@@ -108,9 +107,9 @@ async function autoProvisionConfig(): Promise<Config | null> {
 }
 
 export function useAutoProvision() {
-  const provision = useCallback(async (): Promise<Config | null> => {
+  const provision = useCallback(async (token?: string): Promise<Config | null> => {
     try {
-      return await autoProvisionConfig()
+      return await autoProvisionConfig(token)
     } catch (error) {
       debugError('[AutoProvision] Error:', error)
       return null

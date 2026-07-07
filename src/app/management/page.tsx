@@ -24,7 +24,7 @@ export default function ManagementPage() {
   const { openLoginDialog } = useAuthDialog()
   const configStore = useConfigStore()
 
-  const { images, isLoading, handleDelete, handleBulkDelete } = useImages()
+  const { images, isLoading, error, handleDelete, handleBulkDelete } = useImages()
 
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [selectedDirectory, setSelectedDirectory] = useState<string>('')
@@ -157,8 +157,38 @@ export default function ManagementPage() {
           />
         </div>
 
+        {/* 错误状态：鉴权失效 / 仓库被删 / 限流 等不再静默为空 */}
+        {!isLoading && error && (
+          <div className="text-center py-16 px-4">
+            <div className="max-w-md mx-auto space-y-4">
+              <div className="mx-auto w-24 h-24 rounded-2xl bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/40 dark:to-red-800/30 flex items-center justify-center">
+                <ImageIcon className="h-12 w-12 text-red-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {(() => {
+                  const status = (error as { response?: { status?: number } })?.response?.status
+                  if (status === 401 || status === 403) return '登录已失效，请重新登录'
+                  if (status === 404) return '图床仓库不存在，请重新配置'
+                  return '加载失败'
+                })()}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {(() => {
+                  const status = (error as { response?: { status?: number } })?.response?.status
+                  if (status === 401 || status === 403) return 'GitHub 授权已过期，点击右上角重新登录后重试'
+                  if (status === 404) return '检测到仓库已被删除或无权访问'
+                  return 'GitHub API 请求失败，可能是速率限制，请稍后重试'
+                })()}
+              </p>
+              <Button onClick={() => router.push('/')} className="mt-4">
+                返回首页
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* 空状态 */}
-        {!isLoading && filteredImages.length === 0 && (
+        {!isLoading && !error && filteredImages.length === 0 && (
           <div className="text-center py-16 px-4">
             <div className="max-w-md mx-auto space-y-4">
               <div className="mx-auto w-24 h-24 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center">

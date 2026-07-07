@@ -5,7 +5,6 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/providers/SessionProvider";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { Header } from "@/components/layout/Header";
-import { SyncGitHubTokenToLocalStorage } from "@/hooks/useSyncGitHubToken";
 import { ConfigDiscovery } from "@/components/providers/ConfigDiscovery";
 import { AuthDialogProvider } from "@/components/auth";
 import { SkipLink } from "@/components/layout/SkipLink";
@@ -41,7 +40,6 @@ export default function RootLayout({
         <OfflineIndicator />
         <ReactQueryProvider>
           <AuthProvider>
-            <SyncGitHubTokenToLocalStorage />
             <AuthDialogProvider>
               <ConfigDiscovery />
               <div className="relative flex min-h-screen flex-col">

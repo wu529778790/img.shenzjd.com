@@ -42,11 +42,10 @@ export function ConfigDiscovery() {
   })
 
   // 验证已配置的仓库是否存在，不存在则自动重建
-  async function validateConfiguredRepo() {
+  async function validateConfiguredRepo(token?: string) {
     if (validatedRef.current) return
     validatedRef.current = true
 
-    const token = typeof window !== 'undefined' ? localStorage.getItem('github_token') : null
     const { owner, repo } = configStoreRef.current
     if (!token || !owner || !repo) return
 
@@ -62,7 +61,7 @@ export function ConfigDiscovery() {
         configStore.resetConfig()
         localStorage.removeItem('config-storage')
         try {
-          const provisioned = await provision()
+          const provisioned = await provision(session?.accessToken)
           if (provisioned) {
             configStoreRef.current.updateConfig(provisioned)
             configStoreRef.current.setConfigInitialized()
@@ -87,7 +86,7 @@ export function ConfigDiscovery() {
     if (status === 'authenticated' && session?.accessToken) {
       checkedSessionRef.current = sessionKey
       loadingRef.current = true
-      checkConfig().then(async (config) => {
+      checkConfig(session?.accessToken).then(async (config) => {
         try {
           const store = configStoreRef.current
           const wasInitialized = store.configInitialized
@@ -136,7 +135,7 @@ export function ConfigDiscovery() {
           } else if (!wasInitialized) {
             // 首次使用且无远程配置 → 静默自动创建
             try {
-              const provisioned = await provision()
+              const provisioned = await provision(session?.accessToken)
               if (provisioned) {
                 store.updateConfig(provisioned)
               }
@@ -145,7 +144,7 @@ export function ConfigDiscovery() {
             }
           }
 
-          await validateConfiguredRepo()
+          await validateConfiguredRepo(session?.accessToken)
           store.setConfigInitialized()
         } catch (err) {
           debugError('[ConfigDiscovery] Error processing config:', err)

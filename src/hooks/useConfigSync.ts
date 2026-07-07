@@ -1,6 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import type { Config } from '@/types/config'
 import { debugLog, debugError, debugWarn } from '@/lib/debug'
@@ -41,9 +42,9 @@ export async function saveConfigToGitHub(
   repo: string,
   branch: string,
   path: string,
-  sha?: string
+  sha?: string,
+  token?: string
 ): Promise<SaveConfigResponse> {
-  const token = localStorage.getItem('github_token')
   if (!token) {
     return { success: false, message: '未找到 GitHub token' }
   }
@@ -117,9 +118,9 @@ async function loadConfigFromGitHub(
   owner: string,
   repo: string,
   branch: string,
-  path: string
+  path: string,
+  token?: string
 ): Promise<LoadConfigResponse> {
-  const token = localStorage.getItem('github_token')
   if (!token) {
     return { success: false, message: '未找到 GitHub token' }
   }
@@ -157,6 +158,7 @@ async function loadConfigFromGitHub(
  */
 export function useSaveConfigToGitHub() {
   const queryClient = useQueryClient()
+  const { data: session } = useSession()
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -191,7 +193,7 @@ export function useSaveConfigToGitHub() {
         lastSyncAt: cfg.lastSyncAt,
         sha: cfg.sha,
       }
-      return saveConfigToGitHub(currentConfig, owner, repo, branch, configPath)
+      return saveConfigToGitHub(currentConfig, owner, repo, branch, configPath, cfg.sha, session?.accessToken)
     },
     onSuccess: (result) => {
       if (result.success) {
@@ -215,6 +217,7 @@ export function useSaveConfigToGitHub() {
  */
 export function useLoadConfigFromGitHub() {
   const configStore = useConfigStore()
+  const { data: session } = useSession()
 
   return useQuery({
     queryKey: ['config-from-github', configStore.owner, configStore.repo, configStore.branch, configStore.configPath],
@@ -226,10 +229,10 @@ export function useLoadConfigFromGitHub() {
         return null
       }
 
-      const result = await loadConfigFromGitHub(owner, repo, branch, configPath)
+      const result = await loadConfigFromGitHub(owner, repo, branch, configPath, session?.accessToken)
       return result.success ? result.config : null
     },
-    enabled: !!(configStore.owner && configStore.repo && configStore.branch && configStore.configPath),
+    enabled: !!(configStore.owner && configStore.repo && configStore.branch && configStore.configPath && session?.accessToken),
     staleTime: 60 * 1000, // 1 分钟
   })
 }
@@ -241,9 +244,9 @@ export async function checkGitHubConfigExists(
   owner: string,
   repo: string,
   branch: string,
-  path: string
+  path: string,
+  token?: string
 ): Promise<boolean> {
-  const token = localStorage.getItem('github_token')
   if (!token) return false
 
   try {
