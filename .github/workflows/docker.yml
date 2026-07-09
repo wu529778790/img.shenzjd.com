@@ -1,5 +1,5 @@
-# See https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
-name: Docker
+# Docker build, push, and deploy workflow
+name: Create and publish a Docker image
 
 on:
   push:
@@ -7,9 +7,7 @@ on:
       - main
     tags:
       - 'v*'
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -21,6 +19,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+      attestations: write
+      id-token: write
 
     steps:
       - name: Checkout repository
@@ -41,14 +41,17 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # Always emit a `latest` tag so the deploy step can pull `:latest`.
+          flavor: |
+            latest=true
           tags: |
             type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix={{branch}}-
 
       - name: Build and push Docker image
+        id: push
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -57,3 +60,45 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+
+  # Deploy the freshly pushed image to the production server over SSH.
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
+          script: |
+            IMAGE="ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]'):latest"
+            CONTAINER="imgx-app"
+            ENV_FILE="/opt/1panel/apps/openresty/openresty/www/sites/img.shenzjd.com/index/.env"
+            sudo docker pull "$IMAGE"
+            sudo docker stop "$CONTAINER" || true
+            sudo docker rm "$CONTAINER" || true
+            ENV_FLAGS=""
+            if [ -f "$ENV_FILE" ]; then
+              ENV_FLAGS="--env-file $ENV_FILE"
+            fi
+            sudo docker run -d \
+              --name "$CONTAINER" \
+              --restart unless-stopped \
+              --memory=512m \
+              --memory-swap=768m \
+              --cpus=1.0 \
+              -e NODE_OPTIONS="--max-old-space-size=256" \
+              $ENV_FLAGS \
+              -p 6670:3000 \
+              "$IMAGE"
+            sudo docker image prune -f
