@@ -99,6 +99,6 @@ jobs:
               --cpus=1.0 \
               -e NODE_OPTIONS="--max-old-space-size=256" \
               $ENV_FLAGS \
-              -p 6670:3000 \
+              -p 6704:3000 \
               "$IMAGE"
             sudo docker image prune -f
