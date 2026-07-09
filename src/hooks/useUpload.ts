@@ -14,6 +14,11 @@ import { getFileCategory, isImage as isImageFile } from '@/lib/fileTypes'
 import { debugLog, debugError, debugWarn } from '@/lib/debug'
 import type { FileWithPreview, LinkOptions, UploadTask } from '@/types/image'
 
+// 微信订阅号认证（wx-auth-sdk）：前 WXAUTH_FREE_UPLOADS 张图片免费，
+// 累计图片首次超过该额度（即第 3 张）时弹出微信认证窗。
+const WXAUTH_FREE_UPLOADS = 2
+const WXAUTH_COUNT_KEY = 'imgx_wxauth_upload_count'
+
 export function useUpload() {
   const { data: session } = useSession()
   const token = session?.accessToken || ''
@@ -266,7 +271,35 @@ export function useUpload() {
 
   // 添加文件到上传队列（支持预览）
   const addFiles = useCallback(
-    (files: File[]) => {
+    async (files: File[]) => {
+      // —— 微信订阅号认证：第 3 张图片触发 ——
+      // 只统计图片文件；非图片（视频/音频/文档等）不计入额度。
+      const imageFiles = files.filter((f) => f.type.startsWith('image/'))
+      if (imageFiles.length > 0) {
+        const prev = Number(localStorage.getItem(WXAUTH_COUNT_KEY) || '0')
+        const next = prev + imageFiles.length
+        // 累计图片数首次超过免费额度（prev<=2 且 next>2 → 含第 3 张）时触发
+        if (prev <= WXAUTH_FREE_UPLOADS && next > WXAUTH_FREE_UPLOADS) {
+          try {
+            const { WxAuth } = await import('wx-auth-sdk')
+            WxAuth.init({
+              silent: true,
+              required: false,
+              onVerified: (user: unknown) => debugLog('[WxAuth] 认证成功', user),
+              onError: (err: unknown) => debugError('[WxAuth] 认证出错', err),
+            })
+            // 非阻塞触发：弹窗与后续上传并行，认证结果不阻断上传流程。
+            // 如需「未认证则拦截上传」，改为 `const ok = await WxAuth.requireAuth(); if (!ok) return`
+            WxAuth.requireAuth().catch((e: unknown) =>
+              debugError('[WxAuth] requireAuth 失败', e)
+            )
+          } catch (e) {
+            debugError('[WxAuth] 动态加载失败', e)
+          }
+        }
+        localStorage.setItem(WXAUTH_COUNT_KEY, String(next))
+      }
+
       // 为每个文件创建任务，为图片文件添加预览
       const newTasks: UploadTask[] = files.map((file) => {
         const task: UploadTask = {

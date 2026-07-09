@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import "wx-auth-sdk/dist/style.css";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/providers/SessionProvider";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
