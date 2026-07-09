@@ -87,9 +87,10 @@ jobs:
             sudo docker pull "$IMAGE"
             sudo docker stop "$CONTAINER" || true
             sudo docker rm "$CONTAINER" || true
-            ENV_FLAGS=""
-            if [ -f "$ENV_FILE" ]; then
-              ENV_FLAGS="--env-file $ENV_FILE"
+            if [ ! -f "$ENV_FILE" ]; then
+              echo "ERROR: 环境变量文件不存在: $ENV_FILE"
+              echo "请先在服务器创建该文件（含 GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET / NEXTAUTH_URL / NEXTAUTH_SECRET 等），否则容器将缺少密钥配置。"
+              exit 1
             fi
             sudo docker run -d \
               --name "$CONTAINER" \
@@ -98,7 +99,7 @@ jobs:
               --memory-swap=768m \
               --cpus=1.0 \
               -e NODE_OPTIONS="--max-old-space-size=256" \
-              $ENV_FLAGS \
+              --env-file "$ENV_FILE" \
               -p 6704:3000 \
               "$IMAGE"
             sudo docker image prune -f
