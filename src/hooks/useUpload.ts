@@ -282,19 +282,11 @@ export function useUpload() {
         if (prev <= WXAUTH_FREE_UPLOADS && next > WXAUTH_FREE_UPLOADS) {
           try {
             const { WxAuth } = await import('wx-auth-sdk')
-            WxAuth.init({
-              silent: true,
-              required: false,
-              onVerified: (user: unknown) => debugLog('[WxAuth] 认证成功', user),
-              onError: (err: unknown) => debugError('[WxAuth] 认证出错', err),
-            })
-            // 非阻塞触发：弹窗与后续上传并行，认证结果不阻断上传流程。
-            // 如需「未认证则拦截上传」，改为 `const ok = await WxAuth.requireAuth(); if (!ok) return`
-            WxAuth.requireAuth().catch((e: unknown) =>
-              debugError('[WxAuth] requireAuth 失败', e)
-            )
+            // 零配置：SDK 内置 apiBase=wx-auth.shenzjd.com、公众号名，并自动从域名取 siteId。
+            // 默认 silent:false → 未认证时 init() 会自动弹出认证窗（即第 3 张图片触发）。
+            WxAuth.init()
           } catch (e) {
-            debugError('[WxAuth] 动态加载失败', e)
+            debugError('[WxAuth] 动态加载/初始化失败', e)
           }
         }
         localStorage.setItem(WXAUTH_COUNT_KEY, String(next))
