@@ -47,3 +47,6 @@ next-env.d.ts
 
 # WorkBuddy workspace memory (runtime data, not project source)
 .workbuddy/
+
+# server logs downloaded from production (not project source)
+/data/
