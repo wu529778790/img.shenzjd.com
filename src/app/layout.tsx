@@ -27,6 +27,16 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "ImgX - 现代化图床管理工具",
   description: "基于 GitHub 的高性能图床服务",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "ImgX",
+    statusBarStyle: "default",
+  },
 };
 
 export default function RootLayout({

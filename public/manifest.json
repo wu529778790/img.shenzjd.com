@@ -24,7 +24,22 @@
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "拖拽上传、自动压缩、多 CDN 加速"
+    },
+    {
+      "src": "/screenshots/management.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "图片管理：搜索、网格浏览、多格式链接复制"
+    }
+  ],
   "shortcuts": [
     {
       "name": "上传图片",
