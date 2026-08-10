@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 560" width="100%" role="img">
+<title>LangChain 知识体系总览</title>
+<desc>顶层统一 ChatModel 屏蔽模型差异，中间是六大组件，底层 LCEL 用 Runnable 串联组件成 chain 统一执行</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<text x="40" y="30" font-size="13" font-weight="500" fill="#2C2C2A">LangChain 知识体系总览</text>
+
+<g>
+<rect x="40" y="44" width="600" height="64" rx="12" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+<text x="340" y="66" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#3C3489">ChatModel：统一的大模型接口</text>
+<text x="340" y="86" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#534AB7">BaseChatModel 屏蔽差异 · OpenAI / Anthropic / Gemini / 国产模型可自由切换</text>
+</g>
+
+<text x="40" y="136" font-size="12" fill="#5F5E5A">组件层：六大能力</text>
+
+<g>
+<rect x="40" y="148" width="185" height="56" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text x="132" y="166" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#0C447C">PromptTemplate</text>
+<text x="132" y="184" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#185FA5">Chat / Pipeline / FewShot</text>
+</g>
+
+<g>
+<rect x="248" y="148" width="185" height="56" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text x="340" y="166" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#0C447C">OutputParser</text>
+<text x="340" y="184" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#185FA5">withStructuredOutput / 流式</text>
+</g>
+
+<g>
+<rect x="456" y="148" width="185" height="56" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="548" y="166" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#085041">Tool &amp; MCP</text>
+<text x="548" y="184" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#0F6E56">bindTools · stdio / http</text>
+</g>
+
+<g>
+<rect x="40" y="228" width="185" height="56" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+<text x="132" y="246" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#633806">Memory</text>
+<text x="132" y="264" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#854F0B">截断 / 总结 / 检索</text>
+</g>
+
+<g>
+<rect x="248" y="228" width="185" height="56" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+<text x="340" y="246" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#633806">RAG</text>
+<text x="340" y="264" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#854F0B">Loader / Splitter / Milvus</text>
+</g>
+
+<g>
+<rect x="456" y="228" width="185" height="56" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="548" y="246" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#2C2C2A">ChatMessageHistory</text>
+<text x="548" y="264" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#5F5E5A">内存 / Redis / 文件 / DB</text>
+</g>
+
+<text x="40" y="318" font-size="12" fill="#5F5E5A">编排层：LCEL（所有组件都实现 Runnable 接口）</text>
+
+<g>
+<rect x="40" y="330" width="600" height="120" rx="12" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="340" y="354" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#085041">Runnable API：Sequence · Lambda · Map · Branch · Router · Each · Passthrough · Pick · WithMessageHistory</text>
+<text x="340" y="378" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#0F6E56">组装成 chain，统一执行：invoke（同步）· stream（流式）· batch（批量）</text>
+<rect x="70" y="396" width="250" height="40" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+<text x="195" y="416" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#633806">横切能力：retry / fallback / config / callbacks</text>
+<rect x="360" y="396" width="250" height="40" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+<text x="485" y="416" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#3C3489">LangSmith 监测（基于 callbacks）</text>
+</g>
+
+<path d="M340 108 L340 136" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M340 284 L340 318" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<text x="40" y="480" font-size="12" fill="#888780">学习路径：先学组件（工具集），再学 LCEL（工业流水线）——即本系列前 16 篇的完整回顾。</text>
+<text x="40" y="498" font-size="12" fill="#888780">一句话：ChatModel 屏蔽模型差异 + 六大组件提供能力 + LCEL 把一切串成可编排的 chain。</text>
+</svg>
