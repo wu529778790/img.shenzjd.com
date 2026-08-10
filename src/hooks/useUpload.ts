@@ -10,7 +10,7 @@ import { useConfigStore } from '@/stores/configStore'
 import { useUploadStore } from '@/stores/uploadStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
-import { getFileCategory, isImage as isImageFile } from '@/lib/fileTypes'
+import { getFileCategory, isImage as isImageFile, shouldConvertToWebp } from '@/lib/fileTypes'
 import { debugLog, debugError, debugWarn } from '@/lib/debug'
 import type { FileWithPreview, LinkOptions, UploadTask } from '@/types/image'
 
@@ -92,8 +92,8 @@ export function useUpload() {
         debugLog('[Upload] Skipping compression (non-image):', file.name)
       }
 
-      // 1.5 转换为 WebP（仅图片文件）
-      if (cfg.convertToWebp && !processedFile.name.endsWith('.webp') && isImageFile(processedFile.name)) {
+      // 1.5 转换为 WebP（仅图片文件；SVG/GIF 豁免，见 shouldConvertToWebp）
+      if (cfg.convertToWebp && isImageFile(processedFile.name) && shouldConvertToWebp(processedFile.name)) {
         try {
           debugLog('[Upload] Converting to WebP:', processedFile.name)
           updateTask(taskId, { progress: 25 })
@@ -104,8 +104,8 @@ export function useUpload() {
           debugError('[WebP] Conversion failed:', error)
           toast.error(`${file.name} WebP 转换失败，将上传原格式`)
         }
-      } else if (cfg.convertToWebp && !processedFile.name.endsWith('.webp')) {
-        debugLog('[Upload] Skipping WebP conversion (non-image):', processedFile.name)
+      } else if (cfg.convertToWebp && isImageFile(processedFile.name)) {
+        debugLog('[Upload] Skipping WebP conversion (SVG/GIF/WebP):', processedFile.name)
       }
 
       // 2. 添加水印（仅图片文件）

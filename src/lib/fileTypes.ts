@@ -49,6 +49,20 @@ export const isVideo = (name: string): boolean => getFileCategory(name) === 'vid
 export const isAudio = (name: string): boolean => getFileCategory(name) === 'audio';
 export const isDocument = (name: string): boolean => getFileCategory(name) === 'document';
 
+/**
+ * 该文件是否应转换为 WebP 格式。
+ *
+ * 排除项（即使开启"转换为 WebP"也不转换）：
+ * - .svg — 矢量图：转 WebP 会被 Canvas 光栅化，输出分辨率固定（无显式宽高时
+ *   常为 0 或 300×150），放大必模糊；且会被填成白色背景，丢失透明
+ * - .gif — 动图：Canvas 只能截取第一帧，动画会丢失
+ * - .webp — 已是 WebP，无需再转
+ */
+export function shouldConvertToWebp(fileName: string): boolean {
+  const ext = getExtension(fileName);
+  return !['.svg', '.gif', '.webp'].includes(ext);
+}
+
 export function isPreviewable(name: string): boolean {
   const c = getFileCategory(name);
   return c === 'image' || c === 'video' || c === 'audio' || c === 'document';

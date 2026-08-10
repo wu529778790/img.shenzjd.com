@@ -8,6 +8,7 @@ import {
   isDocument,
   isPreviewable,
   matchesAllowedExtensions,
+  shouldConvertToWebp,
 } from './fileTypes';
 
 describe('getExtension', () => {
@@ -84,5 +85,27 @@ describe('matchesAllowedExtensions', () => {
   it('rejects non-matching', () => {
     expect(matchesAllowedExtensions('a.mp4', allowed)).toBe(false);
     expect(matchesAllowedExtensions('README', allowed)).toBe(false);
+  });
+});
+
+describe('shouldConvertToWebp', () => {
+  it('returns true for raster images', () => {
+    expect(shouldConvertToWebp('photo.jpg')).toBe(true);
+    expect(shouldConvertToWebp('photo.jpeg')).toBe(true);
+    expect(shouldConvertToWebp('photo.png')).toBe(true);
+    expect(shouldConvertToWebp('photo.bmp')).toBe(true);
+  });
+
+  it('returns false for SVG (vector, rasterization blurs)', () => {
+    expect(shouldConvertToWebp('icon.svg')).toBe(false);
+    expect(shouldConvertToWebp('ICON.SVG')).toBe(false);
+  });
+
+  it('returns false for GIF (animation lost)', () => {
+    expect(shouldConvertToWebp('anim.gif')).toBe(false);
+  });
+
+  it('returns false for existing WebP', () => {
+    expect(shouldConvertToWebp('photo.webp')).toBe(false);
   });
 });

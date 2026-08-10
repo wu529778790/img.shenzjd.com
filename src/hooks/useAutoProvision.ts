@@ -29,7 +29,7 @@ function getDefaultConfig(owner: string): Config {
     copyFormat: 'url',
     autoCopyAfterUpload: true,
     useOriginalFileName: false,
-    convertToWebp: true,
+    convertToWebp: false,
     configPath: CONFIG_PATH,
     autoSync: true,
   }

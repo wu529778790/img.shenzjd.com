@@ -38,7 +38,8 @@ const defaultConfig: Config = {
   copyFormat: 'url',
   autoCopyAfterUpload: true,
   useOriginalFileName: false,
-  convertToWebp: true,
+  // 默认关闭：SVG 矢量图转 WebP 会光栅化导致模糊，GIF 会丢失动画，需要时手动开启
+  convertToWebp: false,
   configPath: '.imgx-config/config.json',
   autoSync: true,
 }

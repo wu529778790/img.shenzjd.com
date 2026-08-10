@@ -22,7 +22,7 @@ describe('configStore', () => {
       copyFormat: 'url',
       autoCopyAfterUpload: true,
       useOriginalFileName: false,
-      convertToWebp: true,
+      convertToWebp: false,
       configPath: '.imgx-config/config.json',
       autoSync: true,
       configInitialized: false,
@@ -50,8 +50,8 @@ describe('configStore', () => {
       expect(useConfigStore.getState().watermarkText).toBe('by img.shenzjd.com');
     });
 
-    it('should have WebP conversion enabled by default', () => {
-      expect(useConfigStore.getState().convertToWebp).toBe(true);
+    it('should have WebP conversion disabled by default', () => {
+      expect(useConfigStore.getState().convertToWebp).toBe(false);
     });
 
     it('should have compression disabled by default', () => {
