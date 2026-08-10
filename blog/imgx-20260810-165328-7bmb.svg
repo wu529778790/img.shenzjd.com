@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 560" width="100%" role="img">
+<title>RAG 流程原理图</title>
+<desc>离线把文档向量化存入向量数据库，在线把问题向量化后检索相似文档，增强 Prompt 后交给大模型生成回答</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<text x="40" y="30" font-size="12" fill="#5F5E5A">① 离线索引：建知识库</text>
+<rect x="40" y="44" width="150" height="44" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="115" y="60" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#085041">知识库文档</text>
+<text x="115" y="76" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#0F6E56">文本 / 图片 / 语音</text>
+
+<rect x="265" y="44" width="150" height="44" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="340" y="60" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#085041">Embedding 向量化</text>
+<text x="340" y="76" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#0F6E56">嵌入模型转成向量</text>
+
+<rect x="490" y="44" width="150" height="44" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="565" y="60" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#085041">存入向量数据库</text>
+<text x="565" y="76" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#0F6E56">Milvus / 内存版</text>
+
+<path d="M190 66 L265 66" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M415 66 L490 66" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<text x="40" y="140" font-size="12" fill="#5F5E5A">② 在线问答：检索增强生成</text>
+
+<g>
+<rect x="190" y="152" width="300" height="52" rx="10" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text x="340" y="170" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#0C447C">用户提问</text>
+<text x="340" y="188" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#185FA5">"东东和光光怎么成为朋友的？"</text>
+</g>
+
+<g>
+<rect x="190" y="248" width="300" height="52" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+<text x="340" y="266" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#3C3489">问题向量化</text>
+<text x="340" y="284" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#534AB7">同一个嵌入模型</text>
+</g>
+
+<g>
+<rect x="190" y="344" width="300" height="52" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="340" y="362" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#085041">向量数据库检索</text>
+<text x="340" y="380" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#0F6E56">余弦相似度，取 Top-K</text>
+</g>
+
+<g>
+<rect x="190" y="440" width="300" height="52" rx="10" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text x="340" y="458" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#0C447C">增强 Prompt</text>
+<text x="340" y="476" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#185FA5">原始问题 + 相关文档片段</text>
+</g>
+
+<g>
+<rect x="190" y="536" width="300" height="52" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+<text x="340" y="554" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#3C3489">LLM 生成回答</text>
+<text x="340" y="572" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#534AB7">基于背景知识，减少幻觉</text>
+</g>
+
+<path d="M340 204 L340 248" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M340 300 L340 344" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M340 396 L340 440" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M340 492 L340 536" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<path d="M565 88 L565 370 C 565 378 558 378 550 378 L 494 378" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+<text x="580" y="240" font-size="12" fill="#5F5E5A">按相似度</text>
+<text x="580" y="256" font-size="12" fill="#5F5E5A">召回文档</text>
+</svg>
