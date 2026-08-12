@@ -43,5 +43,7 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# 启动应用
-CMD ["node", "server.js"]
+# 启动应用（过滤已知的无害误报：浏览器缓存旧版页面导致的 "Failed to find Server Action"）
+# 每次发新版后老用户浏览器仍引用旧版 Server Action ID，会触发该错误，属正常现象，无需告警
+# awk 状态机：命中错误行后连带跳过其后的 "Read more" 与堆栈行（共 2 行），不影响其他错误日志
+CMD ["sh", "-c", "exec node server.js 2>&1 | awk -W interactive 'skip>0{skip--; next} /Failed to find Server Action|failed-to-find-server-action/{skip=2; next} {print}'"]

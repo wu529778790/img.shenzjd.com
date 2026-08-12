@@ -4,6 +4,9 @@ services:
   app:
     image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/img.shenzjd.com:latest
     container_name: imgx-app
+    # 过滤浏览器缓存旧版页面导致的 "Failed to find Server Action" 误报日志（每次发版后都会出现，属正常现象）
+    # awk 状态机：命中错误行后连带跳过其后的 "Read more" 与堆栈行（共 2 行），不影响其他错误日志
+    command: ["sh", "-c", "exec node server.js 2>&1 | awk -W interactive 'skip>0{skip--; next} /Failed to find Server Action|failed-to-find-server-action/{skip=2; next} {print}'"]
     ports:
       - "3000:3000"
     environment:
