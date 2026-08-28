@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="panhubGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f766e"/>
+      <stop offset="100%" stop-color="#14b8a6"/>
+    </linearGradient>
+    <linearGradient id="panhubAccent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 背景圆角方块 -->
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#panhubGrad)"/>
+
+  <!-- 聚合枢纽：中心圆 + 环绕节点 + 连接线 -->
+  <g>
+    <!-- 连接线 -->
+    <line x1="256" y1="256" x2="256" y2="128" stroke="#ffffff" stroke-opacity="0.35" stroke-width="14" stroke-linecap="round"/>
+    <line x1="256" y1="256" x2="256" y2="384" stroke="#ffffff" stroke-opacity="0.35" stroke-width="14" stroke-linecap="round"/>
+    <line x1="256" y1="256" x2="128" y2="256" stroke="#ffffff" stroke-opacity="0.35" stroke-width="14" stroke-linecap="round"/>
+    <line x1="256" y1="256" x2="384" y2="256" stroke="#ffffff" stroke-opacity="0.35" stroke-width="14" stroke-linecap="round"/>
+    <line x1="256" y1="256" x2="163" y2="163" stroke="#ffffff" stroke-opacity="0.22" stroke-width="12" stroke-linecap="round"/>
+    <line x1="256" y1="256" x2="349" y2="163" stroke="#ffffff" stroke-opacity="0.22" stroke-width="12" stroke-linecap="round"/>
+    <line x1="256" y1="256" x2="163" y2="349" stroke="#ffffff" stroke-opacity="0.22" stroke-width="12" stroke-linecap="round"/>
+    <line x1="256" y1="256" x2="349" y2="349" stroke="#ffffff" stroke-opacity="0.22" stroke-width="12" stroke-linecap="round"/>
+
+    <!-- 中心枢纽圆 -->
+    <circle cx="256" cy="256" r="72" fill="#ffffff"/>
+    <circle cx="256" cy="256" r="72" fill="url(#panhubAccent)" opacity="0.12"/>
+
+    <!-- 中心放大镜（搜索） -->
+    <circle cx="256" cy="248" r="40" fill="none" stroke="url(#panhubGrad)" stroke-width="16"/>
+    <line x1="286" y1="278" x2="312" y2="304" stroke="url(#panhubGrad)" stroke-width="20" stroke-linecap="round"/>
+
+    <!-- 环绕节点（各网盘平台） -->
+    <circle cx="256" cy="128" r="26" fill="#ffffff"/>
+    <circle cx="256" cy="384" r="26" fill="#ffffff"/>
+    <circle cx="128" cy="256" r="26" fill="#ffffff"/>
+    <circle cx="384" cy="256" r="26" fill="#ffffff"/>
+    <circle cx="163" cy="163" r="20" fill="#ffffff" opacity="0.85"/>
+    <circle cx="349" cy="163" r="20" fill="#ffffff" opacity="0.85"/>
+    <circle cx="163" cy="349" r="20" fill="#ffffff" opacity="0.85"/>
+    <circle cx="349" cy="349" r="20" fill="#ffffff" opacity="0.85"/>
+  </g>
+</svg>
