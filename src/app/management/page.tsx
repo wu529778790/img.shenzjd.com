@@ -32,7 +32,7 @@ export default function ManagementPage() {
   const { session, refreshSession } = useWxAuthSession()
   const configStore = useConfigStore()
 
-  const { images, isLoading, error, handleDelete, handleBulkDelete } = useImages()
+  const { images, isLoading, error, handleDelete, handleBulkDelete, refresh, isRefreshing } = useImages()
 
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [selectedDirectory, setSelectedDirectory] = useState<string>('')
@@ -202,6 +202,8 @@ export default function ManagementPage() {
             onDirectoryChange={handleDirectoryChange}
             cdn={configStore.cdn}
             onCdnChange={(value) => value && configStore.updateConfig({ cdn: value as 'github' | 'jsdelivr' | 'jsdmirror' | 'github-pages' | 'statically' | 'jsd-onmicrosoft' | 'gitmirror' | 'ghproxy' })}
+            isRefreshing={isRefreshing}
+            onRefresh={refresh}
           />
         </div>
 

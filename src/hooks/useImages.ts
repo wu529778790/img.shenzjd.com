@@ -20,7 +20,7 @@ export function useImages() {
   const { owner, repo, branch, cdn, useRaw } = configStore
 
   // 获取图片列表
-  const { data: images = [], isLoading, error } = useQuery({
+  const { data: images = [], isLoading, isFetching, error } = useQuery({
     queryKey: ['images', owner, repo, branch],
     queryFn: async () => {
       // wx-auth 领取短命 installation token（会话内缓存，不落盘）
@@ -105,6 +105,8 @@ export function useImages() {
     },
     enabled: !!owner && !!repo,
     staleTime: 0,
+    // 每次进入页面都强制重新请求（上传后切到管理页能立即看到新图片）
+    refetchOnMount: 'always',
     gcTime: 5 * 60 * 1000,
     retry: (failureCount, error) => {
       const status = (error as { response?: { status?: number } })?.response?.status
@@ -310,12 +312,19 @@ export function useImages() {
     bulkDeleteMutation.mutate(filePaths)
   }, [bulkDeleteMutation])
 
+  // 手动刷新列表（GitHub tree 有最终一致性延迟，刚上传完可能需要再刷一次）
+  const refresh = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['images'] })
+  }, [queryClient])
+
   return {
     images,
     isLoading,
+    isRefreshing: isFetching,
     error,
     handleDelete,
     handleBulkDelete,
+    refresh,
     isDeleting: deleteMutation.isPending || bulkDeleteMutation.isPending,
   }
 }

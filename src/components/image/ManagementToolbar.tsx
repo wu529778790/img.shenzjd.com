@@ -10,6 +10,7 @@ import {
   FolderOpen,
   HardDrive,
   Images,
+  RefreshCw,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -50,6 +51,9 @@ interface ManagementToolbarProps {
   // CDN
   cdn: string
   onCdnChange: (value: string | null) => void
+  // 刷新
+  isRefreshing?: boolean
+  onRefresh?: () => void
 }
 
 const SORT_OPTIONS: { field: SortField; label: string }[] = [
@@ -72,6 +76,8 @@ export function ManagementToolbar({
   onDirectoryChange,
   cdn,
   onCdnChange,
+  isRefreshing,
+  onRefresh,
 }: ManagementToolbarProps) {
   // 控制目录下拉菜单的开关状态
   const [directoryMenuOpen, setDirectoryMenuOpen] = useState(false)
@@ -243,6 +249,21 @@ export function ManagementToolbar({
 
       {/* 弹性空间 */}
       <div className="flex-1 min-w-0" />
+
+      {/* 手动刷新（GitHub tree 有秒级最终一致性延迟，刚上传完可能需要手动刷一次） */}
+      {onRefresh && (
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onRefresh}
+          disabled={isRefreshing}
+          className="h-8 w-8 p-0 shrink-0 hover:bg-gray-100 dark:hover:bg-gray-700"
+          title="刷新列表"
+          aria-label="刷新列表"
+        >
+          <RefreshCw className={cn('h-4 w-4 text-gray-500 dark:text-gray-400', isRefreshing && 'animate-spin')} />
+        </Button>
+      )}
 
       {/* CDN 选择 */}
       <Select value={cdn} onValueChange={onCdnChange}>
