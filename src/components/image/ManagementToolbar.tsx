@@ -28,7 +28,7 @@ import { cn } from '@/lib/utils'
 import { formatFileSize } from '@/lib/utils'
 import type { ImageFile } from '@/types/image'
 
-type SortField = 'name' | 'size' | 'path'
+type SortField = 'time' | 'name' | 'size' | 'path'
 type SortOrder = 'asc' | 'desc'
 
 interface ManagementToolbarProps {
@@ -53,6 +53,7 @@ interface ManagementToolbarProps {
 }
 
 const SORT_OPTIONS: { field: SortField; label: string }[] = [
+  { field: 'time', label: '时间' },
   { field: 'name', label: '名称' },
   { field: 'size', label: '大小' },
   { field: 'path', label: '路径' },

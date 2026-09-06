@@ -14,7 +14,8 @@ export interface ImageFile {
   height?: number
   type: 'file' | 'dir'
   created_at?: string
-  uploaded_at?: string
+  /** 上传时间（毫秒时间戳，从本站生成的文件名解析；外部工具上传的文件无此值） */
+  uploaded_at?: string | number
   /** Derived category used for UI branching + link formatting. */
   category?: FileCategory
 }

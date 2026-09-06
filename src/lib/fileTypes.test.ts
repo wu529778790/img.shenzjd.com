@@ -9,6 +9,7 @@ import {
   isPreviewable,
   matchesAllowedExtensions,
   shouldConvertToWebp,
+  parseUploadTime,
 } from './fileTypes';
 
 describe('getExtension', () => {
@@ -107,5 +108,22 @@ describe('shouldConvertToWebp', () => {
 
   it('returns false for existing WebP', () => {
     expect(shouldConvertToWebp('photo.webp')).toBe(false);
+  });
+});
+
+describe('parseUploadTime', () => {
+  it('解析新版前缀 img.shenzjd.com-YYYYMMDD-HHMMSS', () => {
+    const ts = parseUploadTime('img.shenzjd.com-20260906-083045-ab12.png');
+    expect(ts).toBe(Date.parse('2026-09-06T08:30:45'));
+  });
+
+  it('兼容旧版前缀 imgx-YYYYMMDD-HHMMSS', () => {
+    const ts = parseUploadTime('imgx-20260701-173429-kzl8.webp');
+    expect(ts).toBe(Date.parse('2026-07-01T17:34:29'));
+  });
+
+  it('外部上传的原始文件名返回 null', () => {
+    expect(parseUploadTime('logo 透明.png')).toBeNull();
+    expect(parseUploadTime('screenshot-2026-09-06.png')).toBeNull();
   });
 });

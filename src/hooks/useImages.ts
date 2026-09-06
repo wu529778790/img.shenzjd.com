@@ -8,7 +8,7 @@ import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
 import { BULK_DELETE_CONFIG } from '@/lib/constants'
 import { debugLog, debugError } from '@/lib/debug'
-import { getFileCategory, getExtension, ALLOWED_EXTENSIONS } from '@/lib/fileTypes'
+import { getFileCategory, getExtension, ALLOWED_EXTENSIONS, parseUploadTime } from '@/lib/fileTypes'
 import { tryGetCredential, type CredentialContext } from '@/hooks/useWxAuthSession'
 import { invalidateCapabilityToken } from '@/lib/wxauth'
 import type { ImageFile } from '@/types/image'
@@ -83,7 +83,8 @@ export function useImages() {
           ...file,
           id: file.sha,
           type: 'file' as const,
-          uploaded_at: undefined, // 不使用提交时间
+          // 上传时间从文件名解析（本站命名含时间戳；外部上传的文件无此值）
+          uploaded_at: parseUploadTime(file.name) ?? undefined,
           cdnUrl,
           category: getFileCategory(file.name),
         }

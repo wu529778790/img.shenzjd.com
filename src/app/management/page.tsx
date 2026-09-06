@@ -14,8 +14,18 @@ import { Image as ImageIcon, LogIn } from 'lucide-react'
 import { SEARCH_CONFIG } from '@/lib/constants'
 import type { ImageFile } from '@/types/image'
 
-type SortField = 'name' | 'size' | 'path'
+type SortField = 'time' | 'name' | 'size' | 'path'
 type SortOrder = 'asc' | 'desc'
+
+/** 读取文件的上传时间（毫秒），无时间戳（外部上传）记为 0 排在最后 */
+function uploadTime(image: ImageFile): number {
+  if (typeof image.uploaded_at === 'number') return image.uploaded_at
+  if (typeof image.uploaded_at === 'string') {
+    const parsed = Date.parse(image.uploaded_at)
+    if (Number.isFinite(parsed)) return parsed
+  }
+  return 0
+}
 
 export default function ManagementPage() {
   const router = useRouter()
@@ -26,7 +36,7 @@ export default function ManagementPage() {
 
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [selectedDirectory, setSelectedDirectory] = useState<string>('')
-  const [sortField, setSortField] = useState<SortField>('name')
+  const [sortField, setSortField] = useState<SortField>('time')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
   const [previewImage, setPreviewImage] = useState<ImageFile | null>(null)
 
@@ -55,6 +65,11 @@ export default function ManagementPage() {
       let comparison = 0
 
       switch (sortField) {
+        case 'time':
+          // 时间排序：无时间戳（外部上传）的文件固定排在有时间戳的后面
+          comparison = uploadTime(a) - uploadTime(b)
+          if (comparison === 0) comparison = a.name.localeCompare(b.name)
+          return sortOrder === 'asc' ? comparison : -comparison
         case 'name':
           comparison = a.name.localeCompare(b.name)
           break

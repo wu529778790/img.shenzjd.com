@@ -113,3 +113,18 @@ export function matchesAllowedExtensions(fileName: string, allowed: readonly str
   const lower = new Set(allowed.map((e) => e.toLowerCase()));
   return lower.has(ext);
 }
+
+/**
+ * 从本站生成的上传文件名解析上传时间戳（毫秒）。
+ * 兼容新旧前缀：img.shenzjd.com-YYYYMMDD-HHMMSS-rand / imgx-YYYYMMDD-HHMMSS-rand。
+ * 非本站命名（如 PicGo 上传的原始文件名）返回 null。
+ */
+export function parseUploadTime(fileName: string): number | null {
+  const m = fileName.match(/^(?:img\.shenzjd\.com|imgx)-(\d{8})-(\d{6})-/)
+  if (!m) return null
+  const [, d, t] = m
+  const ts = Date.parse(
+    `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}T${t.slice(0, 2)}:${t.slice(2, 4)}:${t.slice(4, 6)}`
+  )
+  return Number.isFinite(ts) ? ts : null
+}
