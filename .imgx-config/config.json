@@ -1,7 +1,7 @@
 {
   "owner": "wu529778790",
   "repo": "img.shenzjd.com",
-  "branch": "main",
+  "branch": "master",
   "directory": "",
   "compressionEnabled": false,
   "compressionQuality": 80,
@@ -18,5 +18,7 @@
   "useOriginalFileName": false,
   "convertToWebp": false,
   "configPath": ".imgx-config/config.json",
-  "autoSync": true
+  "autoSync": true,
+  "lastSyncAt": "2026-09-06T00:43:10.888Z",
+  "sha": "7c1f9685cba6d3ac40526237af7ea8752231dbef"
 }
