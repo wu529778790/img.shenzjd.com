@@ -52,6 +52,8 @@ export default function RootLayout({
         <Script src="https://unpkg.com/@wu529778790/site-navbar@latest/dist/site-navbar.wc.js" />
         {/* wx-auth 认证 SDK（UMD 全局 window.WxAuth，弹窗含小程序/公众号双 Tab 登录） */}
         <Script src="https://unpkg.com/wx-auth-sdk@latest/dist/wx-auth.umd.js" />
+        {/* floating-qr 公众号/小程序浮窗（web component 自动注入，无需额外标签） */}
+        <Script src="https://unpkg.com/@wu529778790/floating-qr@latest/dist/floating-qr.wc.js" />
         <ThemeProvider />
         <OfflineIndicator />
         <ReactQueryProvider>

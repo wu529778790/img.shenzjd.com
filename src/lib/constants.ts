@@ -49,12 +49,6 @@ export const DIRECTORY_CONFIG = {
   MAX_DIRECTORIES: 50,    // 最大目录显示数量
 } as const
 
-export const socialLinks = [
-  { name: 'Telegram', href: 'https://t.me/shenzjd_com', icon: 'telegram' },
-  { name: 'GitHub', href: 'https://github.com/wu529778790', icon: 'github' },
-  { name: 'X', href: 'https://x.com/shenzujiudi', icon: 'x' },
-] as const
-
 export const navLinks = [
   { name: '网址导航', href: 'https://navhub.shenzjd.com' },
   { name: '热门资源', href: 'https://shenzjd.com' },

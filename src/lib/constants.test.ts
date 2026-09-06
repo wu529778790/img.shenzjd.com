@@ -5,7 +5,6 @@ import {
   SEARCH_CONFIG,
   DIRECTORY_CONFIG,
   navLinks,
-  socialLinks,
 } from './constants';
 
 describe('IMAGE_GRID_CONFIG', () => {
@@ -85,22 +84,5 @@ describe('navLinks', () => {
     const hrefs = navLinks.map((l) => l.href);
     const uniqueHrefs = new Set(hrefs);
     expect(uniqueHrefs.size).toBe(hrefs.length);
-  });
-});
-
-describe('socialLinks', () => {
-  it('should have valid social link structure', () => {
-    socialLinks.forEach((link) => {
-      expect(link).toHaveProperty('name');
-      expect(link).toHaveProperty('href');
-      expect(link).toHaveProperty('icon');
-      expect(link.href).toMatch(/^https?:\/\//);
-    });
-  });
-
-  it('should include GitHub link', () => {
-    const github = socialLinks.find((l) => l.icon === 'github');
-    expect(github).toBeDefined();
-    expect(github?.href).toContain('github.com');
   });
 });
