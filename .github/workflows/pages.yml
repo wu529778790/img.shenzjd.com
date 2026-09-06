@@ -39,6 +39,8 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          # GitHub Pages 项目站部署在 <域名>/<仓库名>/ 子路径，静态资源需要 basePath
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

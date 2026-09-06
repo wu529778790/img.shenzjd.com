@@ -47,9 +47,11 @@ export function useServiceWorker() {
     setState((prev) => ({ ...prev, isOffline: !navigator.onLine }));
 
     const registerSW = async () => {
+      // GitHub Pages 子路径部署时需要带上 basePath（构建时通过 NEXT_PUBLIC_BASE_PATH 注入）
+      const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
       try {
-        const reg = await navigator.serviceWorker.register('/service-worker.js', {
-          scope: '/',
+        const reg = await navigator.serviceWorker.register(`${basePath}/service-worker.js`, {
+          scope: `${basePath}/`,
         });
 
         setRegistration(reg);

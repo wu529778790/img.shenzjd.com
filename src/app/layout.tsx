@@ -26,7 +26,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "img.shenzjd.com - 现代化图床管理工具",
   description: "基于 GitHub 的高性能图床服务",
-  manifest: "/manifest.json",
+  manifest: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/manifest.json`,
   icons: {
     icon: "/icon-192.png",
     apple: "/icon-192.png",
