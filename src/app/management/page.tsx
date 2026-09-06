@@ -53,6 +53,12 @@ export default function ManagementPage() {
     }
   }, [refreshSession])
 
+  // 正在预览的图片被删除（已不在列表中）时，派生值自动变为空以关闭预览，避免操作已删除的图片
+  const activePreviewImage =
+    previewImage && images.some((img) => img.id === previewImage.id || img.sha === previewImage.sha)
+      ? previewImage
+      : null
+
   // 使用 useMemo 缓存过滤和排序结果
   const filteredImages = useMemo(() => {
     const result = images.filter((image) => {
@@ -269,9 +275,9 @@ export default function ManagementPage() {
       </div>
 
       {/* 图片预览模态框 */}
-      {previewImage && (
+      {activePreviewImage && (
         <ImagePreview
-          image={previewImage}
+          image={activePreviewImage}
           images={filteredImages}
           onClose={() => setPreviewImage(null)}
           onDelete={(id) => handleDelete(id)}

@@ -182,8 +182,12 @@ export function useImages() {
 
       return filePath
     },
-    onSuccess: () => {
+    onSuccess: (filePath) => {
       toast.success('删除成功')
+      // 乐观更新：立即从本地缓存移除，不等 GitHub tree 最终一致性延迟
+      queryClient.setQueryData<ImageFile[]>(['images', owner, repo, branch], (old) =>
+        old ? old.filter((img) => img.path !== filePath) : old
+      )
       // 延迟刷新，给 GitHub tree API 最终一致性留出时间
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['images'] })
@@ -216,6 +220,7 @@ export function useImages() {
       // 分批删除，每批最多 3 个，批次间延迟 500ms
       // 使用 BULK_DELETE_CONFIG 配置便于调整
       const results = []
+      const removedPaths: string[] = []
       const { BATCH_SIZE, BATCH_DELAY_MS } = BULK_DELETE_CONFIG
 
       for (let i = 0; i < filePaths.length; i += BATCH_SIZE) {
@@ -244,6 +249,9 @@ export function useImages() {
         )
 
         results.push(...batchResults)
+        batchResults.forEach((r) => {
+          if (r.status === 'fulfilled') removedPaths.push(r.value)
+        })
 
         // 批次之间添加延迟（最后一批不加）
         if (i + BATCH_SIZE < filePaths.length) {
@@ -254,7 +262,7 @@ export function useImages() {
       const successful = results.filter((r) => r.status === 'fulfilled').length
       const failed = results.filter((r) => r.status === 'rejected').length
 
-      return { successful, failed }
+      return { successful, failed, removedPaths }
     },
     onSuccess: (data) => {
       if (data.failed === 0) {
@@ -262,6 +270,10 @@ export function useImages() {
       } else {
         toast.success(`删除完成：${data.successful} 成功，${data.failed} 失败`)
       }
+      // 乐观更新：立即从本地缓存移除已删除的文件
+      queryClient.setQueryData<ImageFile[]>(['images', owner, repo, branch], (old) =>
+        old ? old.filter((img) => !data.removedPaths.includes(img.path)) : old
+      )
       // 延迟刷新，给 GitHub tree API 最终一致性留出时间
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['images'] })

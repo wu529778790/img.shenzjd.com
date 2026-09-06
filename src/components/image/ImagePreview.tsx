@@ -124,12 +124,16 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
       preloadLink.as = 'image'
       preloadLink.href = url
       document.head.appendChild(preloadLink)
-      // 加载完成后移除 preload link
+      // 加载完成后移除 preload link（parentNode 判空：清理逻辑可能已先行移除，避免 NotFoundError）
       const imgEl = new window.Image()
       imgEl.src = url
       imgEl.onload = () => {
         loadedImagesRef.current.add(img.id)
-        document.head.removeChild(preloadLink)
+        preloadLink.parentNode?.removeChild(preloadLink)
+      }
+      imgEl.onerror = () => {
+        // 图片已删除/加载失败：同样回收 preload link，避免泄漏
+        preloadLink.parentNode?.removeChild(preloadLink)
       }
     })
 
@@ -146,7 +150,7 @@ export function ImagePreview({ image, images, onClose, onImageChange, onDelete }
           useRaw: configStore.useRaw ?? true,
         })
         const links = document.head.querySelectorAll(`link[rel="preload"][href="${url}"]`)
-        links.forEach((link) => document.head.removeChild(link))
+        links.forEach((link) => link.remove())
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
