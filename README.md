@@ -62,6 +62,10 @@ docker run -d -p 80:80 ghcr.io/wu529778790/img.shenzjd.com:latest
 
 镜像内为 nginx 托管的静态文件（无 Node 进程，内存占用 ~10MB），推送 main 分支自动构建并通过 SSH 部署（`.github/workflows/docker.yml`）。
 
+### 5. GitHub Release 静态产物归档（可选）
+
+推送 `v*` 标签或手动触发时，会把 `out/` 纯静态产物打成 zip 发布到 GitHub Release（`.github/workflows/release.yml`），适合离线备份 / 迁移 / 分享完整静态文件，解压后用任意根路径静态托管即可直接使用。
+
 > 登录与 GitHub 凭证全部由 [wx-auth](https://wx-auth.shenzjd.com) 统一托管，任何部署方式都**不需要配置 GitHub OAuth / Token 环境变量**。
 
 ---
