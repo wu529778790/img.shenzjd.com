@@ -1,98 +1,70 @@
-# 🚀 ImgX
+# 🚀 img.shenzjd.com
 
-> **基于 GitHub 的现代化图床管理工具** — 拖拽上传，自动压缩，CDN 加速。
+> 基于 GitHub 的现代化图床 — 微信扫码即可登录，GitHub App 免密托管，拖拽上传、自动压缩、水印保护、多 CDN 加速。
 
-👉 立即体验：[**img.shenzjd.com**](https://img.shenzjd.com/)
+👉 **立即体验：[img.shenzjd.com](https://img.shenzjd.com/)** — 打开即用，无需注册账号
 
 ---
 
 ## ✨ 功能特性
 
-- 🖼️ **拖拽上传** — 支持拖拽、点击、粘贴多种方式
-- 🗜️ **自动压缩** — 智能压缩图片，节省存储空间
-- 🔄 **WebP 转换** — 可选功能（默认关闭），开启后上传时自动转为 WebP 减小体积；SVG/GIF 始终保留原格式
-- 🎨 **水印保护** — 自定义文字水印，保护原创内容
-- 🌐 **多 CDN 加速** — GitHub Raw / jsDelivr / jsDMirror / GitHub Pages
-- 🔗 **多格式复制** — Markdown / HTML / BBCode / 纯链接一键复制
-- 📁 **图片管理** — 在线浏览、搜索、删除已上传图片
-- 🌓 **深色模式** — 自动跟随系统，护眼舒适
+- 🔑 **微信登录** — 小程序 / 公众号双方式扫码验证，无需注册，凭证由 [wx-auth](https://wx-auth.shenzjd.com) 统一托管
+- 🤖 **GitHub App 免密托管** — 不需要创建任何 Personal Access Token：绑定 GitHub 账号并安装 App 后自动初始化图床仓库，短命 installation token（8 小时）只在内存中流转，永不落盘
+- 🖼️ **拖拽上传** — 拖拽、点击、`Ctrl/Cmd+V` 粘贴，支持批量
+- 🗜️ **自动压缩** — 上传前智能压缩；可选 WebP 转换（默认关闭，SVG/GIF 始终保留原格式）
+- 🎨 **水印保护** — 自定义文字水印，默认带上你的站点名
+- 📁 **图片管理** — 在线浏览、搜索、按目录筛选、单张/批量删除
+- 🌐 **多 CDN 加速** — GitHub Raw / jsDelivr / jsDMirror / GitHub Pages，国内直连可用
+- 🔗 **多格式复制** — Markdown / HTML / BBCode / 纯链接，上传完成自动复制
+- ☁️ **配置云同步** — 压缩、水印、CDN 等偏好跟随账号走，换设备无缝衔接
+- ⚙️ **分支 / 目录可配置** — 数据分支自由切换，上传目录下拉选择或新建
+- 📱 **PWA** — 可安装到桌面 / 主屏幕，断网时友好提示
 
 ---
 
-## 🚀 一键部署
+## 🎯 快速开始
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fwu529778790%2Fimg.shenzjd.com&env=GITHUB_CLIENT_ID,GITHUB_CLIENT_SECRET,NEXTAUTH_SECRET,NEXTAUTH_URL&envDescription=GitHub%20OAuth%20%E5%92%8C%20NextAuth%20%E9%85%8D%E7%BD%AE&envLink=https%3A%2F%2Fgithub.com%2Fwu529778790%2Fimg.shenzjd.com%23-%25E5%BF%25AB%E9%80%259F%E5%BC%80%E5%A7%258B)
+打开 [img.shenzjd.com](https://img.shenzjd.com/)，三步开始：
 
----
+1. **登录** — 点击右上角头像，微信扫码验证
+2. **绑定 GitHub** — 首次上传时自动引导：授权账号 → 安装 GitHub App → 自动创建图床仓库（`<你的用户名>/img.shenzjd.com`）
+3. **上传** — 拖入图片，链接自动复制，完成 ✅
 
-## 📖 使用指南
-
-### 什么是图床？
-
-写博客文章时，图片的上传和存放是一个常见问题。如果直接把图片放到博客仓库中使用相对路径引用，后期维护会非常麻烦。如果要在多个平台发布同一篇文章，每个平台都要重新上传图片。
-
-**图床**就是为了解决这些问题：将图片统一上传到一个在线静态资源库中，获取图片 URL，使用 Markdown 引用，实现一次编写、到处使用。
-
-### 为什么选择 GitHub 作为图床？
-
-- ✅ **完全免费** — GitHub 提供免费的仓库存储
-- ✅ **稳定可靠** — GitHub 基础设施，99.9% 在线时间
-- ✅ **版本控制** — 图片变更历史可追溯
-- ✅ **易于管理** — 通过 Web 界面管理所有图片
+配置（目录、分支、压缩、水印、CDN）已自动生成默认值，随时可在「图床设置」和「高级配置」中调整。
 
 ---
 
-## 方式一：网页上传
+## ☁️ 部署你自己的图床
 
-直接访问 [img.shenzjd.com](https://img.shenzjd.com/) 使用：
+### Vercel（推荐，零环境变量）
 
-1. **登录** — 使用 GitHub 账号 OAuth 登录，系统自动创建并配置仓库
-2. **上传图片** — 拖拽或选择图片，自动压缩、加水印（WebP 转换默认关闭，可在高级配置中开启）
-3. **复制链接** — 上传完成后一键复制 Markdown / HTML / BBCode / 纯链接
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fwu529778790%2Fimg.shenzjd.com)
 
----
+登录与 GitHub 凭证全部由 [wx-auth](https://wx-auth.shenzjd.com) 统一托管，部署**不需要配置任何 GitHub OAuth / Token 环境变量**，站点域名属于 `*.shenzjd.com` 即可直接使用登录能力。
 
-## 方式二：VSCode 插件上传（PicGo）
+### Docker
 
-推荐在写 Markdown 时使用 PicGo 插件，截图后直接粘贴上传。
+```bash
+docker run -d -p 3000:3000 ghcr.io/wu529778790/img.shenzjd.com:latest
+```
 
-### 1. 安装 PicGo
-
-- **桌面版**：[PicGo 下载地址](https://github.com/Molunerfinn/PicGo/releases)
-- **VS Code 插件**：在扩展中搜索安装 **vs-picgo**
-
-### 2. 获取 GitHub Token
-
-1. 访问 [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
-2. 点击 **Generate new token**
-3. 选择权限：✅ `repo` (Full control of private repositories)
-4. 复制生成的 Token（只会显示一次）
-
-### 3. 配置 PicGo
-
-在 PicGo 设置中添加 GitHub 图床配置：
-
-![配置示例](https://cdn.jsdelivr.net/gh/wu529778790/image@master/blog/20210606000138.png)
-
-**配置项说明：**
-
-| 配置项 | 说明 |
-|--------|------|
-| `owner` | GitHub 用户名 |
-| `repo` | 图片仓库名 |
-| `token` | GitHub Personal Access Token |
-| `path` | 上传路径（如 `images/`） |
-| `branch` | 分支名（通常为 `main` 或 `master`） |
-
-### 4. 测试上传
-
-配置完成后，拖拽一张图片到 PicGo，检查是否上传成功并获取 Markdown 格式的链接。
+> 同样无需注入任何 GitHub 相关环境变量。
 
 ---
 
-## CDN 加速
+## 🔐 安全设计
 
-GitHub 国内访问速度较慢，ImgX 内置多种 CDN 加速：
+| 传统图床 | img.shenzjd.com |
+|---|---|
+| 用户创建长期有效的 Personal Access Token | 无需任何 Token，GitHub App 授权即可 |
+| Token 明文存在浏览器 localStorage | 短命 installation token（8 小时），仅存内存 |
+| Token 泄漏 = 整个 GitHub 仓库权限丢失 | 权限最小化，仅覆盖授权仓库，随时可撤销 |
+
+---
+
+## 🌐 CDN 加速
+
+GitHub 国内访问速度较慢，内置多种 CDN 加速（上传后可在设置中切换）：
 
 | CDN | 地址格式 | 说明 |
 |-----|---------|------|
@@ -101,12 +73,28 @@ GitHub 国内访问速度较慢，ImgX 内置多种 CDN 加速：
 | jsDMirror | `cdn.jsdmirror.com/gh/...` | 国内推荐，默认选项 |
 | GitHub Pages | `{user}.github.io/{repo}/...` | 自定义域名友好 |
 
-### jsDelivr 域名替换
-
-当 `cdn.jsdelivr.net` 被污染时，可替换为：
-- `gcore.jsdelivr.net`
-- `fastly.jsdelivr.net`
-- `originfastly.jsdelivr.net`
-- `testingcf.jsdelivr.net`
+当 `cdn.jsdelivr.net` 被污染时，可替换为 `gcore.jsdelivr.net` / `fastly.jsdelivr.net` / `testingcf.jsdelivr.net`。
 
 ---
+
+## 📝 配合 PicGo 使用（可选）
+
+习惯在 VS Code 里写 Markdown？图床仓库同样兼容 [PicGo](https://github.com/Molunerfinn/PicGo)：
+
+1. 安装 [PicGo 桌面版](https://github.com/Molunerfinn/PicGo/releases) 或 VS Code 插件 **vs-picgo**
+2. 创建一个 [Personal Access Token](https://github.com/settings/tokens)（勾选 `repo` 权限）
+3. 配置图床：`owner` = 你的用户名，`repo` = `img.shenzjd.com`，`branch` = `main`，`path` = 自定义目录
+
+> 网页端与 PicGo 共用同一个仓库，图片在管理页统一可见。
+
+---
+
+## 🧰 技术栈
+
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · shadcn/ui · Zustand · TanStack Query · [wx-auth](https://wx-auth.shenzjd.com)
+
+---
+
+## 📄 License
+
+[MIT](LICENSE)
