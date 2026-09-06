@@ -1,0 +1,6 @@
+# Cloudflare Pages 缓存策略（构建输出目录包含此文件即生效）
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*
+  X-Content-Type-Options: nosniff

@@ -84,26 +84,18 @@ jobs:
             REPO_LOWER="$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')"
             IMAGE="ghcr.io/$REPO_LOWER:latest"
             CONTAINER="$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')"
-            ENV_FILE="/opt/1panel/apps/openresty/openresty/www/sites/img.shenzjd.com/index/.env"
             sudo docker pull "$IMAGE"
             sudo docker stop "$CONTAINER" || true
             sudo docker rm "$CONTAINER" || true
             # 一次性迁移：清理旧品牌命名的历史容器
             sudo docker stop imgx-app 2>/dev/null || true
             sudo docker rm imgx-app 2>/dev/null || true
-            if [ ! -f "$ENV_FILE" ]; then
-              echo "ERROR: 环境变量文件不存在: $ENV_FILE"
-              echo "请先在服务器创建该文件（wx-auth 模式下无需 GitHub 密钥，可为空文件）"
-              exit 1
-            fi
             sudo docker run -d \
               --name "$CONTAINER" \
               --restart unless-stopped \
-              --memory=512m \
-              --memory-swap=768m \
-              --cpus=1.0 \
-              -e NODE_OPTIONS="--max-old-space-size=256" \
-              --env-file "$ENV_FILE" \
-              -p 6704:3000 \
+              --memory=128m \
+              --memory-swap=256m \
+              --cpus=0.5 \
+              -p 6704:80 \
               "$IMAGE"
             sudo docker image prune -f

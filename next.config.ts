@@ -1,63 +1,14 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  // Docker 支持：启用 standalone 输出
-  output: 'standalone',
+  // 纯静态导出：无任何服务端逻辑（登录/上传/列表均为浏览器直连 GitHub API + wx-auth），
+  // 产物 out/ 可同时托管到 GitHub Pages / Cloudflare Pages / Docker(nginx)
+  output: 'export',
+  trailingSlash: true,
 
-  // P2 优化：静态资源长期缓存（仅在生产环境启用）
-  async headers() {
-    if (process.env.NODE_ENV !== 'production') return []
-
-    return [
-      {
-        source: '/_next/static/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, stale-while-revalidate=86400',
-          },
-        ],
-      },
-    ]
-  },
-
+  // 静态导出不支持 next/image 服务端优化，图片按原图直出
   images: {
-    // P1 优化：启用 AVIF 和 WebP 格式（AVIF 比 WebP 小 20%）
-    formats: ['image/avif', 'image/webp'],
-    // P1 优化：响应式图片尺寸配置
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'raw.githubusercontent.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'avatars.githubusercontent.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'github.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.jsdelivr.net',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.jsdmirror.com',
-        pathname: '/**',
-      },
-    ],
-  },
-  // 保留 console.error 用于生产环境错误诊断
-  compiler: {
-    removeConsole: false,
+    unoptimized: true,
   },
 }
 

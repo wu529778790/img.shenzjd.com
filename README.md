@@ -36,19 +36,25 @@
 
 ## ☁️ 部署你自己的图床
 
-### Vercel（推荐，零环境变量）
+本项目构建产物为**纯静态页面**（`npm run build` → `out/`），无任何后端依赖，三种托管方式任选：
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fwu529778790%2Fimg.shenzjd.com)
+### 1. GitHub Pages（零服务器兜底）
 
-登录与 GitHub 凭证全部由 [wx-auth](https://wx-auth.shenzjd.com) 统一托管，部署**不需要配置任何 GitHub OAuth / Token 环境变量**，站点域名属于 `*.shenzjd.com` 即可直接使用登录能力。
+仓库 `Settings → Pages → Source` 选择 **GitHub Actions**，推送 main 分支自动部署（内置 workflow：`.github/workflows/pages.yml`）。绑定自定义域名（推荐，`wxauth-token` Cookie 依赖 `*.shenzjd.com` 域）后即为企业级可用。
 
-### Docker
+### 2. Cloudflare Pages（全球 CDN）
+
+连接仓库，构建命令 `npm run build`，输出目录 `out`。仓库已内置 `public/_headers` 缓存策略。
+
+### 3. Docker + nginx（自建服务器，国内访问快）
 
 ```bash
-docker run -d -p 3000:3000 ghcr.io/wu529778790/img.shenzjd.com:latest
+docker run -d -p 80:80 ghcr.io/wu529778790/img.shenzjd.com:latest
 ```
 
-> 同样无需注入任何 GitHub 相关环境变量。
+镜像内为 nginx 托管的静态文件（无 Node 进程，内存占用 ~10MB），推送 main 分支自动构建并通过 SSH 部署（`.github/workflows/docker.yml`）。
+
+> 登录与 GitHub 凭证全部由 [wx-auth](https://wx-auth.shenzjd.com) 统一托管，任何部署方式都**不需要配置 GitHub OAuth / Token 环境变量**。
 
 ---
 
