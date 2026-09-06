@@ -36,17 +36,25 @@
 
 ## ☁️ 部署你自己的图床
 
-本项目构建产物为**纯静态页面**（`npm run build` → `out/`），无任何后端依赖，三种托管方式任选：
+本项目构建产物为**纯静态页面**（`npm run build` → `out/`），无任何后端依赖，四种托管方式任选，全部**零环境变量**：
 
-### 1. GitHub Pages（零服务器兜底）
+### 1. Vercel 一键部署
 
-仓库 `Settings → Pages → Source` 选择 **GitHub Actions**，推送 main 分支自动部署（内置 workflow：`.github/workflows/pages.yml`）。绑定自定义域名（推荐，`wxauth-token` Cookie 依赖 `*.shenzjd.com` 域）后即为企业级可用。
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fwu529778790%2Fimg.shenzjd.com&project-name=img.shenzjd.com)
 
-### 2. Cloudflare Pages（全球 CDN）
+点击按钮 → 确认 → 完成，自动识别 Next.js 并以静态模式构建，每次推送自动发布。
 
-连接仓库，构建命令 `npm run build`，输出目录 `out`。仓库已内置 `public/_headers` 缓存策略。
+### 2. Cloudflare Pages 一键部署
 
-### 3. Docker + nginx（自建服务器，国内访问快）
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/wu529778790/img.shenzjd.com)
+
+点击按钮 → 授权 GitHub → 选择仓库 → 完成，全球 CDN 直达，仓库已内置 `public/_headers` 缓存策略。
+
+### 3. GitHub Pages（零服务器兜底）
+
+仓库 `Settings → Pages → Source` 选择 **GitHub Actions**，推送 main 分支自动部署（内置 workflow：`.github/workflows/pages.yml`，自动处理子路径 basePath）。建议绑定自定义域名（`wxauth-token` Cookie 依赖 `*.shenzjd.com` 域）。
+
+### 4. Docker + nginx（自建服务器，国内访问快）
 
 ```bash
 docker run -d -p 80:80 ghcr.io/wu529778790/img.shenzjd.com:latest
