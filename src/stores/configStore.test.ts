@@ -23,7 +23,7 @@ describe('configStore', () => {
       autoCopyAfterUpload: true,
       useOriginalFileName: false,
       convertToWebp: false,
-      configPath: '.imgx-config/config.json',
+      configPath: '.img.shenzjd.com/config.json',
       autoSync: true,
       configInitialized: false,
       configLastCheckedAt: undefined,
@@ -71,7 +71,7 @@ describe('configStore', () => {
     });
 
     it('should have config path set', () => {
-      expect(useConfigStore.getState().configPath).toBe('.imgx-config/config.json');
+      expect(useConfigStore.getState().configPath).toBe('.img.shenzjd.com/config.json');
     });
   });
 

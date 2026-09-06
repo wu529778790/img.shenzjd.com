@@ -3,45 +3,36 @@
 import { useCallback, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
 import { BULK_DELETE_CONFIG } from '@/lib/constants'
 import { debugLog, debugError } from '@/lib/debug'
 import { getFileCategory, getExtension, ALLOWED_EXTENSIONS } from '@/lib/fileTypes'
+import { tryGetCredential, type CredentialContext } from '@/hooks/useWxAuthSession'
+import { invalidateCapabilityToken } from '@/lib/wxauth'
 import type { ImageFile } from '@/types/image'
 
 export function useImages() {
-  const { data: session } = useSession()
-  const token = session?.accessToken || ''
   const configStore = useConfigStore()
   const queryClient = useQueryClient()
 
   const { owner, repo, branch, cdn, useRaw } = configStore
 
-  // 调试：在 hook 执行时立即打印状态
-  debugLog('[Images Hook] Initialized with:', {
-    token: !!token,
-    owner,
-    repo,
-    branch,
-    configKeys: Object.keys(configStore).filter(k => !['updateConfig', 'resetConfig', 'markConfigChecked', 'needsConfigCheck', 'invalidateConfigCheck'].includes(k)),
-  })
-
   // 获取图片列表
   const { data: images = [], isLoading, error } = useQuery({
     queryKey: ['images', owner, repo, branch],
     queryFn: async () => {
-      debugLog('[Images Query] Query function executed!')
-      if (!token || !owner || !repo) {
-        debugLog('[Images] Missing token/owner/repo, returning empty array', { token: !!token, owner, repo })
+      // wx-auth 领取短命 installation token（会话内缓存，不落盘）
+      const cred: CredentialContext | null = await tryGetCredential()
+      if (!cred || !cred.owner || !cred.repo) {
+        debugLog('[Images] wx-auth not ready or repo not provisioned, returning empty array')
         return []
       }
 
       try {
-      debugLog('[Images] Fetching images from GitHub API...', { owner, repo, branch })
-      const api = new GitHubAPI(token, owner, repo, branch)
+      debugLog('[Images] Fetching images from GitHub API...', { owner: cred.owner, repo: cred.repo })
+      const api = new GitHubAPI(cred.token, cred.owner, cred.repo, branch)
 
       // 使用 Git Trees API 一次性获取所有文件（仅需 1 次请求）
       const allFiles = await api.listAllFilesWithTree()
@@ -111,7 +102,7 @@ export function useImages() {
         throw err
       }
     },
-    enabled: !!token && !!owner && !!repo,
+    enabled: !!owner && !!repo,
     staleTime: 0,
     gcTime: 5 * 60 * 1000,
     retry: (failureCount, error) => {
@@ -139,7 +130,21 @@ export function useImages() {
     }
   }, [error, owner, repo, configStore])
 
-  debugLog('[Images Hook] Query enabled:', !!token && !!owner && !!repo, { token: !!token, owner, repo, branch })
+  debugLog('[Images Hook] Query enabled:', !!owner && !!repo, { owner, repo, branch })
+
+  // installation token 过期时失效缓存并重新拉取列表（最多一次，防循环）
+  const tokenRetriedRef = useRef(false)
+  useEffect(() => {
+    const status = (error as { response?: { status?: number } })?.response?.status
+    if (error && status === 401 && !tokenRetriedRef.current) {
+      tokenRetriedRef.current = true
+      invalidateCapabilityToken()
+      queryClient.invalidateQueries({ queryKey: ['images'] })
+    }
+    if (!error) {
+      tokenRetriedRef.current = false
+    }
+  }, [error, queryClient])
 
   // 用 ref 跟踪 images 变化，供 handleDelete 使用
   // 使用 useEffect 确保只在 images 实际变化时更新 ref
@@ -151,9 +156,10 @@ export function useImages() {
   // 删除图片
   const deleteMutation = useMutation({
     mutationFn: async (filePath: string) => {
-      if (!token || !owner || !repo) throw new Error('Not configured')
+      const cred = await tryGetCredential()
+      if (!cred || !owner || !repo) throw new Error('Not ready')
 
-      const api = new GitHubAPI(token, owner, repo, branch)
+      const api = new GitHubAPI(cred.token, cred.owner, cred.repo, branch)
 
       // 获取文件的 SHA
       let sha: string
@@ -171,7 +177,7 @@ export function useImages() {
       }
 
       // 删除文件
-      await api.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, sha, branch)
+      await api.deleteFile(filePath, `[skip ci] delete by https://img.shenzjd.com`, sha, branch)
 
       return filePath
     },
@@ -201,9 +207,10 @@ export function useImages() {
   // 批量删除 - 使用分批和延迟，避免阻塞 UI
   const bulkDeleteMutation = useMutation({
     mutationFn: async (filePaths: string[]) => {
-      if (!token || !owner || !repo) throw new Error('Not configured')
+      const cred = await tryGetCredential()
+      if (!cred || !owner || !repo) throw new Error('Not ready')
 
-      const api = new GitHubAPI(token, owner, repo, branch)
+      const api = new GitHubAPI(cred.token, cred.owner, cred.repo, branch)
 
       // 分批删除，每批最多 3 个，批次间延迟 500ms
       // 使用 BULK_DELETE_CONFIG 配置便于调整
@@ -230,7 +237,7 @@ export function useImages() {
               throw error
             }
 
-            await api.deleteFile(filePath, `[skip ci] https://img.shenzjd.com/`, sha, branch)
+            await api.deleteFile(filePath, `[skip ci] delete by https://img.shenzjd.com`, sha, branch)
             return filePath
           })
         )

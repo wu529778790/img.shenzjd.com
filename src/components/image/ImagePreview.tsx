@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { X, Download, Copy, Check, ExternalLink, Info, ChevronLeft, ChevronRight, Trash2, Music, FileText } from 'lucide-react'
-import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { ImageCardDeleteConfirm } from './ImageCardDeleteConfirm'
 import { generateLink } from '@/lib/link'
@@ -31,7 +30,6 @@ interface ImagePreviewProps {
 
 export function ImagePreview({ image, images, onClose, onImageChange, onDelete }: ImagePreviewProps) {
   const configStore = useConfigStore()
-  useSession()
 
   const category = image.category ?? getFileCategory(image.name)
   const imageIsImage = category === 'image'

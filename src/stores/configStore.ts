@@ -40,14 +40,14 @@ const defaultConfig: Config = {
   useOriginalFileName: false,
   // 默认关闭：SVG 矢量图转 WebP 会光栅化导致模糊，GIF 会丢失动画，需要时手动开启
   convertToWebp: false,
-  configPath: '.imgx-config/config.json',
+  configPath: '.img.shenzjd.com/config.json',
   autoSync: true,
 }
 
 function migrateConfig(persistedState: unknown): ConfigState {
   if (persistedState && typeof persistedState === 'object' && 'state' in persistedState) {
-    const v4State = (persistedState as { state: ConfigState }).state
-    return { ...defaultConfig, ...v4State, configInitialized: v4State.configInitialized ?? false } as ConfigState
+    const vState = (persistedState as { state: ConfigState }).state
+    return { ...defaultConfig, ...vState, configInitialized: vState.configInitialized ?? false } as ConfigState
   }
   return { ...defaultConfig, ...(persistedState as Partial<Config>), configInitialized: false } as ConfigState
 }
@@ -122,7 +122,7 @@ export const useConfigStore = create<ConfigState>()(
     }),
     {
       name: 'config-storage',
-      version: 1,
+      version: 2,
       migrate: migrateConfig,
       onRehydrateStorage: () => (state, error) => {
         if (error) {

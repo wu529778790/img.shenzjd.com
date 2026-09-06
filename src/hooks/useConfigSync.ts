@@ -1,16 +1,19 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import type { Config } from '@/types/config'
 import { debugLog, debugError, debugWarn } from '@/lib/debug'
+import { tryGetCredential } from '@/hooks/useWxAuthSession'
 
 interface SaveConfigResponse {
   success: boolean
   message: string
   sha?: string
 }
+
+/** 配置文件固定存放在 main 分支，与数据分支（用户可在设置里切换）解耦，避免 sha 跨分支错乱 */
+export const CONFIG_BRANCH = 'main'
 
 interface LoadConfigResponse {
   success: boolean
@@ -76,7 +79,7 @@ export async function saveConfigToGitHub(
   }
 
   const body: { message: string; content: string; branch: string; sha?: string } = {
-    message: 'chore: update imgx config',
+    message: 'chore: update config by https://img.shenzjd.com',
     content: contentBase64,
     branch,
   }
@@ -85,14 +88,36 @@ export async function saveConfigToGitHub(
     body.sha = effectiveSha
   }
 
-  const response = await fetch(apiUrl, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `token ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  })
+  const doPut = (sha?: string) =>
+    fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(sha ? { ...body, sha } : body),
+    })
+
+  let response = await doPut(effectiveSha)
+  if (response.status === 409) {
+    // sha 过期/错位（例如配置路径迁移后残留了旧路径文件的 sha）：重读远端真实状态自愈一次
+    debugWarn('[ConfigSync] 409 conflict, refetching remote state and retrying once')
+    try {
+      const existing = await fetch(`${apiUrl}?ref=${branch}`, {
+        headers: { 'Authorization': `token ${token}` },
+      })
+      if (existing.ok) {
+        // 文件存在 → 用远端最新 sha 覆盖
+        const existingData = await existing.json()
+        response = await doPut(existingData.sha)
+      } else if (existing.status === 404) {
+        // 文件实际不存在（残留 sha 属于其他路径）→ 降级为新建
+        response = await doPut()
+      }
+    } catch (retryErr) {
+      debugWarn('[ConfigSync] 409 retry failed:', retryErr)
+    }
+  }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: `HTTP ${response.status}` }))
@@ -158,21 +183,27 @@ async function loadConfigFromGitHub(
  */
 export function useSaveConfigToGitHub() {
   const queryClient = useQueryClient()
-  const { data: session } = useSession()
 
   const mutation = useMutation({
     mutationFn: async () => {
       // 实时读取最新配置（避免 mutation 闭包捕获旧 branch）
       const cfg = useConfigStore.getState()
-      const { owner, repo, branch } = cfg
-      const configPath = cfg.configPath || '.imgx-config/config.json'
+      const { owner, repo } = cfg
+      const configPath = cfg.configPath || '.img.shenzjd.com/config.json'
 
-      if (!owner || !repo || !branch) {
-        return { success: false, message: '请先配置 GitHub 仓库' }
+      if (!owner || !repo) {
+        return { success: false, message: 'wx-auth 尚未就绪或仓库未开通' }
       }
 
+      // wx-auth 领取短命 installation token（会话内缓存）
+      const cred = await tryGetCredential()
+      if (!cred) {
+        return { success: false, message: '未登录或 GitHub 能力未就绪' }
+      }
+
+      // branch 仅作为数据分支偏好写入 JSON 内容；文件本身固定写到 main
       const currentConfig: Config = {
-        owner, repo, branch,
+        owner, repo, branch: cfg.branch,
         directory: cfg.directory,
         compressionEnabled: cfg.compressionEnabled,
         compressionQuality: cfg.compressionQuality,
@@ -193,7 +224,7 @@ export function useSaveConfigToGitHub() {
         lastSyncAt: cfg.lastSyncAt,
         sha: cfg.sha,
       }
-      return saveConfigToGitHub(currentConfig, owner, repo, branch, configPath, cfg.sha, session?.accessToken)
+      return saveConfigToGitHub(currentConfig, owner, repo, CONFIG_BRANCH, configPath, cfg.sha, cred.token)
     },
     onSuccess: (result) => {
       if (result.success) {
@@ -217,22 +248,25 @@ export function useSaveConfigToGitHub() {
  */
 export function useLoadConfigFromGitHub() {
   const configStore = useConfigStore()
-  const { data: session } = useSession()
 
   return useQuery({
-    queryKey: ['config-from-github', configStore.owner, configStore.repo, configStore.branch, configStore.configPath],
+    // 配置固定读 main 分支，key 不含数据分支（切数据分支不应触发配置重读）
+    queryKey: ['config-from-github', configStore.owner, configStore.repo, configStore.configPath],
     queryFn: async () => {
-      const { owner, repo, branch } = configStore
-      const configPath = configStore.configPath || '.imgx-config/config.json'
+      const { owner, repo } = configStore
+      const configPath = configStore.configPath || '.img.shenzjd.com/config.json'
 
-      if (!owner || !repo || !branch) {
+      if (!owner || !repo) {
         return null
       }
 
-      const result = await loadConfigFromGitHub(owner, repo, branch, configPath, session?.accessToken)
+      const cred = await tryGetCredential()
+      if (!cred) return null
+
+      const result = await loadConfigFromGitHub(owner, repo, CONFIG_BRANCH, configPath, cred.token)
       return result.success ? result.config : null
     },
-    enabled: !!(configStore.owner && configStore.repo && configStore.branch && configStore.configPath && session?.accessToken),
+    enabled: !!(configStore.owner && configStore.repo && configStore.configPath),
     staleTime: 60 * 1000, // 1 分钟
   })
 }

@@ -50,3 +50,4 @@ next-env.d.ts
 
 # server logs downloaded from production (not project source)
 /data/
+.zcode/

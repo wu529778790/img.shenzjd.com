@@ -2,16 +2,15 @@
 
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { useConfigStore } from '@/stores/configStore'
 import { useImages } from '@/hooks/useImages'
+import { useWxAuthSession, ensureReady } from '@/hooks/useWxAuthSession'
 import { ImageGrid } from '@/components/image/ImageGrid'
 import { ImagePreview } from '@/components/image/ImagePreview'
 import { ManagementToolbar } from '@/components/image/ManagementToolbar'
 import { ManagementSkeleton } from '@/components/loading/Skeleton'
-import { useAuthDialog } from '@/components/auth'
-import { Image as ImageIcon } from 'lucide-react'
+import { Image as ImageIcon, LogIn } from 'lucide-react'
 import { SEARCH_CONFIG } from '@/lib/constants'
 import type { ImageFile } from '@/types/image'
 
@@ -20,8 +19,7 @@ type SortOrder = 'asc' | 'desc'
 
 export default function ManagementPage() {
   const router = useRouter()
-  const { data: session, status } = useSession()
-  const { openLoginDialog } = useAuthDialog()
+  const { session, refreshSession } = useWxAuthSession()
   const configStore = useConfigStore()
 
   const { images, isLoading, error, handleDelete, handleBulkDelete } = useImages()
@@ -35,12 +33,15 @@ export default function ManagementPage() {
   // 防抖定时器 ref
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null)
 
-  // 未登录时自动打开登录弹窗（配置由 ConfigDiscovery 自动完成）
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      openLoginDialog()
+  // 未登录时展示登录引导（由 wx-auth 弹出登录）
+  const handleLogin = useCallback(async () => {
+    try {
+      await ensureReady()
+      await refreshSession()
+    } catch {
+      // 用户取消登录或引导未完成，保持当前页面状态
     }
-  }, [status, openLoginDialog])
+  }, [refreshSession])
 
   // 使用 useMemo 缓存过滤和排序结果
   const filteredImages = useMemo(() => {
@@ -117,10 +118,48 @@ export default function ManagementPage() {
     }
   }, [])
 
-  // 如果正在加载或未登录，显示骨架屏
-  // 注意：未配置时不显示骨架屏，而是显示"去配置"按钮
-  if (status === 'loading' || !session) {
+  // 如果正在校验会话，显示骨架屏；未登录时显示登录引导
+  if (!session) {
     return <ManagementSkeleton />
+  }
+
+  if (!session?.loggedIn) {
+    return (
+      <div className="container mx-auto px-4 py-16 max-w-5xl">
+        <div className="max-w-md mx-auto text-center space-y-4">
+          <div className="mx-auto w-24 h-24 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center">
+            <ImageIcon className="h-12 w-12 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">请先登录</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">登录后即可管理你的图床文件</p>
+          <Button onClick={handleLogin} className="gap-2">
+            <LogIn className="h-4 w-4" />
+            立即登录
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // 已登录但 GitHub 未绑定/未开通 → 引导卡片（ensureReady 会依次弹出绑定/安装/开通引导）
+  if (!session?.repo) {
+    return (
+      <div className="container mx-auto px-4 py-16 max-w-5xl">
+        <div className="max-w-md mx-auto text-center space-y-4">
+          <div className="mx-auto w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/30 flex items-center justify-center">
+            <ImageIcon className="h-12 w-12 text-blue-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">绑定 GitHub 后即可管理图片</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            首次使用会引导你绑定 GitHub 账号、安装 GitHub App 并自动初始化图床仓库（需要几秒）
+          </p>
+          <Button onClick={handleLogin} className="gap-2">
+            <LogIn className="h-4 w-4" />
+            绑定 GitHub
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (

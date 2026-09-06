@@ -22,7 +22,7 @@ export default function WatermarkPage() {
   const [watermarkedPreview, setWatermarkedPreview] = useState<string | null>(null)
 
   // 水印设置
-  const [watermarkText, setWatermarkText] = useState('ImgX')
+  const [watermarkText, setWatermarkText] = useState('img.shenzjd.com')
   const [watermarkColor, setWatermarkColor] = useState('#ffffff')
   const [watermarkSize, setWatermarkSize] = useState([24])
   const [watermarkPosition, setWatermarkPosition] = useState<
@@ -103,7 +103,7 @@ export default function WatermarkPage() {
     setWatermarkedFile(null)
     setPreview(null)
     setWatermarkedPreview(null)
-    setWatermarkText('ImgX')
+    setWatermarkText('img.shenzjd.com')
     setWatermarkColor('#ffffff')
     setWatermarkSize([24])
     setWatermarkPosition('bottom-right')
@@ -151,7 +151,7 @@ export default function WatermarkPage() {
                   id="text"
                   value={watermarkText}
                   onChange={(e) => setWatermarkText(e.target.value)}
-                  placeholder="ImgX"
+                  placeholder="img.shenzjd.com"
                   className="mt-1"
                 />
               </div>

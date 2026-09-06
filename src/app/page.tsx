@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback } from 'react'
-import { useSession } from 'next-auth/react'
 import { useUpload } from '@/hooks/useUpload'
 import { UploadArea } from '@/components/upload/UploadArea'
 import { UploadQueue } from '@/components/upload/UploadQueue'
@@ -10,13 +9,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Zap, RefreshCw } from 'lucide-react'
 import { PageTransition, CardAnimation } from '@/components/animations/PageAnimations'
-import { useAuthDialog } from '@/components/auth'
-import { toast } from 'sonner'
 import { useFramerMotion } from '@/hooks/useFramerMotion'
 
 export default function HomePage() {
-  const { data: session } = useSession()
-  const { openLoginDialog } = useAuthDialog()
   const { uploadQueue, addFiles, retryTask, retryAllFailed, removeTask } = useUpload()
 
   // ✅ 动态导入 framer-motion，减少首屏 JS 体积
@@ -24,20 +19,11 @@ export default function HomePage() {
   const motion = Framer?.motion
   const AnimatePresence = Framer?.AnimatePresence
 
-  // 处理文件选择（只需登录即可，配置由系统自动完成）
+  // 处理文件选择：登录/GitHub 绑定引导由 addFiles 内部的 wx-auth 就绪流程处理
+  // （未登录时自动弹出登录，未绑定 GitHub 时自动引导）
   const handleFilesSelected = useCallback((files: File[]) => {
-    if (!session) {
-      // 未登录，打开登录弹窗
-      toast.info('请先登录', {
-        description: '登录后即可上传图片到 GitHub',
-        duration: 3000,
-      })
-      openLoginDialog()
-      return
-    }
-    // 已登录，正常上传（配置由 ConfigDiscovery 自动初始化）
     addFiles(files)
-  }, [session, openLoginDialog, addFiles])
+  }, [addFiles])
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl">

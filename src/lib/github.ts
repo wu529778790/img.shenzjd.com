@@ -167,7 +167,7 @@ export class GitHubAPI {
   }
 
   // 创建仓库
-  async createRepo(name: string, description: string = 'ImgX image host', private_: boolean = false): Promise<GitHubRepo> {
+  async createRepo(name: string, description: string = 'img.shenzjd.com image host', private_: boolean = false): Promise<GitHubRepo> {
     return this.request<GitHubRepo>('/user/repos', {
       method: 'POST',
       body: JSON.stringify({

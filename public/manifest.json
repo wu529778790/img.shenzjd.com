@@ -1,6 +1,6 @@
 {
-  "name": "ImgX - 现代化图床管理工具",
-  "short_name": "ImgX",
+  "name": "img.shenzjd.com - 现代化图床管理工具",
+  "short_name": "img.shenzjd.com",
   "description": "基于 GitHub 的高性能图床服务，支持拖拽上传、自动压缩、水印添加、CDN 加速",
   "start_url": "/",
   "display": "standalone",

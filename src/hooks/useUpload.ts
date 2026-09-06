@@ -5,25 +5,19 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { compressImage, convertToWebp } from '@/lib/compress'
 import { addWatermark } from '@/lib/watermark'
-import { useSession } from 'next-auth/react'
 import { useConfigStore } from '@/stores/configStore'
 import { useUploadStore } from '@/stores/uploadStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
 import { getFileCategory, isImage as isImageFile, shouldConvertToWebp } from '@/lib/fileTypes'
 import { debugLog, debugError, debugWarn } from '@/lib/debug'
+import { ensureReady, tryGetCredential, type CredentialContext } from '@/hooks/useWxAuthSession'
+import { invalidateCapabilityToken } from '@/lib/wxauth'
 import type { FileWithPreview, LinkOptions, UploadTask } from '@/types/image'
 
-// 微信订阅号认证（wx-auth-sdk）：前 WXAUTH_FREE_UPLOADS 张图片免费，
-// 累计图片首次超过该额度（即第 3 张）时弹出微信认证窗。
-const WXAUTH_FREE_UPLOADS = 2
-const WXAUTH_COUNT_KEY = 'imgx_wxauth_upload_count'
-
 export function useUpload() {
-  const { data: session } = useSession()
-  const token = session?.accessToken || ''
-  const config = useConfigStore()
   const queryClient = useQueryClient()
+  const config = useConfigStore()
   const { updateTask, removeTask: removeTaskStore, clearQueue, retryFailed: retryFailedFn } = useUploadStore()
 
   // ✅ 组件卸载时释放所有 blob URL，防止内存泄漏
@@ -44,29 +38,19 @@ export function useUpload() {
   // 上传单个文件的函数
   const uploadSingleFile = useCallback(async (
     file: File,
-    taskId: string
+    taskId: string,
+    cred: CredentialContext
   ): Promise<void> => {
-    if (!token) {
-      updateTask(taskId, {
-        status: 'error',
-        progress: 0,
-        error: 'Not authenticated'
-      })
-      return
-    }
-
-    const api = new GitHubAPI(token, config.owner, config.repo, config.branch)
-
     debugLog('[Upload] Starting upload for:', file.name, {
-      owner: config.owner,
-      repo: config.repo,
-      branch: config.branch,
+      owner: cred.owner,
+      repo: cred.repo,
       directory: config.directory,
     })
 
     try {
       // 实时读取最新配置（避免 mutation 闭包捕获旧值）
       const cfg = useConfigStore.getState()
+      const api = new GitHubAPI(cred.token, cred.owner, cred.repo, cfg.branch)
 
       // 1. 压缩图片（仅图片文件使用 Canvas 压缩）
       let processedFile = file
@@ -82,7 +66,7 @@ export function useUpload() {
           })
           debugLog('[Progress] Setting progress to 20% (compression done)')
           updateTask(taskId, { progress: 20 }) // 压缩完成
-          await new Promise(resolve => setTimeout(resolve, 300)) // 延迟显示
+          await new Promise(resolve => setTimeout(resolve, 300))
           debugLog('[Upload] Compression completed:', file.name)
         } catch (error) {
           debugError('Compression failed:', error)
@@ -125,8 +109,8 @@ export function useUpload() {
           })
           debugLog('[Progress] Setting progress to 40% (watermark done)')
           updateTask(taskId, { progress: 40 }) // 水印完成
-          await new Promise(resolve => setTimeout(resolve, 300)) // 延迟显示
-          debugLog('[Upload] Watermark added:', file.name)
+          await new Promise(resolve => setTimeout(resolve, 300))
+          debugLog('[Progress] Watermark added:', file.name)
         } catch (error) {
           debugError('Watermark failed:', error)
           toast.error(`${file.name} 水印添加失败`)
@@ -143,7 +127,7 @@ export function useUpload() {
       const rand = Math.random().toString(36).slice(2, 6)
       const fileName = cfg.useOriginalFileName
         ? processedFile.name
-        : `imgx-${dateStr}-${timeStr}-${rand}.${ext}`
+        : `img.shenzjd.com-${dateStr}-${timeStr}-${rand}.${ext}`
       const filePath = cfg.directory ? `${cfg.directory}/${fileName}` : fileName
 
       debugLog('[Upload] File path:', filePath)
@@ -151,25 +135,34 @@ export function useUpload() {
       updateTask(taskId, { progress: 50 }) // 准备上传
       await new Promise(resolve => setTimeout(resolve, 300)) // 延迟显示
 
-      // 4. 上传到 GitHub
-      debugLog('[Upload] Starting GitHub upload...')
+      // 4. 上传到 GitHub（浏览器直传，凭证为 wx-auth 签发的短命 installation token）
+      debugLog('[Upload] Starting GitHub upload...', { owner: cred.owner, repo: cred.repo })
       debugLog('[Upload] Target branch:', cfg.branch)
-      const result = await api.createOrUpdateFile(
-        filePath,
-        processedFile,
-        `[skip ci] Upload by https://img.shenzjd.com/`,
-        cfg.branch || 'main',
-        (progress) => {
-          // 实时更新上传进度 (50% -> 90%)
-          const totalProgress = 50 + Math.round(progress * 0.4)
-          debugLog('[Progress] GitHub callback progress:', progress, '-> total:', totalProgress, 'for task:', taskId)
-          updateTask(taskId, { progress: totalProgress })
-          debugLog('[Progress] updateTask called, checking state...')
-          const state = useUploadStore.getState()
-          const task = state.queue.find(t => t.id === taskId)
-          debugLog('[Progress] Current task state:', task?.status, task?.progress)
-        }
-      )
+      const commitMessage = `[skip ci] upload by https://img.shenzjd.com`
+      const onProgress = (progress: number) => {
+        // 实时更新上传进度 (50% -> 90%)
+        const totalProgress = 50 + Math.round(progress * 0.4)
+        debugLog('[Progress] GitHub callback progress:', progress, '-> total:', totalProgress, 'for task:', taskId)
+        updateTask(taskId, { progress: totalProgress })
+      }
+      const branch = cfg.branch || 'main'
+
+      const doUpload = (target: GitHubAPI) =>
+        target.createOrUpdateFile(filePath, processedFile, commitMessage, branch, onProgress)
+
+      let result
+      try {
+        result = await doUpload(api)
+      } catch (uploadErr) {
+        // installation token 过期（401）→ 失效缓存重领一次后重试
+        const status = (uploadErr as { response?: { status?: number } })?.response?.status
+        if (status !== 401) throw uploadErr
+        debugWarn('[Upload] Token expired (401), refreshing capability token once')
+        invalidateCapabilityToken()
+        const freshCred = await tryGetCredential()
+        if (!freshCred) throw uploadErr
+        result = await doUpload(new GitHubAPI(freshCred.token, freshCred.owner, freshCred.repo, branch))
+      }
 
       debugLog('[Upload] GitHub upload result:', result)
       debugLog('[Progress] Setting progress to 90% (GitHub upload done)')
@@ -182,7 +175,7 @@ export function useUpload() {
       // 尝试验证文件是否创建成功（不阻塞流程）
       debugLog('[Upload] Attempting to verify file...')
       try {
-        await api.getFile(filePath, config.branch)
+        await api.getFile(filePath, branch)
         debugLog('[Upload] File verified successfully')
       } catch (verifyErr) {
         // 验证失败只记录警告，不阻塞上传流程
@@ -201,14 +194,14 @@ export function useUpload() {
       // 生成链接并自动复制到剪贴板
       // 按文件类型分支：图片保留原有 WebP / <img> 行为，其他文件使用裸链 / <a>
       const linkOptions: LinkOptions = {
-        format: config.copyFormat,
-        cdn: config.cdn,
-        owner: config.owner,
-        repo: config.repo,
-        branch: config.branch,
+        format: cfg.copyFormat,
+        cdn: cfg.cdn,
+        owner: cred.owner,
+        repo: cred.repo,
+        branch,
         path: filePath,
         fileName: fileName,
-        useRaw: config.useRaw ?? true,
+        useRaw: cfg.useRaw ?? true,
         category: getFileCategory(fileName),
       }
 
@@ -224,7 +217,7 @@ export function useUpload() {
       })
 
       // 如果启用了自动复制，复制链接到剪贴板
-      if (config.autoCopyAfterUpload) {
+      if (cfg.autoCopyAfterUpload) {
         try {
           await navigator.clipboard.writeText(link)
           toast.success('链接已复制到剪贴板', {
@@ -251,45 +244,29 @@ export function useUpload() {
         status: err.response?.status,
       })
 
-      // 仓库被删除时清除本地配置
-      if (err.response?.status === 404) {
-        config.resetConfig()
-        localStorage.removeItem('config-storage')
-        toast.warning('检测到图床仓库已被删除，请重新配置', {
-          description: `仓库 ${config.owner}/${config.repo} 已不存在`,
-          duration: 6000,
-        })
-      }
-
       updateTask(taskId, {
         status: 'error',
         progress: 0,
-        error: err.response?.status === 404 ? '仓库不存在，请重新配置图床' : (err.message ?? 'Upload failed'),
+        error: err.response?.status === 404
+          ? '图床仓库不存在，请重新登录并初始化'
+          : (err.message ?? 'Upload failed'),
       })
     }
-  }, [token, config, updateTask, queryClient])
+  }, [config, updateTask, queryClient])
 
   // 添加文件到上传队列（支持预览）
   const addFiles = useCallback(
     async (files: File[]) => {
-      // —— 微信订阅号认证：第 3 张图片触发 ——
-      // 只统计图片文件；非图片（视频/音频/文档等）不计入额度。
-      const imageFiles = files.filter((f) => f.type.startsWith('image/'))
-      if (imageFiles.length > 0) {
-        const prev = Number(localStorage.getItem(WXAUTH_COUNT_KEY) || '0')
-        const next = prev + imageFiles.length
-        // 累计图片数首次超过免费额度（prev<=2 且 next>2 → 含第 3 张）时触发
-        if (prev <= WXAUTH_FREE_UPLOADS && next > WXAUTH_FREE_UPLOADS) {
-          try {
-            const { WxAuth } = await import('wx-auth-sdk')
-            // 零配置：SDK 内置 apiBase=wx-auth.shenzjd.com、公众号名，并自动从域名取 siteId。
-            // 默认 silent:false → 未认证时 init() 会自动弹出认证窗（即第 3 张图片触发）。
-            WxAuth.init()
-          } catch (e) {
-            debugError('[WxAuth] 动态加载/初始化失败', e)
-          }
-        }
-        localStorage.setItem(WXAUTH_COUNT_KEY, String(next))
+      // wx-auth 就绪流程：登录 → GitHub 绑定/安装/开通引导 → 领取上传凭证
+      // 每次上传会话判定一次，结果缓存在前端会话内
+      let cred: CredentialContext
+      try {
+        cred = await ensureReady()
+      } catch (err) {
+        const message = err instanceof Error ? err.message : '登录/授权未完成，请稍后重试'
+        debugWarn('[Upload] Not ready:', err)
+        toast.error(message)
+        return
       }
 
       // 为每个文件创建任务，为图片文件添加预览
@@ -326,7 +303,7 @@ export function useUpload() {
         // 更新任务状态为上传中
         updateTask(taskId, { status: 'uploading', progress: 0 })
         // 开始上传单个文件
-        uploadSingleFile(file, taskId)
+        uploadSingleFile(file, taskId, cred)
       })
     },
     [uploadSingleFile, updateTask]
@@ -342,9 +319,8 @@ export function useUpload() {
 
   // 获取单个失败任务的文件
   const getFailedTaskFile = useCallback((taskId: string): File | null => {
-    const queue = useUploadStore.getState().queue
-    const task = queue.find((t) => t.id === taskId)
-    if (task && task.status === 'error') {
+    const task = useUploadStore.getState().queue.find((t) => t.id === taskId)
+    if (task && task.file) {
       return task.file
     }
     return null
@@ -365,7 +341,7 @@ export function useUpload() {
   const retryAllFailed = useCallback(() => {
     const failedFiles = getFailedTaskFiles()
     if (failedFiles.length > 0) {
-      // ✅ 先移除所有失败任务（store 会释放 blob URL）
+      // ✅ 先移除所有失败的文件（store 会释放 blob URL）
       const failedIds = retryFailedFn()
       failedIds.forEach((id) => removeTaskStore(id))
       // 重新上传所有失败的文件

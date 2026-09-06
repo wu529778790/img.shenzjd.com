@@ -9,7 +9,7 @@
  * - 图片：Cache First（CDN 图片缓存）
  */
 
-const CACHE_VERSION = 'imgx-v1';
+const CACHE_VERSION = 'imgx-v2'; // v2: 修复 dev 环境 SW 缓存旧编译产物（dev chunk 文件名固定导致）
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
 const OFFLINE_PAGE = '/offline.html';
@@ -62,6 +62,9 @@ self.addEventListener('fetch', (event) => {
 
   // 跳过 WebSocket 和 Chrome 扩展
   if (url.protocol === 'ws:' || url.protocol === 'wss:' || url.protocol === 'chrome-extension:') return;
+
+  // 跨域资源（unpkg 等外部 CDN 的 @latest 脚本）不缓存，始终走网络，确保公共组件始终最新
+  if (url.origin !== self.location.origin) return;
 
   // 1. 导航请求（页面访问）
   if (request.mode === 'navigate') {

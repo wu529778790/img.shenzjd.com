@@ -32,6 +32,12 @@ export function useServiceWorker() {
       return;
     }
 
+    // 开发环境不注册 SW：dev chunk 文件名固定，SW Cache-First 会永久缓存旧编译产物，
+    // 导致热更新代码永远不生效（表现为改了代码页面行为不变/stale）
+    if (process.env.NODE_ENV !== 'production') {
+      return;
+    }
+
     // 开发环境可通过 localStorage 禁用 SW
     if (localStorage.getItem('disable-sw') === 'true') {
       return;
