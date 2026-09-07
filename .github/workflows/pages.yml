@@ -39,8 +39,9 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
-          # GitHub Pages 项目站部署在 <域名>/<仓库名>/ 子路径，静态资源需要 basePath
-          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+          # 已绑定自定义域名 img.shenzjd.com（根路径托管），不注入 basePath；
+          # 若改回纯项目站访问（wu529778790.github.io/img.shenzjd.com/），需恢复：
+          # NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
