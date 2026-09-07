@@ -9,7 +9,7 @@
  * - 图片：Cache First（CDN 图片缓存）
  */
 
-const CACHE_VERSION = 'imgx-v2'; // v2: 修复 dev 环境 SW 缓存旧编译产物（dev chunk 文件名固定导致）
+const CACHE_VERSION = 'imgx-v3'; // v3: 导航请求强制重新校验 + 不再缓存 HTML（修复发版后旧 HTML 引用失效 chunk）
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
 const OFFLINE_PAGE = '/offline.html';
@@ -128,8 +128,17 @@ async function cacheFirst(request, cacheName, options = {}) {
  */
 async function networkFirst(request, offlineFallback = null) {
   try {
-    const response = await fetch(request);
-    if (response.ok && request.url.startsWith(self.location.origin)) {
+    // 导航请求（HTML）强制绕过浏览器 HTTP 缓存重新校验：
+    // 旧版源站给 HTML 发过 max-age=86400，浏览器本地缓存的旧页面会引用已被新构建替换的 chunk
+    const fetchRequest = request.mode === 'navigate'
+      ? new Request(request, { cache: 'no-cache' })
+      : request;
+    const response = await fetch(fetchRequest);
+    // HTML 页面不缓存（URL 无内容 hash，发版即失效）；其余同源资源照常更新缓存
+    const shouldCache = response.ok &&
+      request.url.startsWith(self.location.origin) &&
+      request.mode !== 'navigate';
+    if (shouldCache) {
       // 更新静态缓存
       const cache = await caches.open(STATIC_CACHE);
       cache.put(request, response.clone());
