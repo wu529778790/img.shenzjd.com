@@ -1,29 +1,20 @@
-version: '3.8'
-
+# img.shenzjd.com 生产部署编排
+# 镜像为纯静态站点（Next 静态导出 out/），由容器内 nginx 托管，监听 80
+# 与 CI（.github/workflows/docker.yml）的 docker run 参数保持一致：宿主机 6704 → 容器 80
 services:
   app:
     image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/img.shenzjd.com:latest
     container_name: imgx-app
-    # 过滤浏览器缓存旧版页面导致的 "Failed to find Server Action" 误报日志（每次发版后都会出现，属正常现象）
-    # awk 状态机：命中错误行后连带跳过其后的 "Read more" 与堆栈行（共 2 行），不影响其他错误日志
-    command: ["sh", "-c", "exec node server.js 2>&1 | awk -W interactive 'skip>0{skip--; next} /Failed to find Server Action|failed-to-find-server-action/{skip=2; next} {print}'"]
     ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - HOSTNAME=0.0.0.0
-      # GitHub OAuth 配置
-      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
-      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
-      # GitHub API 配置
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - "6704:80"
     restart: unless-stopped
+    # 与 CI 部署参数一致，nginx 静态托管内存占用极低
+    mem_limit: 128m
+    memswap_limit: 256m
+    cpus: 0.5
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 10s

@@ -99,3 +99,14 @@ jobs:
               -p 6704:80 \
               "$IMAGE"
             sudo docker image prune -f
+
+      # 发版后清除 Cloudflare 边缘缓存，防止旧 HTML 引用已被替换的 chunk 导致 404
+      - name: Purge Cloudflare cache
+        if: ${{ secrets.CLOUDFLARE_ZONE_ID != '' && secrets.CLOUDFLARE_API_TOKEN != '' }}
+        continue-on-error: true
+        run: |
+          curl -sS -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
