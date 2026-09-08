@@ -219,6 +219,7 @@ export function useSaveConfigToGitHub() {
         autoCopyAfterUpload: cfg.autoCopyAfterUpload,
         useOriginalFileName: cfg.useOriginalFileName,
         convertToWebp: cfg.convertToWebp,
+        duplicateStrategy: cfg.duplicateStrategy,
         configPath: cfg.configPath,
         autoSync: cfg.autoSync,
         lastSyncAt: cfg.lastSyncAt,

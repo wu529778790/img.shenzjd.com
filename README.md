@@ -107,6 +107,22 @@ GitHub 国内访问速度较慢，内置多种 CDN 加速（上传后可在设�
 
 ---
 
+## 🤖 CLI / AI 集成（github-figure-bed skill）
+
+在终端和 AI 助手里使用同一个图床：开源技能 [github-figure-bed](https://github.com/wu529778790/shenzjd-skills/tree/main/github-figure-bed)
+支持对 AI 说一句「上传 xxx.png 到图床」秒得 CDN / Markdown 链接，也可用命令行脚本批量上传、列表、删除。
+
+```bash
+# 一键安装到 Claude Code / Cursor / Copilot 等 67+ AI 工具
+npx skills add wu529778790/shenzjd-skills -s github-figure-bed -y
+```
+
+- **配置互通**：技能读取图床仓库里的 `.img.shenzjd.com/config.json`，与本站设置面板共用同一份配置，分支/目录/CDN 自动保持一致
+- **行为一致**：重名自动改名保护（可在设置面板切换为覆盖更新）
+- **本站也有同款入口**：导航栏「CLI / AI」页面可复制安装命令、查看用法
+
+---
+
 ## 🧰 技术栈
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · shadcn/ui · Zustand · TanStack Query · [wx-auth](https://wx-auth.shenzjd.com)

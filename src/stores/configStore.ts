@@ -40,6 +40,8 @@ const defaultConfig: Config = {
   useOriginalFileName: false,
   // 默认关闭：SVG 矢量图转 WebP 会光栅化导致模糊，GIF 会丢失动画，需要时手动开启
   convertToWebp: false,
+  // 重名策略：rename = 自动加时间戳改名（保护已发布引用，与 github-figure-bed skill 一致）
+  duplicateStrategy: 'rename',
   configPath: '.img.shenzjd.com/config.json',
   autoSync: true,
 }
@@ -69,7 +71,7 @@ export const useConfigStore = create<ConfigState>()(
             'watermarkSize', 'watermarkPosition',
             'theme', 'cdn', 'useRaw', 'copyFormat',
             'autoCopyAfterUpload', 'useOriginalFileName',
-            'convertToWebp',
+            'convertToWebp', 'duplicateStrategy',
             'configPath', 'autoSync',
           ]
           const hasUserConfigChange = syncKeys.some((key) => key in updates)

@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Upload, Images, Settings } from 'lucide-react'
+import { Upload, Images, Settings, Terminal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
   { href: '/', label: '上传', icon: Upload, exact: true },
   { href: '/management', label: '图片管理', icon: Images },
+  { href: '/tools/cli', label: 'CLI / AI', icon: Terminal },
   { href: '/settings', label: '图床设置', icon: Settings },
 ]
 

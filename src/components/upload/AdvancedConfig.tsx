@@ -142,6 +142,30 @@ export function AdvancedConfig() {
             onChange={(checked) => configStore.updateConfig({ useOriginalFileName: checked })}
           />
 
+          {/* 重名策略 */}
+          {configStore.useOriginalFileName && (
+            <div className="pl-4 pr-2 py-2 flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <span className="text-xs text-muted-foreground">重名策略</span>
+                <p className="text-[11px] text-muted-foreground/70 mt-0.5">
+                  自动改名可保护已发布图片的引用不被覆盖
+                </p>
+              </div>
+              <Select
+                value={configStore.duplicateStrategy ?? 'rename'}
+                onValueChange={(value) => configStore.updateConfig({ duplicateStrategy: value as 'rename' | 'overwrite' })}
+              >
+                <SelectTrigger className="w-[110px] h-8 text-xs rounded-lg">
+                  <SelectValue placeholder="选择策略" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rename">自动改名</SelectItem>
+                  <SelectItem value="overwrite">覆盖更新</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* 上传后自动复制 */}
           <ToggleRow
             label="上传后自动复制"

@@ -147,8 +147,28 @@ export function useUpload() {
       }
       const branch = cfg.branch || 'main'
 
+      // 3.5 重名保护（与 github-figure-bed skill 行为对齐）
+      // 仅 useOriginalFileName 时需要检查（默认时间戳文件名本身不会重名）。
+      // rename（默认）：文件已存在时自动加时间戳前缀改名，避免覆盖已发布的引用；
+      // overwrite：保持原行为（GitHub 422 → 取 sha 覆盖更新）。
+      let finalFileName = fileName
+      let finalFilePath = filePath
+      if (cfg.useOriginalFileName && (cfg.duplicateStrategy ?? 'rename') === 'rename') {
+        try {
+          updateTask(taskId, { progress: 45 })
+          await api.getFile(filePath, branch)
+          // 未抛错 = 文件已存在 → 加时间戳前缀改名
+          finalFileName = `${dateStr}-${timeStr}-${rand}_${fileName}`
+          finalFilePath = cfg.directory ? `${cfg.directory}/${finalFileName}` : finalFileName
+          debugLog('[Upload] Duplicate detected, renamed to:', finalFilePath)
+          toast.info(`${file.name} 已存在，已自动改名为 ${finalFileName}`)
+        } catch {
+          // 404 = 文件不存在，正常上传
+        }
+      }
+
       const doUpload = (target: GitHubAPI) =>
-        target.createOrUpdateFile(filePath, processedFile, commitMessage, branch, onProgress)
+        target.createOrUpdateFile(finalFilePath, processedFile, commitMessage, branch, onProgress)
 
       let result
       try {
@@ -175,7 +195,7 @@ export function useUpload() {
       // 尝试验证文件是否创建成功（不阻塞流程）
       debugLog('[Upload] Attempting to verify file...')
       try {
-        await api.getFile(filePath, branch)
+        await api.getFile(finalFilePath, branch)
         debugLog('[Upload] File verified successfully')
       } catch (verifyErr) {
         // 验证失败只记录警告，不阻塞上传流程
@@ -199,10 +219,10 @@ export function useUpload() {
         owner: cred.owner,
         repo: cred.repo,
         branch,
-        path: filePath,
-        fileName: fileName,
+        path: finalFilePath,
+        fileName: finalFileName,
         useRaw: cfg.useRaw ?? true,
-        category: getFileCategory(fileName),
+        category: getFileCategory(finalFileName),
       }
 
       const link = generateLink(linkOptions)

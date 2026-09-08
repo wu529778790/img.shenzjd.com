@@ -19,6 +19,8 @@ export interface Config {
   autoCopyAfterUpload: boolean
   // 上传时使用原始文件名（关闭则用时间戳重命名）
   useOriginalFileName: boolean
+  // 重名策略：rename = 自动加时间戳改名（保护已发布引用）；overwrite = 覆盖更新
+  duplicateStrategy?: 'rename' | 'overwrite'
   // 上传时转换为 WebP 格式
   convertToWebp: boolean
   // 配置同步
