@@ -17,6 +17,7 @@
   "autoCopyAfterUpload": true,
   "useOriginalFileName": false,
   "convertToWebp": false,
+  "duplicateStrategy": "rename",
   "configPath": ".img.shenzjd.com/config.json",
   "autoSync": true,
   "lastSyncAt": "2026-09-07T15:14:51.142Z",
