@@ -241,9 +241,9 @@ export async function requestCapabilityToken(
 
 // —— 会话级缓存（仅内存） ——
 
-let setupsCache: { data: GithubSetupsResponse } | null = null
+let setupsCache: { token: string; data: GithubSetupsResponse } | null = null
 let setupsInFlight: Promise<GithubSetupsResponse> | null = null
-let tokenCache: CapabilityToken | null = null
+let tokenCache: (CapabilityToken & { wxToken: string }) | null = null
 let tokenInFlight: Promise<CapabilityToken> | null = null
 
 export function invalidateGithubStatus(): void {
@@ -258,15 +258,16 @@ export function invalidateCapabilityToken(): void {
 
 /**
  * setups 按会话缓存；skipCache 用于引导完成后强制重查。
+ * 缓存与登录 token 绑定：切换账号（cookie 变化）后自动失效，避免拿到旧账号的 GitHub 状态。
  * 并发去重：多个消费方同时首次调用时共享同一条在途请求，避免重复打接口。
  */
 export async function getGithubSetups(token: string, skipCache = false): Promise<GithubSetupsResponse> {
-  if (!skipCache && setupsCache) return setupsCache.data
+  if (!skipCache && setupsCache && setupsCache.token === token) return setupsCache.data
   if (!skipCache && setupsInFlight) return setupsInFlight
   const inFlight = fetchGithubSetups(token)
     .then((data) => {
       debugLog('[WxAuth] setups response:', data)
-      setupsCache = { data }
+      setupsCache = { token, data }
       return data
     })
     .finally(() => {
@@ -276,24 +277,30 @@ export async function getGithubSetups(token: string, skipCache = false): Promise
   return inFlight
 }
 
-/** 领取上传凭证（会话内复用，临近过期 <30min 自动重领；并发去重） */
+/**
+ * 领取上传凭证（会话内复用，临近过期 <30min 自动重领；并发去重）。
+ * 缓存与登录 token 绑定：切换账号后旧账号的 installation token 立即失效。
+ */
 export async function getCapabilityToken(
   token: string,
   capability: string = FIGUREBED_CAPABILITY
 ): Promise<CapabilityToken> {
   if (tokenCache) {
     const expiresAt = Date.parse(tokenCache.expiresAt)
-    if (Number.isFinite(expiresAt) && expiresAt - Date.now() > TOKEN_REFRESH_MARGIN_MS) {
+    if (tokenCache.wxToken !== token) {
+      tokenCache = null
+    } else if (Number.isFinite(expiresAt) && expiresAt - Date.now() > TOKEN_REFRESH_MARGIN_MS) {
       return tokenCache
+    } else {
+      tokenCache = null
     }
-    tokenCache = null
   }
   if (tokenInFlight) return tokenInFlight
   const inFlight = requestCapabilityToken(token, capability)
     .then((fresh) => {
       // 兼容 wx-auth 把 repo 下发为「owner/name」全名的情况
       const parsed = splitOwnerRepo(fresh.repo, fresh.owner)
-      tokenCache = { ...fresh, owner: parsed.owner, repo: parsed.repo }
+      tokenCache = { ...fresh, owner: parsed.owner, repo: parsed.repo, wxToken: token }
       return tokenCache
     })
     .finally(() => {

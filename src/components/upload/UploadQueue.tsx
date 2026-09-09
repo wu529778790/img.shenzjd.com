@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { CheckCircle, XCircle, Loader2, Trash2, AlertCircle, RefreshCw, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -17,6 +17,9 @@ interface UploadQueueProps {
 
 export function UploadQueue({ queue, onRemove, onRetry }: UploadQueueProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  // 倒序展示：最新添加/上传的任务排在最上面，无需刷新即可看到正在上传的项
+  const displayQueue = useMemo(() => [...queue].reverse(), [queue])
 
   const handleCopy = async (task: UploadTask) => {
     let link = task.link
@@ -48,11 +51,11 @@ export function UploadQueue({ queue, onRemove, onRetry }: UploadQueueProps) {
 
   // 计算统计信息
   const stats = {
-    total: queue.length,
-    success: queue.filter(t => t.status === 'success').length,
-    uploading: queue.filter(t => t.status === 'uploading').length,
-    error: queue.filter(t => t.status === 'error').length,
-    pending: queue.filter(t => t.status === 'pending').length,
+    total: displayQueue.length,
+    success: displayQueue.filter(t => t.status === 'success').length,
+    uploading: displayQueue.filter(t => t.status === 'uploading').length,
+    error: displayQueue.filter(t => t.status === 'error').length,
+    pending: displayQueue.filter(t => t.status === 'pending').length,
   }
 
   // 获取进度文本描述
@@ -96,7 +99,7 @@ export function UploadQueue({ queue, onRemove, onRetry }: UploadQueueProps) {
         )}
       </div>
 
-      {queue.map((task, index) => (
+      {displayQueue.map((task, index) => (
         <div
           key={task.id}
           className={cn(

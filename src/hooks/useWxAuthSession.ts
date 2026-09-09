@@ -91,6 +91,8 @@ export interface CredentialContext {
 
 let sessionState: WxAuthSession | null = null
 let sdkInitialized = false
+/** 当前会话对应的 wxauth-token：检测到 cookie token 变化（切换账号）时强制重查 */
+let sessionToken: string | undefined
 /** 上次校验失败时间：失败后 30s 内跳过被动重查，避免 focus 时刷屏报错 */
 let lastVerifyFailAt = 0
 /** 上次校验成功时间：60s 内的 focus/visibility 不重复触发 setups 查询 */
@@ -155,6 +157,7 @@ let verifyInFlight: Promise<WxAuthSession> | null = null
 async function doVerifySession(): Promise<WxAuthSession> {
   const wxToken = readTokenCookie()
   if (!wxToken) {
+    sessionToken = undefined
     applyLoggedOut()
     return sessionState!
   }
@@ -172,6 +175,7 @@ async function doVerifySession(): Promise<WxAuthSession> {
       repo: parsed?.repo,
     }
     sessionState = next
+    sessionToken = wxToken
     emit()
     lastVerifyFailAt = 0
     lastVerifyOkAt = Date.now()
@@ -421,9 +425,16 @@ export function useWxAuthSession() {
     }
 
     // 回到页面时重查登录态（site-navbar 退出后 Cookie 消失 → 清理本地状态）
-    // 节流：成功后 60s、失败后 30s 内跳过，避免 setups 被反复触发
+    // 节流：成功后 60s、失败后 30s 内跳过，避免 setups 被反复触发。
+    // 例外：cookie 里的 token 与当前会话不一致（登出/切换账号）时绕过节流强制重查，
+    // 这样无需刷新页面即可同步新账号的 GitHub 凭证。
     const reverify = () => {
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return
+      const cookieToken = readTokenCookie()
+      if (cookieToken !== sessionToken) {
+        verifySession().catch((e) => debugWarn('[WxAuth] reverify (token changed) failed:', e))
+        return
+      }
       if (Date.now() - lastVerifyFailAt < 30_000) return
       if (Date.now() - lastVerifyOkAt < 60_000) return
       verifySession().catch((e) => debugWarn('[WxAuth] reverify failed:', e))
