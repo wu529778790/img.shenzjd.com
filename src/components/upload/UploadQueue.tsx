@@ -207,10 +207,19 @@ export function UploadQueue({ queue, onRemove, onRetry }: UploadQueueProps) {
             </div>
           )}
 
-          {/* 优化：操作按钮 - 更好的悬停效果和触摸目标 */}
-          <div className="flex-shrink-0 flex gap-1.5 sm:gap-2" onClick={(e) => e.stopPropagation()}>
+          {/* 操作区：复制提示本身即点击目标；重试/删除各自阻止冒泡，避免误触卡片复制 */}
+          <div className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2">
             {task.status === 'success' && (
-              <span className="flex items-center gap-1 text-xs text-muted-foreground pt-1">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleCopy(task)
+                }}
+                aria-label={`复制 ${task.file.name} 的链接`}
+                title="复制链接"
+                className="flex items-center gap-1 text-xs text-muted-foreground px-2 py-1 rounded-md cursor-pointer transition-colors hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-700/60"
+              >
                 {copiedId === task.id ? (
                   <>
                     <Check className="h-3.5 w-3.5 text-green-500" />
@@ -222,13 +231,16 @@ export function UploadQueue({ queue, onRemove, onRetry }: UploadQueueProps) {
                     <span className="hidden sm:inline">点击复制</span>
                   </>
                 )}
-              </span>
+              </button>
             )}
             {task.status === 'error' && onRetry && (
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => onRetry(task)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onRetry(task)
+                }}
                 className="h-8 px-3 text-xs gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
@@ -239,7 +251,10 @@ export function UploadQueue({ queue, onRemove, onRetry }: UploadQueueProps) {
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => onRemove(task.id)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onRemove(task.id)
+                }}
                 aria-label={`删除 ${task.file.name}`}
                 className="h-8 w-8 p-0 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-red-950/30"
               >
