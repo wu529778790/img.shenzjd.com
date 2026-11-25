@@ -13,6 +13,7 @@ import { getFileCategory, isImage as isImageFile, shouldConvertToWebp } from '@/
 import { debugLog, debugError, debugWarn } from '@/lib/debug'
 import { ensureReady, tryGetCredential, type CredentialContext } from '@/hooks/useWxAuthSession'
 import { invalidateCapabilityToken } from '@/lib/wxauth'
+import { ensureUsableBranch, applyBranchCorrection } from '@/lib/branchGuard'
 import type { FileWithPreview, LinkOptions, UploadTask } from '@/types/image'
 
 export function useUpload() {
@@ -145,7 +146,19 @@ export function useUpload() {
         debugLog('[Progress] GitHub callback progress:', progress, '-> total:', totalProgress, 'for task:', taskId)
         updateTask(taskId, { progress: totalProgress })
       }
-      const branch = cfg.branch || 'main'
+      // 3.6 分支守卫：配置里的分支可能来自旧账号/旧仓库（例如老仓库有 master，新仓库只有 main），
+      // 分支不存在时 GitHub 的 PUT 同样返回 404，会被误判成「仓库不存在」。
+      // 这里先确认分支真实存在，不存在则回退仓库默认分支并纠正本地配置。
+      const branchResolution = await ensureUsableBranch(api, cfg.branch || 'main')
+      const branch = branchResolution.branch
+      if (branchResolution.corrected) {
+        debugWarn('[Upload] 配置分支在仓库里不存在，已自动回退:', {
+          from: cfg.branch,
+          to: branch,
+          available: branchResolution.available,
+        })
+        applyBranchCorrection(cred.owner, cred.repo, cfg.branch || '', branch)
+      }
 
       // 3.5 重名保护（与 github-figure-bed skill 行为对齐）
       // 仅 useOriginalFileName 时需要检查（默认时间戳文件名本身不会重名）。
@@ -264,12 +277,20 @@ export function useUpload() {
         status: err.response?.status,
       })
 
+      // 404 有两种语义：仓库/权限不存在，或目标分支不存在（GitHub 对两者都回 404）。
+      // 分支守卫已尽量提前纠正，这里按 GitHub 返回的 message 再区分一次，避免误导用户。
+      const detail = (err.response?.data as { message?: string } | null)?.message ?? ''
+      const branchMissing = /branch .* not ?found/i.test(detail)
+      const failMessage = err.response?.status === 404
+        ? (branchMissing
+            ? `分支「${useConfigStore.getState().branch}」不存在，请到设置页重新选择分支`
+            : '图床仓库不存在或无权访问，请重新登录并初始化')
+        : (err.message ?? 'Upload failed')
+
       updateTask(taskId, {
         status: 'error',
         progress: 0,
-        error: err.response?.status === 404
-          ? '图床仓库不存在，请重新登录并初始化'
-          : (err.message ?? 'Upload failed'),
+        error: failMessage,
       })
     }
   }, [config, updateTask, queryClient])

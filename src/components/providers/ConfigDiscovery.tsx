@@ -7,6 +7,8 @@ import { useSaveConfigToGitHub, checkGitHubConfigExists, CONFIG_BRANCH } from '@
 import { useWxAuthSession, tryGetCredential } from '@/hooks/useWxAuthSession'
 import { toast } from 'sonner'
 import { debugLog, debugError, debugWarn } from '@/lib/debug'
+import { GitHubAPI } from '@/lib/github'
+import { ensureUsableBranch, notifyBranchCorrectionOnce } from '@/lib/branchGuard'
 
 /**
  * 配置发现组件
@@ -53,6 +55,29 @@ export function ConfigDiscovery() {
         const store = configStoreRef.current
         const wasInitialized = store.configInitialized
 
+        // 远程配置里的 branch 属于用户偏好，可能来自旧账号/旧仓库（老仓库 master → 新仓库只有 main）。
+        // 应用前先确认它在目标仓库存在，不存在就纠正，避免后续上传/列表撞 404。
+        let effectiveBranch = config?.branch
+        if (config && effectiveBranch) {
+          const resolution = await ensureUsableBranch(
+            new GitHubAPI(cred.token, cred.owner, cred.repo, effectiveBranch),
+            effectiveBranch
+          )
+          if (resolution.corrected) {
+            debugWarn('[ConfigDiscovery] 远程配置分支不存在，自动纠正:', {
+              from: effectiveBranch,
+              to: resolution.branch,
+              available: resolution.available,
+            })
+            effectiveBranch = resolution.branch
+            if (notifyBranchCorrectionOnce(cred.owner, cred.repo, config.branch || '', effectiveBranch)) {
+              toast.warning(`分支「${config.branch}」在仓库里不存在，已自动切换到「${effectiveBranch}」`, {
+                duration: 6000,
+              })
+            }
+          }
+        }
+
         if (config) {
           const { _remoteUpdatedAt } = config
 
@@ -67,7 +92,7 @@ export function ConfigDiscovery() {
           // owner/repo 以 wx-auth 下发为准，只应用偏好类配置（branch 属于用户偏好，随配置同步往返）
           store.updateConfig({
             directory: config.directory || '',
-            branch: config.branch || store.branch || 'main',
+            branch: effectiveBranch || store.branch || 'main',
             compressionEnabled: config.compressionEnabled ?? false,
             compressionQuality: config.compressionQuality ?? 80,
             watermarkEnabled: config.watermarkEnabled ?? false,

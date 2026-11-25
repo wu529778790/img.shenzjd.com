@@ -7,10 +7,11 @@ import { useConfigStore } from '@/stores/configStore'
 import { GitHubAPI } from '@/lib/github'
 import { generateLink } from '@/lib/link'
 import { BULK_DELETE_CONFIG } from '@/lib/constants'
-import { debugLog, debugError } from '@/lib/debug'
+import { debugLog, debugError, debugWarn } from '@/lib/debug'
 import { getFileCategory, getExtension, ALLOWED_EXTENSIONS, parseUploadTime } from '@/lib/fileTypes'
 import { tryGetCredential, type CredentialContext } from '@/hooks/useWxAuthSession'
 import { invalidateCapabilityToken } from '@/lib/wxauth'
+import { ensureUsableBranch, applyBranchCorrection } from '@/lib/branchGuard'
 import type { ImageFile } from '@/types/image'
 
 export function useImages() {
@@ -32,7 +33,22 @@ export function useImages() {
 
       try {
       debugLog('[Images] Fetching images from GitHub API...', { owner: cred.owner, repo: cred.repo })
-      const api = new GitHubAPI(cred.token, cred.owner, cred.repo, branch)
+
+      // 分支守卫：配置里的分支可能来自旧账号/旧仓库（老仓库 master → 新仓库只有 main），
+      // 分支不存在时 tree API 同样返回 404，会被误判成「仓库已被删除」。
+      const probeApi = new GitHubAPI(cred.token, cred.owner, cred.repo, branch)
+      const resolution = await ensureUsableBranch(probeApi, branch || 'main')
+      const activeBranch = resolution.branch
+      if (resolution.corrected) {
+        debugWarn('[Images] 配置分支在仓库里不存在，已自动回退:', {
+          from: branch,
+          to: activeBranch,
+          available: resolution.available,
+        })
+        applyBranchCorrection(cred.owner, cred.repo, branch || '', activeBranch)
+      }
+
+      const api = new GitHubAPI(cred.token, cred.owner, cred.repo, activeBranch)
 
       // 使用 Git Trees API 一次性获取所有文件（仅需 1 次请求）
       const allFiles = await api.listAllFilesWithTree()
@@ -72,7 +88,7 @@ export function useImages() {
           cdn: cdn,
           owner,
           repo,
-          branch,
+          branch: activeBranch,
           path: file.path,
           fileName: file.name,
           useRaw: useRaw ?? true,
@@ -117,12 +133,39 @@ export function useImages() {
     retryDelay: 1000,
   })
 
-  // 检测仓库是否被删除：404 时清除配置并提示重新配置
+  // 检测仓库是否被删除：404 不能无脑清配置——GitHub 对「分支不存在」同样回 404，
+  // 直接清配置会让用户丢掉全部设置。先探测仓库本体确认，再决定纠正分支还是真删库。
+  const notFoundProbeRef = useRef(0)
   useEffect(() => {
-    if (error && owner && repo) {
-      const status = (error as { response?: { status?: number } })?.response?.status
-      if (status === 404) {
-        debugLog('[Images] Repo not found (404), clearing config:', `${owner}/${repo}`)
+    if (!error || !owner || !repo) return
+    const status = (error as { response?: { status?: number } })?.response?.status
+    if (status !== 404) return
+    // 防循环：探测与重查最多两轮
+    if (notFoundProbeRef.current >= 2) return
+    notFoundProbeRef.current += 1
+
+    let cancelled = false
+    ;(async () => {
+      const cred = await tryGetCredential()
+      if (!cred) return
+      const api = new GitHubAPI(cred.token, cred.owner, cred.repo, branch)
+      try {
+        await api.getRepo()
+        // 仓库存在 → 404 来自分支/路径问题：纠正分支后重查，绝不清配置
+        if (cancelled) return
+        const resolution = await ensureUsableBranch(api, branch || 'main', true)
+        debugWarn('[Images] 列表 404 但仓库存在，按分支问题处理:', {
+          branch,
+          fixed: resolution.branch,
+          available: resolution.available,
+        })
+        if (resolution.branch !== branch) {
+          useConfigStore.getState().updateConfig({ branch: resolution.branch })
+        }
+        queryClient.invalidateQueries({ queryKey: ['images'] })
+      } catch (probeErr) {
+        if (cancelled) return
+        debugLog('[Images] Repo not found (404), clearing config:', `${owner}/${repo}`, probeErr)
         configStore.resetConfig()
         localStorage.removeItem('config-storage')
         toast.warning('检测到图床仓库已被删除，请重新配置', {
@@ -130,8 +173,12 @@ export function useImages() {
           duration: 6000,
         })
       }
+    })()
+
+    return () => {
+      cancelled = true
     }
-  }, [error, owner, repo, configStore])
+  }, [error, owner, repo, branch, configStore, queryClient])
 
   debugLog('[Images Hook] Query enabled:', !!owner && !!repo, { owner, repo, branch })
 
@@ -146,6 +193,7 @@ export function useImages() {
     }
     if (!error) {
       tokenRetriedRef.current = false
+      notFoundProbeRef.current = 0
     }
   }, [error, queryClient])
 
