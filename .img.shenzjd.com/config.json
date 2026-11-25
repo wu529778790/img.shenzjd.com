@@ -1,8 +1,8 @@
 {
   "owner": "wu529778790",
   "repo": "img.shenzjd.com",
-  "branch": "master",
-  "directory": "blog",
+  "branch": "main",
+  "directory": "",
   "compressionEnabled": false,
   "compressionQuality": 80,
   "watermarkEnabled": false,
@@ -20,6 +20,6 @@
   "duplicateStrategy": "rename",
   "configPath": ".img.shenzjd.com/config.json",
   "autoSync": true,
-  "lastSyncAt": "2026-09-07T15:14:51.142Z",
-  "sha": "c9807331de4f891212d71e9c077888a7a16b7147"
+  "lastSyncAt": "2026-11-25T00:56:39.516Z",
+  "sha": "fe524b0935b4dd6ba3d8608e6f94b90020b79c4a"
 }
